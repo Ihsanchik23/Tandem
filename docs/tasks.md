@@ -22,7 +22,7 @@
 - [x] Next.js + TypeScript (strict) + Tailwind, ESLint, скрипты `lint`, `typecheck`, `test`
 - [x] Клиенты Supabase в `src/lib/supabase/` (браузер и сервер), переменные окружения в `.env.local` и `.env.example`
 - [x] `supabase init`, связка с проектом `tandem`; типы базы в `src/lib/supabase/database.types.ts` (`npm run gen:types`)
-- [ ] Деплой пустого сайта на Vercel (Sentry перенесён на день 8)
+- [x] Деплой пустого сайта на Vercel: https://tandem-brown-alpha.vercel.app (Sentry перенесён на день 8)
 
 **1.2 Первая миграция: ядро схемы** 🔴 — сделано, применено к Supabase (Франкфурт)
 - [x] `profiles` (связь с `auth.users`, `username` unique, имя, фамилия, аватар, bio, город)
