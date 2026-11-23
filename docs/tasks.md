@@ -19,9 +19,9 @@
 ## День 1 — фундамент: проект, база, права
 
 **1.1 Каркас проекта** 🟢
-- [ ] Next.js + TypeScript (strict) + Tailwind, ESLint, скрипты `lint`, `typecheck`, `test`
-- [ ] Клиенты Supabase в `src/lib/supabase/` (браузер и сервер), переменные окружения в `.env.local` и `.env.example`
-- [ ] `supabase init`, связка с проектом `tandem`
+- [x] Next.js + TypeScript (strict) + Tailwind, ESLint, скрипты `lint`, `typecheck`, `test`
+- [x] Клиенты Supabase в `src/lib/supabase/` (браузер и сервер), переменные окружения в `.env.local` и `.env.example`
+- [x] `supabase init`, связка с проектом `tandem`; типы базы в `src/lib/supabase/database.types.ts` (`npm run gen:types`)
 - [ ] Деплой пустого сайта на Vercel, подключить Sentry
 
 **1.2 Первая миграция: ядро схемы** 🔴 — сделано, применено к Supabase (Франкфурт)

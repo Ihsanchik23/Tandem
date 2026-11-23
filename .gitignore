@@ -1,10 +1,28 @@
+# зависимости
 node_modules/
+/.pnp
+.pnp.*
+
+# сборка Next.js
 .next/
 out/
+/build
+*.tsbuildinfo
+next-env.d.ts
+
+# тесты
+/coverage
+
+# переменные окружения (секреты) — в git только пример
 .env*
 !.env.example
+
+# прочее
 .vercel
 .DS_Store
+*.pem
 *.log
+
+# Supabase CLI
 supabase/.temp/
 supabase/.branches/
