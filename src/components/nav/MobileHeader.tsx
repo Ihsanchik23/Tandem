@@ -7,6 +7,7 @@ import { t } from "@/lib/i18n";
 import type { ShellData } from "@/lib/nav/shell";
 import { Avatar } from "@/components/profile/Avatar";
 import { CompanyPanel } from "./CompanyPanel";
+import { MenuIcon } from "./icons";
 import { sectionTitle } from "./titles";
 
 export const MOBILE_HEADER_H = "3.5rem";
@@ -43,9 +44,7 @@ export function MobileHeader({ data }: { data: ShellData | null }) {
           aria-expanded={open}
           className="flex h-11 w-11 items-center justify-center rounded-xl text-ink hover:bg-neutral-100"
         >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-            <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
-          </svg>
+          <MenuIcon className="h-6 w-6" />
         </button>
         <h1 className="truncate text-center text-base font-semibold text-ink">{title}</h1>
         <div className="flex justify-end">
@@ -57,21 +56,25 @@ export function MobileHeader({ data }: { data: ShellData | null }) {
         </div>
       </header>
 
-      {/* Выдвижная панель слева. Остаётся в DOM, чтобы плавно выезжать. */}
-      <div className={`fixed inset-0 z-50 md:hidden ${open ? "" : "pointer-events-none"}`} aria-hidden={!open}>
+      {/* Выдвижная панель слева. Всегда в разметке, чтобы плавно и выезжать, и уезжать. */}
+      <div
+        inert={!open}
+        aria-hidden={!open}
+        className={`fixed inset-0 z-50 transition-[visibility] duration-300 md:hidden ${open ? "visible" : "invisible"}`}
+      >
         <button
           type="button"
           aria-label={n.closeMenu}
-          tabIndex={open ? 0 : -1}
+          tabIndex={-1}
           onClick={() => setOpen(false)}
-          className={`absolute inset-0 bg-black/30 transition-opacity ${open ? "opacity-100" : "opacity-0"}`}
+          className={`absolute inset-0 bg-black/30 transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"}`}
         />
         <aside
-          className={`absolute inset-y-0 left-0 flex w-[min(20rem,85vw)] flex-col bg-white pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] transition-transform ${
+          className={`absolute inset-y-0 left-0 flex w-[min(20rem,85vw)] flex-col bg-white pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] transition-transform duration-300 ease-out ${
             open ? "translate-x-0 shadow-xl" : "-translate-x-full"
           }`}
         >
-          {data && open ? <CompanyPanel data={data} onNavigate={() => setOpen(false)} /> : null}
+          {data ? <CompanyPanel data={data} onNavigate={() => setOpen(false)} /> : null}
         </aside>
       </div>
     </>

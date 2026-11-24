@@ -25,6 +25,30 @@
   --color-background: var(--tandem-canvas);
   --color-foreground: var(--tandem-ink);
   --font-sans: var(--font-geist-sans);
+  --animate-fade-in: tandem-fade-in 200ms ease-out;
+}
+
+@keyframes tandem-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Если в системе включено «уменьшить движение» — без анимаций. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Градиентная заливка: bg-brand, при наведении — hover:bg-brand-hover. */

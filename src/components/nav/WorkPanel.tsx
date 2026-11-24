@@ -19,38 +19,45 @@ function setCollapsed(v: boolean) {
 }
 
 // Постоянная панель «Работа» на компьютере: компания, рабочие страницы, «Моя компания».
+// Сворачивается и разворачивается плавно (ширина и прозрачность).
 export function WorkPanel({ data }: { data: ShellData }) {
   const collapsed = useSyncExternalStore(subscribe, () => localStorage.getItem(KEY) === "1", () => false);
   const n = t.nav;
-
-  if (collapsed) {
-    return (
-      <div className="sticky top-0 hidden h-dvh shrink-0 bg-white p-2 md:block">
-        <button
-          type="button"
-          onClick={() => setCollapsed(false)}
-          aria-label={n.expandPanel}
-          title={n.expandPanel}
-          className="flex h-11 w-11 items-center justify-center rounded-xl text-ink hover:bg-neutral-100"
-        >
-          <PanelOpenIcon className="h-5 w-5" />
-        </button>
-      </div>
-    );
-  }
+  const btn = "absolute z-10 flex items-center justify-center rounded-xl text-ink transition-opacity duration-200 hover:bg-neutral-100";
 
   return (
-    <aside className="sticky top-0 hidden h-dvh w-72 shrink-0 flex-col bg-white md:flex">
+    <aside
+      className={`sticky top-0 hidden h-dvh shrink-0 overflow-hidden bg-white transition-[width] duration-300 ease-out md:block ${
+        collapsed ? "w-[72px]" : "w-72"
+      }`}
+    >
+      <div
+        inert={collapsed}
+        aria-hidden={collapsed}
+        className={`absolute inset-y-0 left-0 w-72 transition-opacity duration-200 ${collapsed ? "opacity-0" : "opacity-100"}`}
+      >
+        <CompanyPanel data={data} />
+      </div>
       <button
         type="button"
         onClick={() => setCollapsed(true)}
+        disabled={collapsed}
         aria-label={n.collapsePanel}
         title={n.collapsePanel}
-        className="absolute right-3 top-5 z-10 flex h-9 w-9 items-center justify-center rounded-lg text-ink hover:bg-neutral-100"
+        className={`${btn} right-3 top-5 h-9 w-9 ${collapsed ? "pointer-events-none opacity-0" : "opacity-100"}`}
       >
         <PanelCloseIcon className="h-5 w-5" />
       </button>
-      <CompanyPanel data={data} />
+      <button
+        type="button"
+        onClick={() => setCollapsed(false)}
+        disabled={!collapsed}
+        aria-label={n.expandPanel}
+        title={n.expandPanel}
+        className={`${btn} left-3.5 top-5 h-11 w-11 ${collapsed ? "opacity-100" : "pointer-events-none opacity-0"}`}
+      >
+        <PanelOpenIcon className="h-5 w-5" />
+      </button>
     </aside>
   );
 }

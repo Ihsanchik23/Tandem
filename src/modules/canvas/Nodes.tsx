@@ -4,6 +4,7 @@ import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";
 import type { Member } from "@/lib/company/queries";
 import { format, pluralRu, t } from "@/lib/i18n";
 import { Avatar } from "@/components/profile/Avatar";
+import { Collapse } from "@/components/ui/Collapse";
 import { ChevronDownIcon, PlusIcon } from "@/components/nav/icons";
 
 // Размеры карточек для раскладки (layout.ts). Высоты — с запасом, чтобы карточки не наезжали.
@@ -118,7 +119,7 @@ export function UnitNode({ data }: NodeProps<UnitNodeType>) {
           <p className="text-xs text-ink">{format(c.inBranch, { n: data.branch })}</p>
         ) : null}
 
-        {data.expanded ? (
+        <Collapse open={data.expanded}>
           <ul className="mt-1 flex flex-col">
             {data.people.map((p) => {
               const name = `${p.first_name} ${p.last_name}`.trim();
@@ -130,7 +131,7 @@ export function UnitNode({ data }: NodeProps<UnitNodeType>) {
               );
             })}
           </ul>
-        ) : null}
+        </Collapse>
       </div>
 
       {data.canEdit ? <PlusButton onClick={data.onAdd} label={format(c.addTo, { name: data.name })} /> : null}

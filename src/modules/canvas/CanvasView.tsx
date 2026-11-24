@@ -2,7 +2,7 @@
 
 import "@xyflow/react/dist/style.css";
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Background,
   BackgroundVariant,
@@ -19,6 +19,7 @@ import { format, t } from "@/lib/i18n";
 import { Avatar } from "@/components/profile/Avatar";
 import { ChevronDownIcon, FitIcon, MinusIcon, PlusIcon, UndoIcon } from "@/components/nav/icons";
 import { Button } from "@/components/ui/Button";
+import { Collapse } from "@/components/ui/Collapse";
 import { createUnit } from "./actions";
 import { layoutTree, ROOT_ID } from "./layout";
 import {
@@ -63,6 +64,19 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit }
   // Не сохраняются: после обновления страницы — автораскладка.
   const [moved, setMoved] = useState<Map<string, XYPosition>>(new Map());
   const closeSheet = useCallback(() => setSheet(null), []);
+  // Содержимое панели не пропадает, пока она плавно уезжает; потом очищается (формы начинаются заново).
+  const [lastSheet, setLastSheet] = useState<OpenSheet>(null);
+  const [seenSheet, setSeenSheet] = useState<OpenSheet>(null);
+  if (sheet !== seenSheet) {
+    setSeenSheet(sheet);
+    if (sheet) setLastSheet(sheet);
+  }
+  useEffect(() => {
+    if (sheet !== null) return;
+    const id = setTimeout(() => setLastSheet(null), 350);
+    return () => clearTimeout(id);
+  }, [sheet]);
+  const view = sheet ?? lastSheet;
   const c = t.canvas;
 
   const tree = useMemo(() => buildTree(units, unitMembers), [units, unitMembers]);
@@ -167,8 +181,18 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit }
     void rf.setCenter(0, ROOT_H / 2 + 160, { zoom: 0.85 });
   }, []);
 
-  const openUnit = sheet?.kind === "unit" ? tree.byId.get(sheet.id) : undefined;
   const parentName = (id: string | null) => (id ? tree.byId.get(id)?.name ?? "" : organization.name);
+  const openUnit = view?.kind === "unit" ? tree.byId.get(view.id) : undefined;
+  // Подразделение удалили, пока панель была открыта, — панель закрывается.
+  const sheetOpen = sheet !== null && (sheet.kind !== "unit" || !!openUnit);
+  const sheetTitle =
+    view?.kind === "unit"
+      ? openUnit?.name ?? ""
+      : view?.kind === "add"
+        ? format(c.addTo, { name: parentName(view.parentId) })
+        : view?.kind === "create"
+          ? c.addUnit
+          : "";
 
   return (
     // touch-none и overscroll-none: жесты на холсте не прокручивают страницу и не «обновляют» её на телефоне.
@@ -208,8 +232,8 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit }
         ) : null}
       </ReactFlow>
 
-      {openUnit ? (
-        <Sheet title={openUnit.name} onClose={closeSheet}>
+      <Sheet open={sheetOpen} title={sheetTitle} onClose={closeSheet}>
+        {view?.kind === "unit" && openUnit ? (
           <UnitPanel
             unit={openUnit}
             tree={tree}
@@ -217,35 +241,31 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit }
             organizationId={organization.id}
             canEdit={canEdit}
           />
-        </Sheet>
-      ) : null}
-
-      {sheet?.kind === "add" ? (
-        <Sheet title={format(c.addTo, { name: parentName(sheet.parentId) })} onClose={closeSheet}>
+        ) : null}
+        {view?.kind === "add" ? (
           <div className="flex flex-col gap-3">
-            <Button type="button" onClick={() => setSheet({ kind: "create", parentId: sheet.parentId })}>
+            <Button type="button" onClick={() => setSheet({ kind: "create", parentId: view.parentId })}>
               {c.addUnit}
             </Button>
             <Button type="button" variant="secondary" disabled>
               {c.addPage} · {c.soon}
             </Button>
           </div>
-        </Sheet>
-      ) : null}
-
-      {sheet?.kind === "create" ? (
-        <Sheet title={c.addUnit} onClose={closeSheet}>
-          <p className="mb-4 text-sm text-ink">{format(c.addTo, { name: parentName(sheet.parentId) })}</p>
-          <UnitForm
-            submitLabel={c.create}
-            pendingLabel={c.creating}
-            onSubmit={(name, address) =>
-              createUnit({ organizationId: organization.id, parentId: sheet.parentId, name, address })
-            }
-            onDone={closeSheet}
-          />
-        </Sheet>
-      ) : null}
+        ) : null}
+        {view?.kind === "create" ? (
+          <>
+            <p className="mb-4 text-sm text-ink">{format(c.addTo, { name: parentName(view.parentId) })}</p>
+            <UnitForm
+              submitLabel={c.create}
+              pendingLabel={c.creating}
+              onSubmit={(name, address) =>
+                createUnit({ organizationId: organization.id, parentId: view.parentId, name, address })
+              }
+              onDone={closeSheet}
+            />
+          </>
+        ) : null}
+      </Sheet>
     </div>
   );
 }
@@ -294,8 +314,8 @@ function UnassignedList({ people }: { people: Member[] }) {
           </span>
           <ChevronDownIcon className={`h-4 w-4 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
         </button>
-        {open ? (
-          people.length === 0 ? (
+        <Collapse open={open}>
+          {people.length === 0 ? (
             <p className="border-t border-neutral-100 px-3 py-3 text-sm text-ink">{c.unassignedEmpty}</p>
           ) : (
             <ul className="max-h-72 overflow-y-auto border-t border-neutral-100">
@@ -314,8 +334,8 @@ function UnassignedList({ people }: { people: Member[] }) {
                 );
               })}
             </ul>
-          )
-        ) : null}
+          )}
+        </Collapse>
       </div>
     </Panel>
   );

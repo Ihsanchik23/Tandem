@@ -8,7 +8,7 @@ export function FormMessage({ kind, children }: Props) {
   return (
     <p
       role={kind === "error" ? "alert" : "status"}
-      className={`rounded-xl border px-4 py-3 text-sm ${styles}`}
+      className={`animate-fade-in rounded-xl border px-4 py-3 text-sm ${styles}`}
     >
       {children}
     </p>
