@@ -1086,6 +1086,18 @@ export type Database = {
           unread_count: number
         }[]
       }
+      get_page_people: {
+        Args: { p_page: string }
+        Returns: {
+          avatar_url: string
+          first_name: string
+          last_name: string
+          position: string
+          role: Database["public"]["Enums"]["member_role"]
+          user_id: string
+          username: string
+        }[]
+      }
       get_unit_branch_summary: {
         Args: { p_unit: string }
         Returns: {

@@ -4,7 +4,7 @@
 Новые изменения схемы — только новыми файлами в `migrations/`, старые не редактировать.
 
 ## Тесты прав
-`tests/rls_test.sql` (ядро, 62), `tests/modules_test.sql` (модули, 57), `tests/rate_limit_test.sql` (лимиты, 6), `tests/column_grants_test.sql` (права на столбцы, 11), `tests/unit_branch_test.sql` (удаление ветки, 19). Всего 155 проверок.
+`tests/rls_test.sql` (ядро, 62), `tests/modules_test.sql` (модули, 57), `tests/rate_limit_test.sql` (лимиты, 6), `tests/column_grants_test.sql` (права на столбцы, 11), `tests/unit_branch_test.sql` (удаление ветки, 19), `tests/page_people_test.sql` (люди страницы, 9). Всего 164 проверки.
 На общей базе тесты можно прогнать так: `supabase db query --linked -f supabase/tests/<файл>.sql` (всё откатывается).
 Запускаются на локальной базе (`supabase start`) через psql; всё в транзакции с откатом.
 
@@ -13,7 +13,7 @@
 | Раздел | Функции |
 |---|---|
 | Компания | `create_organization`, `create_invite`, `revoke_invite`, `get_invite_preview` (без входа), `accept_invite`, `leave_organization`, `remove_member`, `set_member_role`, `set_member_position` |
-| Страницы | `create_page`, `update_page`, `update_page_scope`, `set_page_archived`, `can_access_page`, `can_manage_page` |
+| Страницы | `create_page`, `update_page`, `update_page_scope`, `set_page_archived`, `can_access_page`, `can_manage_page`, `get_page_people(p_page)` → `{user_id, first_name, last_name, username, avatar_url, position, role}` — люди с доступом к странице, по фамилии (видит тот, у кого есть доступ, и Owner/Admin; архивная — тоже; иначе `forbidden`) |
 | Задачи | `create_task`, `update_task` (с версией), `set_task_assignees` (с версией), `set_task_status`, `set_task_archived`, `add_task_comment`, `edit_task_comment`, `delete_task_comment`, `can_edit_task`, `can_work_task` |
 | Чат | `send_message` (client_id для повтора без дублей), `delete_message`, `mark_chat_read`, `get_my_chats` |
 | Отметки | `check_attendance(kind, lat, lng, accuracy_m)` → `{result, unit_name, distance_m, radius_m}` |

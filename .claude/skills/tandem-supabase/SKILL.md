@@ -85,6 +85,9 @@ description: Как фронтенд Tandem работает с готовой �
 - Комментарии: `add_task_comment`, `edit_task_comment`, `delete_task_comment`; список — `task_comments`.
 - История: `task_events`. Кнопки «Изменить»: `rpc('can_edit_task')`, статус/комментарий: `rpc('can_work_task')`.
 - Фильтр «Требуют переназначения»: `assignee_id is null`.
+- Кого можно назначить: `rpc('get_page_people', { p_page })` → люди с доступом к странице
+  (`user_id, first_name, last_name, username, avatar_url, position, role`), отсортированы по фамилии.
+  `avatar_url` и `position` могут быть `null`, хотя сгенерированные типы говорят `string`.
 
 ## Чат
 - Отправка: `send_message(p_page, p_client_id, p_body, p_reply_to)`. `p_client_id = crypto.randomUUID()`
