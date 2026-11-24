@@ -178,12 +178,14 @@ function CompanyItem({ o }: { o: CompanyRow }) {
   const members = Number(o.members_count ?? 0);
   const meta = [o.city, `${members} ${pluralRu(members, t.catalog.members)}`].filter(Boolean).join(" · ");
   return (
-    <li className="flex items-center gap-3 py-3">
-      <Avatar url={o.logo_url} name={o.name} size={48} shape="rounded" />
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-base font-medium text-neutral-900">{o.name}</p>
-        <p className="truncate text-sm text-neutral-600">{meta}</p>
-      </div>
+    <li>
+      <Link href={`/c/${o.slug}`} className="flex items-center gap-3 py-3">
+        <Avatar url={o.logo_url} name={o.name} size={48} shape="rounded" />
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-base font-medium text-neutral-900">{o.name}</span>
+          <span className="block truncate text-sm text-neutral-600">{meta}</span>
+        </span>
+      </Link>
     </li>
   );
 }

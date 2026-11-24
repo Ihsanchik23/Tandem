@@ -25,7 +25,7 @@ export async function ProfileView({ username }: Props) {
   // Места работы. В пилоте одно, но код не завязан на это правило.
   const { data: jobs } = await supabase
     .from("memberships")
-    .select("position, organizations(id, name, logo_url)")
+    .select("position, organizations(id, slug, name, logo_url)")
     .eq("user_id", profile.id);
 
   const isMe = myId === profile.id;
@@ -62,17 +62,17 @@ export async function ProfileView({ username }: Props) {
             <h2 className="text-sm font-medium text-neutral-500">{t.profile.workplace}</h2>
             {jobs.map((job) =>
               job.organizations ? (
-                // Ссылка на профиль компании появится вместе с ним (день 3).
-                <div
+                <Link
                   key={job.organizations.id}
-                  className="flex items-center gap-3 rounded-2xl border border-neutral-200 px-4 py-3"
+                  href={`/c/${job.organizations.slug}`}
+                  className="flex items-center gap-3 rounded-2xl border border-neutral-200 px-4 py-3 hover:bg-neutral-50"
                 >
                   <Avatar url={job.organizations.logo_url} name={job.organizations.name} size={44} shape="rounded" />
                   <div className="min-w-0">
                     <p className="truncate text-base font-medium text-neutral-900">{job.organizations.name}</p>
                     {job.position ? <p className="truncate text-sm text-neutral-600">{job.position}</p> : null}
                   </div>
-                </div>
+                </Link>
               ) : null,
             )}
           </section>
