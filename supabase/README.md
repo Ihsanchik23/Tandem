@@ -4,7 +4,7 @@
 Новые изменения схемы — только новыми файлами в `migrations/`, старые не редактировать.
 
 ## Тесты прав
-`tests/rls_test.sql` (ядро, 62), `tests/modules_test.sql` (модули, 57), `tests/rate_limit_test.sql` (лимиты, 6). Всего 125 проверок.
+`tests/rls_test.sql` (ядро, 62), `tests/modules_test.sql` (модули, 57), `tests/rate_limit_test.sql` (лимиты, 6), `tests/column_grants_test.sql` (права на столбцы, 11). Всего 136 проверок.
 Запускаются на локальной базе (`supabase start`) через psql; всё в транзакции с откатом.
 
 ## Серверные функции (вызов: `supabase.rpc('имя', {...})`)
@@ -20,6 +20,15 @@
 | Суперадмин | `admin_activate_subscription(user, paid_until, seats)` |
 
 Подразделения (`units`, `unit_members`) Owner и Admin меняют напрямую через таблицы — права проверяет RLS.
+
+## Что можно менять напрямую (права на столбцы, миграция `column_update_grants`)
+| Таблица | Кто (RLS) | Столбцы |
+|---|---|---|
+| `profiles` | владелец строки | `username`, `first_name`, `last_name`, `avatar_url`, `bio`, `city` |
+| `organizations` | Owner/Admin при активной подписке | `name`, `city`, `description`, `logo_url` |
+
+Остальные столбцы (`id`, `slug`, `created_by`, `created_at`, `updated_at`…) напрямую не меняются — отказ 42501.
+`anon` не может менять эти таблицы вообще. Новые столбцы по умолчанию тоже закрыты: чтобы открыть — новая миграция с `grant update (...)`.
 
 ## Коды ошибок (message) → текст в интерфейсе
 not_authenticated, forbidden, subscription_required, subscription_inactive, already_member,
