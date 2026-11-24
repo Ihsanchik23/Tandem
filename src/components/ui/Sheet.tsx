@@ -34,14 +34,16 @@ export function Sheet({
         aria-label={t.ui.close}
         onClick={onClose}
         tabIndex={-1}
-        className={`hidden flex-1 bg-black/20 transition-opacity duration-300 md:block ${open ? "opacity-100" : "opacity-0"}`}
+        // Затемнение начинается чуть позже панели — иначе фон темнеет раньше, чем видно содержимое.
+        className={`hidden flex-1 bg-black/20 transition-opacity duration-300 ease-out md:block ${open ? "opacity-100 delay-75" : "opacity-0"}`}
       />
       <section
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`flex h-full w-full flex-col bg-white transition-transform duration-300 ease-out md:w-[420px] md:shadow-xl ${
-          open ? "translate-x-0 translate-y-0" : "translate-y-full md:translate-x-full md:translate-y-0"
+        // Быстрый старт и мягкая остановка (как шторки в iOS) + проявление: содержимое видно с первых кадров.
+        className={`flex h-full w-full flex-col bg-white transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] will-change-transform md:w-[420px] md:shadow-xl ${
+          open ? "translate-x-0 translate-y-0 opacity-100" : "translate-y-full opacity-0 md:translate-x-full md:translate-y-0"
         }`}
       >
         <header className="flex items-center gap-3 px-5 py-3 pt-[calc(0.75rem+env(safe-area-inset-top))]">
