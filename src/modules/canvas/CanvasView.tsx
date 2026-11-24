@@ -17,6 +17,7 @@ import {
 import type { Member } from "@/lib/company/queries";
 import { format, t } from "@/lib/i18n";
 import { Avatar } from "@/components/profile/Avatar";
+import { ChevronDownIcon, FitIcon, MinusIcon, PlusIcon, UndoIcon } from "@/components/nav/icons";
 import { Button } from "@/components/ui/Button";
 import { createUnit } from "./actions";
 import { layoutTree, ROOT_ID } from "./layout";
@@ -258,21 +259,17 @@ function ZoomButtons({ canReset, onReset }: { canReset: boolean; onReset: () => 
   return (
     <Panel position="bottom-left" className="flex flex-col overflow-hidden rounded-xl border border-neutral-200 shadow-sm">
       <button type="button" aria-label={c.zoomIn} onClick={() => void rf.zoomIn()} className={`${btn} border-b`}>
-        +
+        <PlusIcon className="h-5 w-5" />
       </button>
       <button type="button" aria-label={c.zoomOut} onClick={() => void rf.zoomOut()} className={`${btn} border-b`}>
-        −
+        <MinusIcon className="h-5 w-5" />
       </button>
       <button type="button" aria-label={c.fit} onClick={() => void rf.fitView({ padding: 0.2, maxZoom: 1 })} className={btn}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-          <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <FitIcon className="h-5 w-5" />
       </button>
       {canReset ? (
         <button type="button" aria-label={c.resetLayout} title={c.resetLayout} onClick={onReset} className={`${btn} border-t`}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-            <path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          <UndoIcon className="h-5 w-5" />
         </button>
       ) : null}
     </Panel>
@@ -295,10 +292,7 @@ function UnassignedList({ people }: { people: Member[] }) {
           <span>
             {c.unassigned} · {people.length}
           </span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden
-            className={`transition-transform ${open ? "rotate-180" : ""}`}>
-            <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          <ChevronDownIcon className={`h-4 w-4 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
         </button>
         {open ? (
           people.length === 0 ? (

@@ -7,39 +7,26 @@ import { t } from "@/lib/i18n";
 import type { ShellData } from "@/lib/nav/shell";
 import { Avatar } from "@/components/profile/Avatar";
 import { ConfirmAction } from "@/components/ui/ConfirmAction";
-
-// Значки модулей рабочих страниц.
-function ModuleIcon({ moduleKey }: { moduleKey: string }) {
-  const p = { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, "aria-hidden": true };
-  if (moduleKey === "chat") {
-    return (
-      <svg {...p}>
-        <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z" strokeLinejoin="round" />
-      </svg>
-    );
-  }
-  return (
-    <svg {...p}>
-      <rect x="4" y="4" width="16" height="16" rx="3" />
-      <path d="m8.5 12 2.5 2.5 4.5-5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
+import { ChatPageIcon, TasksPageIcon } from "./icons";
 
 // Панель компании: компания, рабочие страницы, «Моя компания», выход.
 // На компьютере — постоянная панель в «Работе», на телефоне — выдвижное меню слева.
 export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate?: () => void }) {
   const pathname = usePathname() ?? "";
   const w = t.work;
+  // Выбранный пункт: жирный шрифт и полоска с градиентом слева.
   const item = (active: boolean) =>
-    `flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-[15px] ${
-      active ? "bg-accent/10 font-medium text-accent" : "text-ink hover:bg-neutral-100"
+    `relative flex min-h-11 items-center gap-3 rounded-xl px-3 py-2 text-base text-ink hover:bg-neutral-100 ${
+      active
+        ? "bg-neutral-100 font-semibold before:absolute before:inset-y-2 before:left-0 before:w-1 before:rounded-full before:bg-brand"
+        : ""
     }`;
+  const heading = "px-3 pb-1 text-sm font-semibold text-ink";
 
   if (!data.company) {
     return (
-      <div className="flex flex-col gap-3 p-4">
-        <p className="text-base font-medium text-ink">{w.noCompanyTitle}</p>
+      <div className="flex flex-col gap-2 p-4">
+        <p className="px-3 pb-2 text-base font-semibold text-ink">{w.noCompanyTitle}</p>
         <Link href="/search" onClick={onNavigate} className={item(false)}>
           {w.findCompany}
         </Link>
@@ -62,15 +49,15 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
       <Link
         href={`/c/${company.slug}`}
         onClick={onNavigate}
-        className="flex items-center gap-3 border-b border-neutral-200 py-4 pl-4 pr-12"
+        className="flex items-center gap-3 border-b border-neutral-200 py-5 pl-5 pr-14"
       >
-        <Avatar url={company.logoUrl} name={company.name} size={36} />
-        <span className="min-w-0 truncate text-base font-semibold text-ink">{company.name}</span>
+        <Avatar url={company.logoUrl} name={company.name} size={40} />
+        <span className="min-w-0 truncate text-lg font-semibold text-ink">{company.name}</span>
       </Link>
 
-      <nav aria-label={w.menu} className="flex flex-1 flex-col gap-5 overflow-y-auto p-3">
-        <section className="flex flex-col gap-0.5">
-          <Link href="/work" onClick={onNavigate} className="px-3 pb-1 text-xs font-medium uppercase tracking-wide text-ink hover:text-ink">
+      <nav aria-label={w.menu} className="flex flex-1 flex-col gap-7 overflow-y-auto p-4">
+        <section className="flex flex-col gap-1">
+          <Link href="/work" onClick={onNavigate} className={heading}>
             {w.menuPages}
           </Link>
           {pages.length === 0 ? (
@@ -79,17 +66,15 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
             pages.map((p) => (
               // Открытие страниц появится вместе с модулями «Задачи» и «Чат» (день 5).
               <span key={p.id} className={item(false)}>
-                <span className="text-ink">
-                  <ModuleIcon moduleKey={p.moduleKey} />
-                </span>
+                {p.moduleKey === "chat" ? <ChatPageIcon className="h-5 w-5 shrink-0" /> : <TasksPageIcon className="h-5 w-5 shrink-0" />}
                 <span className="truncate">{p.name}</span>
               </span>
             ))
           )}
         </section>
 
-        <section className="flex flex-col gap-0.5">
-          <p className="px-3 pb-1 text-xs font-medium uppercase tracking-wide text-ink">{w.menuMyCompany}</p>
+        <section className="flex flex-col gap-1">
+          <p className={heading}>{w.menuMyCompany}</p>
           {links.map((l) => (
             <Link key={l.href} href={l.href} onClick={onNavigate} className={item(pathname.startsWith(l.href))}>
               {l.label}
@@ -98,7 +83,7 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
         </section>
       </nav>
 
-      <div className="border-t border-neutral-200 p-3">
+      <div className="border-t border-neutral-200 p-4">
         {company.role === "owner" ? (
           <p className="px-1 text-sm text-ink">{w.ownerCannotLeaveHint}</p>
         ) : (

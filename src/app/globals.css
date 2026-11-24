@@ -7,9 +7,12 @@
   --tandem-accent-soft: #d86750; /* светлый акцент — редко */
   --tandem-ink: #1e1e1e; /* основной текст — весь текст чёрный */
   --tandem-canvas: #ffffff; /* фон страниц */
-  /* Градиент бренда: кнопки, логотип, выбранные элементы. */
-  --tandem-gradient: linear-gradient(135deg, #d86750 0%, #bf4a31 50%, #ae3926 100%);
-  --tandem-gradient-hover: linear-gradient(135deg, #bf4a31 0%, #ae3926 100%);
+  /* Градиент бренда: кнопки, логотип, выбранные элементы и иконки. */
+  --tandem-grad-1: #d86750;
+  --tandem-grad-2: #bf4a31;
+  --tandem-grad-3: #ae3926;
+  --tandem-gradient: linear-gradient(135deg, var(--tandem-grad-1) 0%, var(--tandem-grad-2) 50%, var(--tandem-grad-3) 100%);
+  --tandem-gradient-hover: linear-gradient(135deg, var(--tandem-grad-2) 0%, var(--tandem-grad-3) 100%);
   color-scheme: light;
 }
 

@@ -4,6 +4,7 @@ import { useSyncExternalStore } from "react";
 import { t } from "@/lib/i18n";
 import type { ShellData } from "@/lib/nav/shell";
 import { CompanyPanel } from "./CompanyPanel";
+import { PanelCloseIcon, PanelOpenIcon } from "./icons";
 
 // Свёрнута ли панель — запоминаем в браузере.
 const KEY = "tandem.workPanel.collapsed";
@@ -30,30 +31,24 @@ export function WorkPanel({ data }: { data: ShellData }) {
           onClick={() => setCollapsed(false)}
           aria-label={n.expandPanel}
           title={n.expandPanel}
-          className="flex h-10 w-10 items-center justify-center rounded-xl text-ink hover:bg-neutral-100"
+          className="flex h-11 w-11 items-center justify-center rounded-xl text-ink hover:bg-neutral-100"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-            <rect x="3" y="4" width="18" height="16" rx="2" />
-            <path d="M9 4v16M13 10l2 2-2 2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          <PanelOpenIcon className="h-5 w-5" />
         </button>
       </div>
     );
   }
 
   return (
-    <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-neutral-200 bg-white md:flex">
+    <aside className="sticky top-0 hidden h-dvh w-72 shrink-0 flex-col border-r border-neutral-200 bg-white md:flex">
       <button
         type="button"
         onClick={() => setCollapsed(true)}
         aria-label={n.collapsePanel}
         title={n.collapsePanel}
-        className="absolute right-2 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-lg text-ink hover:bg-neutral-100"
+        className="absolute right-3 top-5 z-10 flex h-9 w-9 items-center justify-center rounded-lg text-ink hover:bg-neutral-100"
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-          <rect x="3" y="4" width="18" height="16" rx="2" />
-          <path d="M9 4v16M15 10l-2 2 2 2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <PanelCloseIcon className="h-5 w-5" />
       </button>
       <CompanyPanel data={data} />
     </aside>

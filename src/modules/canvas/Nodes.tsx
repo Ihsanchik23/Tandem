@@ -4,6 +4,7 @@ import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";
 import type { Member } from "@/lib/company/queries";
 import { format, pluralRu, t } from "@/lib/i18n";
 import { Avatar } from "@/components/profile/Avatar";
+import { ChevronDownIcon, PlusIcon } from "@/components/nav/icons";
 
 // Размеры карточек для раскладки (layout.ts). Высоты — с запасом, чтобы карточки не наезжали.
 export const CARD_W = 240;
@@ -54,7 +55,7 @@ function PlusButton({ onClick, label }: { onClick: () => void; label: string }) 
       aria-label={label}
       className="nodrag absolute -bottom-4 left-1/2 flex h-8 w-8 -translate-x-1/2 items-center justify-center rounded-full border border-neutral-300 bg-white text-lg leading-none text-ink shadow-sm hover:bg-neutral-50"
     >
-      +
+      <PlusIcon className="h-4 w-4" />
     </button>
   );
 }
@@ -108,18 +109,7 @@ export function UnitNode({ data }: NodeProps<UnitNodeType>) {
             className="nodrag flex items-center gap-1 py-1 text-sm text-ink hover:text-ink"
           >
             {count}
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              aria-hidden
-              className={`transition-transform ${data.expanded ? "rotate-180" : ""}`}
-            >
-              <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <ChevronDownIcon className={`h-4 w-4 transition-transform duration-200 ${data.expanded ? "rotate-180" : ""}`} />
           </button>
         ) : (
           <p className="py-1 text-sm text-ink">{count}</p>

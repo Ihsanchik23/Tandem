@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { t } from "@/lib/i18n";
+import { ArrowRightIcon } from "@/components/nav/icons";
 import type { MyCompany } from "@/lib/company/queries";
 
 const btnPrimary =
@@ -65,10 +66,10 @@ function QuickStart() {
     <section className="flex flex-col gap-2">
       <h2 className="text-sm font-medium text-ink">{w.quickStartTitle}</h2>
       <Link href="/work/structure" className={ready}>
-        {w.quickStructure} <span aria-hidden>→</span>
+        {w.quickStructure} <ArrowRightIcon className="h-5 w-5" />
       </Link>
       <Link href="/work/people" className={ready}>
-        {w.quickInvite} <span aria-hidden>→</span>
+        {w.quickInvite} <ArrowRightIcon className="h-5 w-5" />
       </Link>
       <span className={soon}>
         {w.quickPage} <span className="text-sm">{w.soon}</span>
