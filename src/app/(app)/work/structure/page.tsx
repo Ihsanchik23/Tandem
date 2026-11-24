@@ -5,7 +5,7 @@ import { canEditCompany } from "@/lib/company/permissions";
 import { getMembers, getMyCompany } from "@/lib/company/queries";
 import { t } from "@/lib/i18n";
 import { CanvasView } from "@/modules/canvas/CanvasView";
-import { getStructure } from "@/modules/canvas/queries";
+import { getMyCanvasPositions, getStructure } from "@/modules/canvas/queries";
 import { getCompanyPages } from "@/modules/pages/queries";
 
 // «Моя компания → Структура» (Canvas). Видят все сотрудники, меняют Owner и Admin.
@@ -32,10 +32,11 @@ async function StructureContent() {
   const company = await getMyCompany(userId);
   if (!company) redirect("/work");
 
-  const [structure, people, allPages] = await Promise.all([
+  const [structure, people, allPages, positions] = await Promise.all([
     getStructure(company.org.id),
     getMembers(company.org.id),
     getCompanyPages(company.org.id, userId),
+    getMyCanvasPositions(company.org.id),
   ]);
   // На холсте — все активные страницы компании; недоступные показываются серыми с замком.
   const pages = allPages
@@ -49,6 +50,7 @@ async function StructureContent() {
       people={people}
       canEdit={canEditCompany(company.role)}
       pages={pages}
+      savedPositions={positions}
     />
   );
 }

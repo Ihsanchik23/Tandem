@@ -23,7 +23,7 @@ import { ChevronDownIcon, FitIcon, MinusIcon, PlusIcon, UndoIcon } from "@/compo
 import { Button } from "@/components/ui/Button";
 import { Collapse } from "@/components/ui/Collapse";
 import { Sheet } from "@/components/ui/Sheet";
-import { createUnit } from "./actions";
+import { createUnit, saveCanvasPositions } from "./actions";
 import { layoutTree, placeNear, ROOT_ID, type Rect } from "./layout";
 import {
   CARD_W,
@@ -48,6 +48,7 @@ type Props = {
   people: Member[];
   canEdit: boolean;
   pages?: CanvasPage[]; // активные рабочие страницы компании
+  savedPositions?: Record<string, [number, number]>; // своя расстановка из базы (canvas_prefs)
 };
 
 // Рабочая страница на холсте: стоит под своим подразделением, пунктир — ко всем, кому доступна; люди — счётчиком.
@@ -78,29 +79,34 @@ function useTouchScreen(): boolean {
   return useSyncExternalStore(subscribeCoarse, () => window.matchMedia(coarseQuery).matches, () => false);
 }
 
-// Ручная расстановка карточек — в памяти этого браузера (личная, на других не влияет).
+// Ручная расстановка карточек — личная, хранится в базе (canvas_prefs) и видна на любом устройстве.
 type Positions = Map<string, XYPosition>;
-const storageKey = (orgId: string) => `tandem.canvas.positions.${orgId}`;
-function loadPositions(orgId: string): Positions {
+const fromRecord = (raw: Record<string, [number, number]> | null | undefined): Positions =>
+  new Map(
+    Object.entries(raw ?? {})
+      .filter(([, p]) => Array.isArray(p) && Number.isFinite(p[0]) && Number.isFinite(p[1]))
+      .map(([id, [x, y]]) => [id, { x, y }]),
+  );
+const toRecord = (pos: Positions, keep: Set<string>): Record<string, [number, number]> =>
+  Object.fromEntries([...pos].filter(([id]) => keep.has(id)).map(([id, p]) => [id, [Math.round(p.x), Math.round(p.y)]]));
+
+// Раньше расстановка жила в памяти браузера — один раз переносим её в базу и очищаем.
+const legacyKey = (orgId: string) => `tandem.canvas.positions.${orgId}`;
+function readLegacyPositions(orgId: string): Positions {
   try {
-    const raw = JSON.parse(localStorage.getItem(storageKey(orgId)) ?? "{}") as Record<string, [number, number]>;
-    return new Map(
-      Object.entries(raw)
-        .filter(([, p]) => Array.isArray(p) && Number.isFinite(p[0]) && Number.isFinite(p[1]))
-        .map(([id, [x, y]]) => [id, { x, y }]),
-    );
+    return fromRecord(JSON.parse(localStorage.getItem(legacyKey(orgId)) ?? "{}"));
   } catch {
     return new Map();
   }
 }
-function savePositions(orgId: string, pos: Positions) {
+function dropLegacyPositions(orgId: string) {
   try {
-    if (pos.size === 0) localStorage.removeItem(storageKey(orgId));
-    else localStorage.setItem(storageKey(orgId), JSON.stringify(Object.fromEntries([...pos].map(([id, p]) => [id, [Math.round(p.x), Math.round(p.y)]]))));
+    localStorage.removeItem(legacyKey(orgId));
   } catch {
-    // память браузера недоступна (приватный режим) — расстановка просто не сохранится
+    // память браузера недоступна — нечего очищать
   }
 }
+const keyOf = (pos: Positions) => JSON.stringify([...pos].map(([id, p]) => [id, Math.round(p.x), Math.round(p.y)]));
 const noopSubscribe = () => () => {};
 
 // Холст рисуется только в браузере: расстановка карточек хранится в его памяти.
@@ -111,7 +117,7 @@ export function CanvasView(props: Props) {
 }
 
 // Canvas (ТЗ, раздел 10): дерево компании с перемещением и масштабом.
-function CanvasInner({ organization, units, unitMembers, people, canEdit, pages = [] }: Props) {
+function CanvasInner({ organization, units, unitMembers, people, canEdit, pages = [], savedPositions }: Props) {
   const router = useRouter();
   const params = useSearchParams();
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -129,8 +135,14 @@ function CanvasInner({ organization, units, unitMembers, people, canEdit, pages 
   // Ручная расстановка. Пусто — автораскладка. После первого перемещения руками запоминаем места ВСЕХ
   // карточек: дальше они сами не двигаются, а новые встают рядом с настоящим местом родителя.
   // «Вернуть на места» — снова автораскладка.
-  const [moved, setMoved] = useState<Positions>(() => loadPositions(organization.id));
-  useEffect(() => savePositions(organization.id, moved), [organization.id, moved]);
+  // saved — что уже лежит в базе: сохраняем, только когда расстановка правда изменилась.
+  const [initial] = useState(() => {
+    const fromDb = fromRecord(savedPositions);
+    if (fromDb.size > 0) return { pos: fromDb, saved: keyOf(fromDb) };
+    const legacy = readLegacyPositions(organization.id);
+    return { pos: legacy, saved: keyOf(new Map()) };
+  });
+  const [moved, setMoved] = useState<Positions>(initial.pos);
   const rfRef = useRef<ReactFlowInstance<CanvasNode, Edge> | null>(null);
   const touch = useTouchScreen();
   const c = t.canvas;
@@ -332,6 +344,22 @@ function CanvasInner({ organization, units, unitMembers, people, canEdit, pages 
     // Новые карточки тоже закрепляем, чтобы дальше они стояли на месте.
     if (placed.size > 0) setMoved(new Map([...moved, ...placed]));
   }
+
+  // Сохраняем расстановку в базу через секунду после последнего изменения (не на каждое движение).
+  // Храним только карточки, которые есть на холсте, — удалённые подразделения не копятся.
+  const lastSaved = useRef(initial.saved);
+  useEffect(() => {
+    const key = keyOf(moved);
+    if (key === lastSaved.current) return;
+    const ids = new Set(nodesRef.current.map((n) => n.id));
+    const id = setTimeout(async () => {
+      const res = await saveCanvasPositions(organization.id, toRecord(moved, ids));
+      if (res.error) return; // не сохранилось — попробуем при следующем изменении
+      lastSaved.current = key;
+      dropLegacyPositions(organization.id);
+    }, 1000);
+    return () => clearTimeout(id);
+  }, [moved, organization.id]);
 
   // Новая карточка появилась — плавно показываем её и коротко подсвечиваем.
   const focusNode = focusId ? nodes.find((n) => n.id === focusId) : undefined;

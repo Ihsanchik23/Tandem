@@ -10,3 +10,11 @@ export async function getStructure(orgId: string): Promise<{ units: UnitRow[]; u
   ]);
   return { units: units ?? [], unitMembers: unitMembers ?? [] };
 }
+
+// Своя расстановка карточек (RLS отдаёт только свою строку). {} — автораскладка.
+export async function getMyCanvasPositions(orgId: string): Promise<Record<string, [number, number]>> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("canvas_prefs").select("positions").eq("organization_id", orgId).maybeSingle();
+  const raw = data?.positions;
+  return raw && typeof raw === "object" && !Array.isArray(raw) ? (raw as Record<string, [number, number]>) : {};
+}

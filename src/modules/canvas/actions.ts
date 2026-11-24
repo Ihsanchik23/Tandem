@@ -117,3 +117,10 @@ export async function removeUnitMember(unitId: string, userId: string): Promise<
   if (!data || data.length === 0) return { error: "forbidden" };
   return done();
 }
+
+// Личная расстановка карточек: сохраняется целиком; {} — «вернуть на места». Страницу не перерисовываем.
+export async function saveCanvasPositions(organizationId: string, positions: Record<string, [number, number]>): Promise<UnitResult> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("save_canvas_positions", { p_org: organizationId, p_positions: positions });
+  return error ? { error: unitDbError(error) } : {};
+}
