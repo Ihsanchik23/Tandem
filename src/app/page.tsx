@@ -1,14 +1,44 @@
+import Link from "next/link";
+import { Suspense } from "react";
+import { SignOutButton } from "@/components/auth/SignOutButton";
+import { StubPage } from "@/components/layout/StubPage";
 import { t } from "@/lib/i18n";
+import { createClient } from "@/lib/supabase/server";
 
-export default function Home() {
+// «Главная» — пока заглушка (ТЗ, раздел 15). Сюда попадают после регистрации.
+export default function HomePage() {
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-12 text-center">
-      <h1 className="text-3xl font-semibold tracking-tight">{t.app.name}</h1>
-      <p className="text-lg text-neutral-700">{t.app.tagline}</p>
-      <p className="max-w-sm text-base text-neutral-500">{t.app.description}</p>
-      <p className="mt-4 rounded-xl bg-neutral-100 px-4 py-3 text-sm text-neutral-600">
-        {t.app.comingSoon}
-      </p>
-    </main>
+    <StubPage title={t.home.title}>
+      <Suspense fallback={<div className="h-7 w-48 rounded-lg bg-neutral-100" />}>
+        <Greeting />
+      </Suspense>
+      <p className="text-base text-neutral-600">{t.home.placeholder}</p>
+      <Link
+        href="/work"
+        className="inline-flex h-12 items-center justify-center rounded-xl bg-neutral-900 px-4 text-base font-medium text-white hover:bg-neutral-800"
+      >
+        {t.home.toWork}
+      </Link>
+      <SignOutButton />
+    </StubPage>
+  );
+}
+
+async function Greeting() {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+  const userId = data?.claims?.sub;
+  if (!userId) return null;
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("first_name")
+    .eq("id", userId)
+    .maybeSingle();
+  const name = profile?.first_name?.trim();
+  return (
+    <p className="text-xl text-neutral-900">
+      {t.home.greeting}
+      {name ? `, ${name}` : ""}!
+    </p>
   );
 }
