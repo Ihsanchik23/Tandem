@@ -11,9 +11,10 @@ import { getStructure } from "@/modules/canvas/queries";
 // «Моя компания → Структура» (Canvas). Видят все сотрудники, меняют Owner и Admin.
 export default function StructurePage() {
   return (
-    // Высота экрана минус нижняя панель на телефоне; на компьютере панель сбоку.
-    <main className="flex h-[calc(100dvh-4rem-env(safe-area-inset-bottom))] flex-col md:h-dvh">
-      <header className="flex items-center gap-3 border-b border-neutral-200 px-5 py-3">
+    // Телефон: экран минус шапка (3.5rem) и нижняя панель (4rem). Компьютер: весь экран.
+    <main className="flex h-[calc(100dvh-7.5rem-env(safe-area-inset-bottom)-env(safe-area-inset-top))] flex-col md:h-dvh">
+      {/* На телефоне заголовок — в общей шапке. */}
+      <header className="hidden items-center gap-3 border-b border-neutral-200 bg-white px-5 py-3 md:flex">
         <Link href="/work" className="text-base text-neutral-600 underline-offset-4 hover:underline">
           ← {t.work.title}
         </Link>

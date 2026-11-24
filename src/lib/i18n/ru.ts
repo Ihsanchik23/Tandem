@@ -72,6 +72,11 @@ export const ru = {
     work: "Работа",
     messages: "Сообщения",
     profile: "Профиль",
+    menu: "Меню компании",
+    closeMenu: "Закрыть меню",
+    collapsePanel: "Свернуть панель",
+    expandPanel: "Развернуть панель",
+    companyLogo: "Профиль компании",
   },
 
   home: {
@@ -110,6 +115,7 @@ export const ru = {
   },
 
   company: {
+    profileTitle: "Компания",
     createTitle: "Новая компания",
     createSubmit: "Создать компанию",
     creating: "Создаём…",
@@ -250,6 +256,7 @@ export const ru = {
   },
 
   profile: {
+    title: "Профиль",
     edit: "Редактировать профиль",
     workplace: "Место работы",
     notFoundTitle: "Профиль не найден",

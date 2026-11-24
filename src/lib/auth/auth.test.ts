@@ -58,3 +58,16 @@ test("prefillUrl подставляет email и адрес возврата", (
   assert.equal(prefillUrl("/login", "a@b.kz", "/invite/tok"), "/login?email=a%40b.kz&next=%2Finvite%2Ftok");
   assert.equal(prefillUrl("/forgot-password", "", null), "/forgot-password");
 });
+
+import { sectionTitle } from "../../components/nav/titles.ts";
+
+test("заголовок шапки телефона по адресу", () => {
+  assert.equal(sectionTitle("/", null), "Главная");
+  assert.equal(sectionTitle("/work", null), "Работа");
+  assert.equal(sectionTitle("/work/structure", null), "Структура");
+  assert.equal(sectionTitle("/work/people/abc", null), "Сотрудники");
+  assert.equal(sectionTitle("/c/bereke", null), "Компания");
+  assert.equal(sectionTitle("/@ivan", "ivan"), "Профиль");
+  assert.equal(sectionTitle("/@olga", "ivan"), "Профиль");
+  assert.equal(sectionTitle("/search", null), "Поиск");
+});

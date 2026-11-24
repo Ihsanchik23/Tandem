@@ -34,12 +34,16 @@ export function AppNavView({ pathname, myUsername }: Props) {
         </ul>
       </nav>
 
+      {/* Компьютер: меню свёрнуто до иконок, при наведении раскрывается с подписями поверх страницы. */}
       <nav
         aria-label={t.nav.label}
-        className="fixed inset-y-0 left-0 z-20 hidden w-56 flex-col gap-6 border-r border-neutral-200 bg-white px-3 py-6 md:flex"
+        className="group/nav fixed inset-y-0 left-0 z-40 hidden w-16 flex-col gap-6 overflow-hidden border-r border-neutral-200 bg-white px-2 py-5 transition-[width,box-shadow] duration-150 hover:w-56 hover:shadow-xl focus-within:w-56 md:flex"
       >
-        <Link href="/" className="px-3 text-xl font-semibold tracking-tight text-ink">
-          {t.app.name}
+        <Link href="/" className="flex h-9 items-center gap-3 px-2.5 text-xl font-semibold tracking-tight text-ink">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-sm text-white">T</span>
+          <span className="whitespace-nowrap opacity-0 transition-opacity group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
+            {t.app.name}
+          </span>
         </Link>
         <ul className="flex flex-col gap-1">
           {NAV_ITEMS.map(({ href, label, Icon, match }) => {
@@ -49,12 +53,15 @@ export function AppNavView({ pathname, myUsername }: Props) {
                 <Link
                   href={href}
                   aria-current={active ? "page" : undefined}
+                  aria-label={label}
                   className={`flex h-11 items-center gap-3 rounded-xl px-3 text-base ${
                     active ? "bg-accent/10 font-medium text-accent" : "text-neutral-600 hover:bg-neutral-100"
                   }`}
                 >
-                  <Icon />
-                  {label}
+                  <Icon className="shrink-0" />
+                  <span className="whitespace-nowrap opacity-0 transition-opacity group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
+                    {label}
+                  </span>
                 </Link>
               </li>
             );
