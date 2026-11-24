@@ -9,7 +9,7 @@
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "node --test \"src/**/*.test.ts\"",
-    "gen:types": "supabase gen types typescript --project-id msgsvyetosqzkkphcbkq > src/lib/supabase/database.types.ts"
+    "gen:types": "supabase gen types typescript --project-id msgsvyetosqzkkphcbkq --schema public > src/lib/supabase/database.types.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

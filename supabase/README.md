@@ -4,7 +4,7 @@
 Новые изменения схемы — только новыми файлами в `migrations/`, старые не редактировать.
 
 ## Тесты прав
-`tests/rls_test.sql` (ядро, 62 проверки) и `tests/modules_test.sql` (модули, 57 проверок).
+`tests/rls_test.sql` (ядро, 62), `tests/modules_test.sql` (модули, 57), `tests/rate_limit_test.sql` (лимиты, 6). Всего 125 проверок.
 Запускаются на локальной базе (`supabase start`) через psql; всё в транзакции с откатом.
 
 ## Серверные функции (вызов: `supabase.rpc('имя', {...})`)
@@ -26,7 +26,7 @@ not_authenticated, forbidden, subscription_required, subscription_inactive, alre
 already_member_here, not_member, owner_cannot_leave, invite_invalid, no_free_seats,
 module_unavailable, scope_required, scope_invalid, not_found, invalid_role, unit_cycle,
 page_unavailable, task_conflict, due_in_past, self_assign_forbidden, assignee_no_access,
-invalid_location.
+invalid_location, rate_limited (больше 30 сообщений или комментариев в минуту, 60 задач в час).
 
 ## Результаты GPS-отметки
 accepted, out_of_range, low_accuracy (погрешность > 100 м), no_point (у филиала не задана точка),
