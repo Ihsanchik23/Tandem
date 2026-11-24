@@ -1,0 +1,85 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { t } from "@/lib/i18n";
+import type { ErrorKey } from "@/lib/i18n/ru";
+import { Button } from "@/components/ui/Button";
+import { FormMessage } from "@/components/ui/FormMessage";
+import { Sheet } from "@/components/ui/Sheet";
+import { createTask } from "./api";
+import type { PagePerson } from "./data";
+import { joinLocalDateTime, splitLocalDateTime, validateTask, type TaskFieldErrors } from "./logic";
+import { TaskForm, type TaskFormValue } from "./TaskForm";
+
+// По умолчанию дедлайн — завтра в 18:00 по времени телефона.
+function emptyForm(): TaskFormValue {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  d.setHours(18, 0, 0, 0);
+  const { date, time } = splitLocalDateTime(d.toISOString());
+  return { title: "", description: "", dueDate: date, dueTime: time, priority: "normal", assigneeId: null, coassignees: [] };
+}
+
+export function CreateTask({
+  open,
+  pageId,
+  people,
+  me,
+  onClose,
+  onCreated,
+}: {
+  open: boolean;
+  pageId: string;
+  people: PagePerson[];
+  me: string;
+  onClose: () => void;
+  onCreated: (id: string) => void;
+}) {
+  const s = t.tasks;
+  const [form, setForm] = useState<TaskFormValue>(emptyForm);
+  const [errors, setErrors] = useState<TaskFieldErrors>({});
+  const [error, setError] = useState<ErrorKey | null>(null);
+  const [pending, start] = useTransition();
+
+  function reset() {
+    setForm(emptyForm());
+    setErrors({});
+    setError(null);
+  }
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    const dueAt = joinLocalDateTime(form.dueDate, form.dueTime);
+    const fieldErrors = validateTask({ title: form.title, description: form.description, dueAt });
+    setErrors(fieldErrors);
+    if (Object.keys(fieldErrors).length > 0) return setError("fixFields");
+    start(async () => {
+      const res = await createTask({ pageId, ...form, dueAt: dueAt! });
+      if (!res.ok) {
+        if (res.error === "dueInPast") setErrors({ due: "dueInPast" });
+        if (res.error === "selfAssignForbidden" || res.error === "assigneeNoAccess") setErrors({ assignee: res.error });
+        return setError(res.error);
+      }
+      reset();
+      onCreated(res.value);
+    });
+  }
+
+  return (
+    <Sheet
+      open={open}
+      title={s.createTitle}
+      onClose={() => {
+        if (!pending) onClose();
+      }}
+    >
+      <form onSubmit={submit} className="flex flex-col gap-4" noValidate>
+        <TaskForm value={form} onChange={setForm} people={people} me={me} mode="create" errors={errors} />
+        {error ? <FormMessage kind="error">{t.errors[error]}</FormMessage> : null}
+        <Button type="submit" pending={pending} pendingText={s.creating}>
+          {s.createSubmit}
+        </Button>
+      </form>
+    </Sheet>
+  );
+}

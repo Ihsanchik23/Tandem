@@ -5,12 +5,23 @@ import { ModuleIcon } from "./PagesList";
 import type { PageRow } from "./queries";
 
 // Экран рабочей страницы: заголовок, настройки (для тех, кто может), содержимое модуля.
-export function PageScreen({ page, canManage, children }: { page: PageRow; canManage: boolean; children?: React.ReactNode }) {
+// wide — для доски задач: три колонки на компьютере.
+export function PageScreen({
+  page,
+  canManage,
+  wide = false,
+  children,
+}: {
+  page: PageRow;
+  canManage: boolean;
+  wide?: boolean;
+  children?: React.ReactNode;
+}) {
   const p = t.pages;
   return (
     <main className="flex flex-1 flex-col px-5 pb-8 pt-5 md:pt-10">
       <MarkSeen pageId={page.id} />
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-5">
+      <div className={`mx-auto flex w-full flex-col gap-5 ${wide ? "max-w-6xl" : "max-w-3xl"}`}>
         <div className="flex items-start gap-3">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-ink">
             <ModuleIcon moduleKey={page.moduleKey} />
@@ -35,7 +46,7 @@ export function PageScreen({ page, canManage, children }: { page: PageRow; canMa
         ) : null}
         {children ?? (
           <p className="rounded-2xl border border-dashed border-neutral-300 px-4 py-8 text-center text-base text-ink">
-            {page.moduleKey === "chat" ? p.chatSoon : p.tasksSoon}
+            {p.chatSoon}
           </p>
         )}
       </div>

@@ -9,6 +9,7 @@ import { t } from "@/lib/i18n";
 import { canManagePage } from "@/modules/pages/logic";
 import { PageScreen } from "@/modules/pages/PageScreen";
 import { getPage } from "@/modules/pages/queries";
+import { TasksSection } from "@/modules/tasks/TasksSection";
 
 // Рабочая страница. Открыть можно только при доступе (page_access); иначе — понятный отказ.
 // Содержимое модуля («Задачи», «Чат») защищает RLS, здесь только показ.
@@ -39,5 +40,13 @@ async function Content({ params }: { params: PageProps<"/work/p/[id]">["params"]
       </StubPage>
     );
   }
-  return <PageScreen page={page} canManage={canManagePage(company.role, page.createdBy, userId)} />;
+  const canManage = canManagePage(company.role, page.createdBy, userId);
+  if (page.moduleKey === "tasks") {
+    return (
+      <PageScreen page={page} canManage={canManage} wide>
+        <TasksSection pageId={page.id} orgId={company.org.id} me={userId} role={company.role} pageArchived={page.archived} />
+      </PageScreen>
+    );
+  }
+  return <PageScreen page={page} canManage={canManage} />;
 }

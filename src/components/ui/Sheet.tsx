@@ -31,7 +31,7 @@ export function Sheet({
     >
       <button
         type="button"
-        aria-label={t.canvas.close}
+        aria-label={t.ui.close}
         onClick={onClose}
         tabIndex={-1}
         className={`hidden flex-1 bg-black/20 transition-opacity duration-300 md:block ${open ? "opacity-100" : "opacity-0"}`}
@@ -51,7 +51,7 @@ export function Sheet({
             onClick={onClose}
             className="h-10 rounded-xl border border-neutral-300 px-3 text-base text-ink hover:bg-neutral-50"
           >
-            {t.canvas.close}
+            {t.ui.close}
           </button>
         </header>
         <div className="flex-1 overflow-y-auto px-5 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-3">{children}</div>

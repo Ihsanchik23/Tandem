@@ -34,7 +34,7 @@ import {
   type UnitNodeType,
   PAGE_H,
 } from "./Nodes";
-import { Sheet } from "./Sheet";
+import { Sheet } from "@/components/ui/Sheet";
 import { branchPeople, buildTree, unassignedIds, type UnitMemberRow, type UnitRow } from "./tree";
 import { UnitForm } from "./UnitForm";
 import { UnitPanel } from "./UnitPanel";
