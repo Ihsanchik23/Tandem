@@ -27,7 +27,7 @@ export function WorkPanel({ data }: { data: ShellData }) {
 
   return (
     <aside
-      className={`sticky top-0 hidden h-dvh shrink-0 overflow-hidden border-r border-ink bg-white transition-[width] duration-300 ease-out md:block ${
+      className={`sticky top-0 hidden h-dvh shrink-0 overflow-hidden border-r-[0.5px] border-neutral-300 bg-white transition-[width] duration-300 ease-out md:block ${
         collapsed ? "w-[72px]" : "w-72"
       }`}
     >
