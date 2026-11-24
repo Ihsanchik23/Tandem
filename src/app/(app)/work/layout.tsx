@@ -10,7 +10,7 @@ import { getShellData } from "@/lib/nav/shell";
 export default function WorkLayout({ children }: LayoutProps<"/work">) {
   return (
     <div className="flex flex-1">
-      <Suspense fallback={<div className="hidden w-72 shrink-0 bg-white md:block" />}>
+      <Suspense fallback={<div className="hidden w-72 shrink-0 border-r border-ink bg-white md:block" />}>
         <PanelWithData />
       </Suspense>
       {/* Заголовок страницы на телефоне показывает шапка — дублирующий скрываем. */}
