@@ -3,7 +3,7 @@
 // адрес страницы (slug) ^[a-z0-9-]{3,40}$.
 import type { ErrorKey } from "../i18n/ru.ts";
 
-export const LIMITS = { name: 100, city: 60, description: 1000, slugMin: 3, slugMax: 40 } as const;
+export const LIMITS = { name: 100, city: 60, description: 1000, slugMin: 3, slugMax: 40, position: 100 } as const;
 
 export const SLUG_RE = /^[a-z0-9-]{3,40}$/;
 
@@ -70,6 +70,7 @@ export function companyDbError(error: { code?: string | null; message?: string |
     if (m.includes("name")) return { field: "name", key: "companyNameTooLong" };
     if (m.includes("city")) return { field: "city", key: "cityTooLong" };
     if (m.includes("description")) return { field: "description", key: "descriptionTooLong" };
+    if (m.includes("position")) return { key: "positionTooLong" };
     return { key: "fixFields" };
   }
   const byCode: Record<string, ErrorKey> = {
@@ -79,6 +80,13 @@ export function companyDbError(error: { code?: string | null; message?: string |
     forbidden: "forbidden",
     not_authenticated: "sessionExpired",
     rate_limited: "rateLimited",
+    invite_invalid: "inviteInvalid",
+    no_free_seats: "noFreeSeats",
+    already_member_here: "alreadyMemberHere",
+    owner_cannot_leave: "ownerCannotLeave",
+    not_member: "notMember",
+    not_found: "notFound",
+    invalid_role: "invalidRole",
   };
   return { key: byCode[m] ?? "generic" };
 }

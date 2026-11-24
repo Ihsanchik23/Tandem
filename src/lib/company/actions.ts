@@ -10,6 +10,7 @@ import type { ErrorKey } from "@/lib/i18n/ru";
 import {
   cleanCompanyInput,
   companyDbError,
+  LIMITS,
   validateCompany,
   type CompanyFieldErrors,
   type CompanyInput,
@@ -75,4 +76,110 @@ export async function updateCompany(_prev: CompanyFormState, formData: FormData)
 
   revalidatePath("/", "layout");
   redirect(`/c/${data[0]!.slug}`);
+}
+
+// ---------- Сотрудники, выход, приглашения ----------
+// Права проверяют функции базы; здесь только вызов и перевод ошибок в понятный текст.
+
+export type ActionState = { error?: ErrorKey; done?: number };
+
+function str(formData: FormData, name: string): string {
+  const v = formData.get(name);
+  return typeof v === "string" ? v.trim() : "";
+}
+
+function failed(error: { code?: string | null; message?: string | null }): ActionState {
+  return { error: companyDbError(error).key };
+}
+
+const ROLES = ["admin", "manager", "employee"] as const;
+
+export async function setMemberRole(prev: ActionState, formData: FormData): Promise<ActionState> {
+  const role = str(formData, "role");
+  if (!(ROLES as readonly string[]).includes(role)) return { error: "invalidRole" };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_member_role", {
+    p_org: str(formData, "organization_id"),
+    p_user: str(formData, "user_id"),
+    p_role: role as (typeof ROLES)[number],
+  });
+  if (error) return failed(error);
+  revalidatePath("/", "layout");
+  return { done: (prev.done ?? 0) + 1 };
+}
+
+export async function setMemberPosition(prev: ActionState, formData: FormData): Promise<ActionState> {
+  const position = str(formData, "position");
+  if (position.length > LIMITS.position) return { error: "positionTooLong" };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_member_position", {
+    p_org: str(formData, "organization_id"),
+    p_user: str(formData, "user_id"),
+    p_position: position,
+  });
+  if (error) return failed(error);
+  revalidatePath("/", "layout");
+  return { done: (prev.done ?? 0) + 1 };
+}
+
+export async function removeMember(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("remove_member", {
+    p_org: str(formData, "organization_id"),
+    p_user: str(formData, "user_id"),
+  });
+  if (error) return failed(error);
+  revalidatePath("/", "layout");
+  redirect("/work/people");
+}
+
+export async function leaveCompany(): Promise<ActionState> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("leave_organization");
+  if (error) return failed(error);
+  revalidatePath("/", "layout");
+  redirect("/work?notice=left");
+}
+
+// Новая ссылка-приглашение. У компании всегда одна действующая ссылка:
+// сначала создаём новую, и только если это удалось — отзываем все остальные действующие.
+export async function createInvite(prev: ActionState, formData: FormData): Promise<ActionState> {
+  const orgId = str(formData, "organization_id");
+  const supabase = await createClient();
+  const { data: token, error } = await supabase.rpc("create_invite", { p_org: orgId });
+  if (error || !token) return failed(error ?? {});
+
+  const { data: others, error: listErr } = await supabase
+    .from("invites")
+    .select("id")
+    .eq("organization_id", orgId)
+    .is("revoked_at", null)
+    .gt("expires_at", new Date().toISOString())
+    .neq("token", token);
+  let revokeFailed = !!listErr;
+  for (const inv of others ?? []) {
+    const { error: revErr } = await supabase.rpc("revoke_invite", { p_invite: inv.id });
+    if (revErr) revokeFailed = true;
+  }
+
+  revalidatePath("/", "layout");
+  // Новая ссылка создана в любом случае; если старую отозвать не вышло — говорим об этом.
+  return revokeFailed ? { error: "inviteOldNotRevoked", done: (prev.done ?? 0) + 1 } : { done: (prev.done ?? 0) + 1 };
+}
+
+export async function revokeInvite(prev: ActionState, formData: FormData): Promise<ActionState> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("revoke_invite", { p_invite: str(formData, "invite_id") });
+  if (error) return failed(error);
+  revalidatePath("/", "layout");
+  return { done: (prev.done ?? 0) + 1 };
+}
+
+export async function acceptInvite(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("accept_invite", { p_token: str(formData, "token") });
+  if (error?.message === "already_member_here") redirect("/work");
+  if (error) return failed(error);
+  revalidatePath("/", "layout");
+  redirect("/work?notice=joined");
 }

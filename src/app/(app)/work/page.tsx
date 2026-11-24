@@ -32,6 +32,11 @@ async function WorkContent() {
 
 async function Notice({ searchParams }: { searchParams: PageProps<"/work">["searchParams"] }) {
   const { notice } = await searchParams;
-  if (notice !== "passwordChanged") return null;
-  return <FormMessage kind="notice">{t.auth.notices.passwordChanged}</FormMessage>;
+  const texts: Record<string, string> = {
+    passwordChanged: t.auth.notices.passwordChanged,
+    joined: t.work.joinedNotice,
+    left: t.work.leftNotice,
+  };
+  const text = typeof notice === "string" ? texts[notice] : undefined;
+  return text ? <FormMessage kind="notice">{text}</FormMessage> : null;
 }

@@ -44,7 +44,7 @@ export function PeopleList({ members, unassignedIds }: Props) {
           <p className="text-sm text-amber-900">{c.unassignedHint}</p>
           <ul className="divide-y divide-amber-100">
             {free.map((m) => (
-              <MemberRow key={m.user_id} m={m} />
+              <MemberRow key={m.user_id} m={m} toCard />
             ))}
           </ul>
         </section>
@@ -57,7 +57,7 @@ export function PeopleList({ members, unassignedIds }: Props) {
           </h2>
           <ul className="divide-y divide-neutral-100">
             {found.map((m) => (
-              <MemberRow key={m.user_id} m={m} />
+              <MemberRow key={m.user_id} m={m} toCard />
             ))}
           </ul>
         </section>

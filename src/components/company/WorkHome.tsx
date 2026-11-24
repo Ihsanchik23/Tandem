@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { leaveCompany } from "@/lib/company/actions";
 import { t } from "@/lib/i18n";
 import type { MyCompany } from "@/lib/company/queries";
 import { Avatar } from "@/components/profile/Avatar";
+import { ConfirmAction } from "./ConfirmAction";
 
 const btnPrimary =
   "inline-flex h-12 items-center justify-center rounded-xl bg-neutral-900 px-4 text-base font-medium text-white hover:bg-neutral-800";
@@ -45,7 +47,7 @@ export function WorkHome({ company }: { company: MyCompany }) {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-center gap-3">
-        <CompanyMenu slug={org.slug} />
+        <CompanyMenu slug={org.slug} isOwner={company.role === "owner"} />
         <Link href={`/c/${org.slug}`} className="flex min-w-0 items-center gap-3">
           <Avatar url={org.logo_url} name={org.name} size={40} shape="rounded" />
           <span className="truncate text-xl font-semibold tracking-tight text-neutral-900">{org.name}</span>
@@ -65,7 +67,7 @@ export function WorkHome({ company }: { company: MyCompany }) {
 }
 
 // Меню компании. На телефоне — кнопка-бургер; работает без JavaScript (details/summary).
-function CompanyMenu({ slug }: { slug: string }) {
+function CompanyMenu({ slug, isOwner }: { slug: string; isOwner: boolean }) {
   const w = t.work;
   const item = "block rounded-lg px-3 py-2.5 text-base text-neutral-900 hover:bg-neutral-100";
   return (
@@ -95,6 +97,19 @@ function CompanyMenu({ slug }: { slug: string }) {
         <Link href="/work/people" className={item}>
           {w.menuPeople}
         </Link>
+        <div className="mt-2 border-t border-neutral-100 px-1 pt-3">
+          {isOwner ? (
+            <p className="px-2 pb-1 text-sm text-neutral-500">{w.ownerCannotLeaveHint}</p>
+          ) : (
+            <ConfirmAction
+              action={leaveCompany}
+              label={w.leave}
+              confirmText={w.leaveConfirm}
+              yesLabel={w.leaveYes}
+              pendingLabel={w.leaving}
+            />
+          )}
+        </div>
       </nav>
     </details>
   );
@@ -110,9 +125,12 @@ function QuickStart() {
       <span className={soon}>
         {w.quickStructure} <span className="text-sm">{w.soon}</span>
       </span>
-      <span className={soon}>
-        {w.quickInvite} <span className="text-sm">{w.soon}</span>
-      </span>
+      <Link
+        href="/work/people"
+        className="flex items-center justify-between rounded-xl border border-neutral-300 px-4 py-3 text-base font-medium text-neutral-900 hover:bg-neutral-50"
+      >
+        {w.quickInvite} <span aria-hidden>→</span>
+      </Link>
       <span className={soon}>
         {w.quickPage} <span className="text-sm">{w.soon}</span>
       </span>

@@ -1,6 +1,7 @@
 // Чтение данных компании на сервере. Права решает RLS: здесь только select.
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
+import type { InviteRow } from "./invite";
 
 export type MemberRole = Database["public"]["Enums"]["member_role"];
 
@@ -77,6 +78,43 @@ export async function getAssignedUserIds(orgId: string): Promise<Set<string>> {
   return new Set((data ?? []).map((r) => r.user_id));
 }
 
-export function canEditCompany(role: MemberRole | null | undefined): boolean {
-  return role === "owner" || role === "admin";
+export { canEditCompany } from "./permissions";
+
+// Один сотрудник компании (для карточки).
+export async function getMember(orgId: string, userId: string): Promise<Member | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("memberships")
+    .select("user_id, role, position, profiles(username, first_name, last_name, avatar_url)")
+    .eq("organization_id", orgId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (!data?.profiles) return null;
+  return { user_id: data.user_id, role: data.role, position: data.position, ...data.profiles };
+}
+
+// Действующие ссылки-приглашения. Видят только Owner и Admin (RLS invites_select).
+export async function getActiveInvites(orgId: string): Promise<InviteRow[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("invites")
+    .select("id, token, expires_at, revoked_at")
+    .eq("organization_id", orgId)
+    .is("revoked_at", null)
+    .gt("expires_at", new Date().toISOString())
+    .order("created_at", { ascending: false });
+  return data ?? [];
+}
+
+// Оплаченные места. Видит только Owner (RLS subscriptions_select); остальным — null.
+export async function getSeats(orgId: string): Promise<number | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("subscriptions")
+    .select("seats")
+    .eq("organization_id", orgId)
+    .order("paid_until", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return data?.seats ?? null;
 }
