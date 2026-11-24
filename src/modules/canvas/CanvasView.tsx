@@ -38,7 +38,7 @@ import {
   type Tint,
   type UnitNodeType,
 } from "./Nodes";
-import { branchColors, branchPeople, buildTree, pageHome, treeOrder, unassignedIds, type UnitMemberRow, type UnitRow } from "./tree";
+import { branchColors, buildTree, pageHome, treeOrder, unassignedIds, type UnitMemberRow, type UnitRow } from "./tree";
 import { UnitPanel } from "./UnitPanel";
 
 type Props = {
@@ -130,7 +130,8 @@ function CanvasInner({ organization, units, unitMembers, people, canEdit, pages 
   const [menuFor, setMenuFor] = useState<string | null>(null);
   // Новая карточка: к ней плавно переезжает экран, и она коротко подсвечивается.
   // Страница, созданная из «+», возвращает сюда с ?focus=page-<id>.
-  const [focusId, setFocusId] = useState<string | null>(() => params.get("focus"));
+  const [startFocus] = useState<string | null>(() => params.get("focus"));
+  const [focusId, setFocusId] = useState<string | null>(startFocus);
   const [highlightId, setHighlightId] = useState<string | null>(null);
   // Ручная расстановка. Пусто — автораскладка. После первого перемещения руками запоминаем места ВСЕХ
   // карточек: дальше они сами не двигаются, а новые встают рядом с настоящим местом родителя.
@@ -208,7 +209,6 @@ function CanvasInner({ organization, units, unitMembers, people, canEdit, pages 
         name: organization.name,
         logoUrl: organization.logoUrl,
         members: people.length,
-        branches: tree.children.get(null)?.length ?? 0,
       },
     };
     const unitNodes: UnitNodeType[] = units.map((u) => {
@@ -225,7 +225,6 @@ function CanvasInner({ organization, units, unitMembers, people, canEdit, pages 
           tint: colors.get(u.id) ?? null,
           head: u.head_user_id ? (peopleById.get(u.head_user_id) ?? null) : null,
           direct: direct.length,
-          branch: branchPeople(tree, u.id).size,
           people: direct.flatMap((id) => (peopleById.get(id) ? [peopleById.get(id)!] : [])),
           expanded: expanded.has(u.id),
           onToggle: () =>
@@ -395,10 +394,8 @@ function CanvasInner({ organization, units, unitMembers, people, canEdit, pages 
     }
   }, []);
 
-  // При первом открытии компания — слева вверху, дерево уходит вправо и вниз.
   const onInit = useCallback((rf: ReactFlowInstance<CanvasNode, Edge>) => {
     rfRef.current = rf;
-    void rf.setCenter(CARD_W / 2 + 280, ROOT_H / 2 + 160, { zoom: 0.85 });
   }, []);
 
   // Esc снимает выделение.
@@ -428,6 +425,10 @@ function CanvasInner({ organization, units, unitMembers, people, canEdit, pages 
         edges={edges}
         nodeTypes={nodeTypes}
         onInit={onInit}
+        // При открытии вся структура по центру экрана (крупно, но не больше 100%).
+        // Вернулись после создания страницы — вместо этого показываем новую карточку.
+        fitView={!startFocus}
+        fitViewOptions={{ padding: 0.15, maxZoom: 1, minZoom: 0.3 }}
         onNodesChange={onNodesChange}
         // Нажатие на пустое место холста закрывает меню «+».
         onPaneClick={() => setMenuFor(null)}

@@ -43,14 +43,12 @@ export type RootData = AddMenu & {
   name: string;
   logoUrl: string | null;
   members: number; // сотрудников в компании
-  branches: number; // подразделений первого уровня
 };
 export type UnitData = AddMenu & {
   name: string;
   tint: Tint;
   head: Member | null;
   direct: number;
-  branch: number;
   people: Member[];
   expanded: boolean;
   onToggle: () => void;
@@ -244,10 +242,10 @@ function AddButton({ data, tint, label, dark = false }: { data: AddMenu; tint: T
   );
 }
 
-// Карточка компании: тёмная, логотип, название, сотрудники и филиалы.
+// Карточка компании: тёмная, логотип, название, число сотрудников.
 export function RootNode({ data, selected }: NodeProps<RootNodeType>) {
   const c = t.canvas;
-  const stats = [`${data.members} ${pluralRu(data.members, c.direct)}`, `${data.branches} ${pluralRu(data.branches, c.branchForms)}`];
+  const stats = `${data.members} ${pluralRu(data.members, c.direct)}`;
   return (
     <div
       className={`relative flex flex-col items-center gap-2 rounded-3xl bg-ink px-5 pb-7 pt-5 text-center text-white shadow-[0_8px_24px_rgba(0,0,0,0.14)] ${data.highlight ? "animate-focus-pulse" : ""} ${
@@ -259,7 +257,7 @@ export function RootNode({ data, selected }: NodeProps<RootNodeType>) {
         <Avatar url={data.logoUrl} name={data.name} size={44} />
       </span>
       <p className="line-clamp-2 break-words text-base font-semibold">{data.name}</p>
-      <p className="text-xs leading-5 text-white">{stats.join(" · ")}</p>
+      <p className="text-xs leading-5 text-white">{stats}</p>
       {data.canEdit ? <AddButton data={data} tint={null} label={c.add} dark /> : null}
       <Handles />
     </div>
@@ -356,11 +354,6 @@ export function UnitNode({ data, selected }: NodeProps<UnitNodeType>) {
             <span className="pointer-events-none text-xs font-medium text-ink">{count}</span>
           )}
         </div>
-        {data.branch !== data.direct ? (
-          <p className="pointer-events-none -mt-2 text-right text-[11px]" style={{ color: v(tint, "text", "#1e1e1e") }}>
-            {format(c.inBranch, { n: data.branch })}
-          </p>
-        ) : null}
 
         <Collapse open={data.expanded}>
           <ul className="pointer-events-none flex flex-col rounded-2xl bg-white/70 px-2">
