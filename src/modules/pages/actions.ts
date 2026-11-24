@@ -19,11 +19,12 @@ export async function createPage(input: {
   name: string;
   description: string;
   selection: ScopeSelection;
+  returnToCanvas?: boolean;
 }): Promise<PageResult> {
   const fieldErrors = validatePage(input);
   if (Object.keys(fieldErrors).length > 0) return { error: "fixFields", fieldErrors };
   const supabase = await createClient();
-  const { error } = await supabase.rpc("create_page", {
+  const { data: pageId, error } = await supabase.rpc("create_page", {
     p_org: input.organizationId,
     p_module: input.module,
     p_name: input.name.trim(),
@@ -32,7 +33,9 @@ export async function createPage(input: {
   });
   if (error) return { error: pageDbError(error) };
   refresh();
-  // После создания — к списку, новая страница отмечена «Новая».
+  // Создали из «+» на «Структуре» — возвращаемся туда, холст покажет новую карточку.
+  if (input.returnToCanvas && pageId) redirect(`/work/structure?focus=page-${pageId}`);
+  // Иначе — к списку, новая страница отмечена «Новая».
   redirect("/work");
 }
 

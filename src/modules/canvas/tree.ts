@@ -5,6 +5,7 @@ export type UnitRow = {
   name: string;
   address: string | null;
   head_user_id: string | null;
+  created_at?: string; // порядок на холсте: новое — последним в ряду, соседи не перемешиваются
 };
 export type UnitMemberRow = { unit_id: string; user_id: string };
 
@@ -13,6 +14,11 @@ export type Tree = {
   children: Map<string | null, UnitRow[]>; // null — верхний уровень (под компанией)
   members: Map<string, string[]>; // прямые сотрудники подразделения
 };
+
+// Сначала созданные раньше; без даты (старые данные) — по названию.
+function byCreated(a: UnitRow, b: UnitRow): number {
+  return (a.created_at ?? "").localeCompare(b.created_at ?? "") || a.name.localeCompare(b.name, "ru");
+}
 
 export function buildTree(units: UnitRow[], unitMembers: UnitMemberRow[]): Tree {
   const byId = new Map(units.map((u) => [u.id, u]));
@@ -24,7 +30,7 @@ export function buildTree(units: UnitRow[], unitMembers: UnitMemberRow[]): Tree 
     list.push(u);
     children.set(parent, list);
   }
-  for (const list of children.values()) list.sort((a, b) => a.name.localeCompare(b.name, "ru"));
+  for (const list of children.values()) list.sort(byCreated);
 
   const members = new Map<string, string[]>();
   for (const m of unitMembers) {
@@ -81,4 +87,46 @@ export function unitPath(tree: Tree, unitId: string): string {
 export function unassignedIds(allUserIds: string[], unitMembers: UnitMemberRow[]): string[] {
   const assigned = new Set(unitMembers.map((m) => m.user_id));
   return allUserIds.filter((id) => !assigned.has(id));
+}
+
+// ---------- Цвета направлений ----------
+export const BRANCH_COLORS = 6;
+export type BranchColor = { color: number; nested: boolean }; // color — 1..6 (переменные --branch-N-* в globals.css)
+
+// Каждый филиал верхнего уровня получает свой цвет по порядку; вложенные — цвет своего филиала.
+export function branchColors(tree: Tree): Map<string, BranchColor> {
+  const result = new Map<string, BranchColor>();
+  (tree.children.get(null) ?? []).forEach((top, i) => {
+    const color = (i % BRANCH_COLORS) + 1;
+    for (const id of subtreeIds(tree, top.id)) result.set(id, { color, nested: id !== top.id });
+  });
+  return result;
+}
+
+// ---------- Где стоит карточка страницы ----------
+export type ScopeLite = { kind: "organization" | "unit" | "user"; unit_id: string | null };
+
+// Порядок подразделений «сверху вниз, слева направо», как их рисует холст.
+export function treeOrder(tree: Tree): Map<string, number> {
+  const order = new Map<string, number>();
+  const visit = (parent: string | null) => {
+    for (const u of tree.children.get(parent) ?? []) {
+      if (order.has(u.id)) continue;
+      order.set(u.id, order.size);
+      visit(u.id);
+    }
+  };
+  visit(null);
+  return order;
+}
+
+// Страница встаёт под первым подразделением из своего доступа; «вся компания» или только люди — под компанией (null).
+export function pageHome(order: Map<string, number>, scopes: ScopeLite[]): string | null {
+  if (scopes.some((s) => s.kind === "organization")) return null;
+  let best: string | null = null;
+  for (const s of scopes) {
+    if (s.kind !== "unit" || !s.unit_id || !order.has(s.unit_id)) continue;
+    if (best === null || order.get(s.unit_id)! < order.get(best)!) best = s.unit_id;
+  }
+  return best;
 }

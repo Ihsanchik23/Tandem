@@ -2,8 +2,8 @@
 
 import "@xyflow/react/dist/style.css";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Background,
   BackgroundVariant,
@@ -16,27 +16,28 @@ import {
   type XYPosition,
 } from "@xyflow/react";
 import type { Member } from "@/lib/company/queries";
-import { format, t } from "@/lib/i18n";
+import { t } from "@/lib/i18n";
 import { Avatar } from "@/components/profile/Avatar";
 import { ChevronDownIcon, FitIcon, MinusIcon, PlusIcon, UndoIcon } from "@/components/nav/icons";
 import { Button } from "@/components/ui/Button";
 import { Collapse } from "@/components/ui/Collapse";
+import { Sheet } from "@/components/ui/Sheet";
 import { createUnit } from "./actions";
 import { layoutTree, ROOT_ID } from "./layout";
 import {
   CARD_W,
   nodeTypes,
+  PAGE_H,
+  PAGE_W,
   PERSON_H,
   ROOT_H,
   UNIT_H,
-  type RootNodeType,
   type PageNodeType,
+  type RootNodeType,
+  type Tint,
   type UnitNodeType,
-  PAGE_H,
 } from "./Nodes";
-import { Sheet } from "@/components/ui/Sheet";
-import { branchPeople, buildTree, unassignedIds, type UnitMemberRow, type UnitRow } from "./tree";
-import { UnitForm } from "./UnitForm";
+import { branchColors, branchPeople, buildTree, pageHome, treeOrder, unassignedIds, type UnitMemberRow, type UnitRow } from "./tree";
 import { UnitPanel } from "./UnitPanel";
 
 type Props = {
@@ -48,79 +49,107 @@ type Props = {
   pages?: CanvasPage[]; // активные рабочие страницы компании
 };
 
-// Рабочая страница на холсте: линии к Scope (компания, подразделения), люди — счётчиком.
+// Рабочая страница на холсте: стоит под своим подразделением, пунктир — ко всем, кому доступна; люди — счётчиком.
 export type CanvasPage = {
   id: string;
   name: string;
   moduleKey: string;
   hasAccess: boolean;
+  createdAt: string;
   scopes: { kind: "organization" | "unit" | "user"; unit_id: string | null; user_id: string | null }[];
 };
 
 type CanvasNode = RootNodeType | UnitNodeType | PageNodeType;
 
-// Что открыто поверх холста.
-type OpenSheet =
-  | { kind: "unit"; id: string }
-  | { kind: "add"; parentId: string | null } // выбор: подразделение или страница
-  | { kind: "create"; parentId: string | null }
-  | null;
-
 const GAP_X = 32;
-const GAP_Y = 64;
+const GAP_Y = 72;
+const pageNodeId = (id: string) => `page-${id}`;
+const lineColor = (tint: Tint | undefined) => (tint ? `var(--branch-${tint.color}-line)` : "#a3a3a3");
 
 // Canvas (ТЗ, раздел 10): дерево компании с перемещением и масштабом.
 export function CanvasView({ organization, units, unitMembers, people, canEdit, pages = [] }: Props) {
   const router = useRouter();
+  const params = useSearchParams();
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const [sheet, setSheet] = useState<OpenSheet>(null);
+  // Открытая панель подразделения.
+  const [openUnitId, setOpenUnitId] = useState<string | null>(null);
+  // Содержимое панели не пропадает, пока она плавно уезжает.
+  const [shownUnitId, setShownUnitId] = useState<string | null>(null);
+  if (openUnitId && openUnitId !== shownUnitId) setShownUnitId(openUnitId);
+  // У какой карточки открыто меню «+» (одно на холст).
+  const [menuFor, setMenuFor] = useState<string | null>(null);
+  // Новая карточка: к ней плавно переезжает экран, и она коротко подсвечивается.
+  // Страница, созданная из «+», возвращает сюда с ?focus=page-<id>.
+  const [focusId, setFocusId] = useState<string | null>(() => params.get("focus"));
+  const [highlightId, setHighlightId] = useState<string | null>(null);
   // Карточки, которые передвинули руками (запоминаем, когда палец/мышь отпущены).
   // Не сохраняются: после обновления страницы — автораскладка.
   const [moved, setMoved] = useState<Map<string, XYPosition>>(new Map());
-  const closeSheet = useCallback(() => setSheet(null), []);
-  // Содержимое панели не пропадает, пока она плавно уезжает; потом очищается (формы начинаются заново).
-  const [lastSheet, setLastSheet] = useState<OpenSheet>(null);
-  const [seenSheet, setSeenSheet] = useState<OpenSheet>(null);
-  if (sheet !== seenSheet) {
-    setSeenSheet(sheet);
-    if (sheet) setLastSheet(sheet);
-  }
-  useEffect(() => {
-    if (sheet !== null) return;
-    const id = setTimeout(() => setLastSheet(null), 350);
-    return () => clearTimeout(id);
-  }, [sheet]);
-  const view = sheet ?? lastSheet;
+  const rfRef = useRef<ReactFlowInstance<CanvasNode, Edge> | null>(null);
   const c = t.canvas;
 
   const tree = useMemo(() => buildTree(units, unitMembers), [units, unitMembers]);
+  const colors = useMemo(() => branchColors(tree), [tree]);
   const peopleById = useMemo(() => new Map(people.map((p) => [p.user_id, p])), [people]);
   const unassigned = useMemo(() => {
     const ids = new Set(unassignedIds(people.map((p) => p.user_id), unitMembers));
     return people.filter((p) => ids.has(p.user_id));
   }, [people, unitMembers]);
 
+  const onCreateUnit = useCallback(
+    async (parentId: string | null, name: string) => {
+      const res = await createUnit({ organizationId: organization.id, parentId, name, address: "" });
+      if (res.id) setFocusId(res.id);
+      return res;
+    },
+    [organization.id],
+  );
+
   const { layoutNodes, edges } = useMemo(() => {
-    const kids = (id: string) => (tree.children.get(id === ROOT_ID ? null : id) ?? []).map((u) => u.id);
+    const order = treeOrder(tree);
+    // Страницы — дети своего подразделения (или компании): раскладка сама раздвигает соседей.
+    const pagesAt = new Map<string, CanvasPage[]>();
+    for (const pg of [...pages].sort((a, b) => a.createdAt.localeCompare(b.createdAt))) {
+      const home = pageHome(order, pg.scopes) ?? ROOT_ID;
+      pagesAt.set(home, [...(pagesAt.get(home) ?? []), pg]);
+    }
+    const pageTint = (pg: CanvasPage): Tint => {
+      const home = pageHome(order, pg.scopes);
+      return home ? (colors.get(home) ?? null) : null;
+    };
+    const kids = (id: string) => [
+      ...(id.startsWith("page-") ? [] : (tree.children.get(id === ROOT_ID ? null : id) ?? []).map((u) => u.id)),
+      ...(pagesAt.get(id) ?? []).map((pg) => pageNodeId(pg.id)),
+    ];
     const height = (id: string) => {
       if (id === ROOT_ID) return ROOT_H;
+      if (id.startsWith("page-")) return PAGE_H;
       const n = tree.members.get(id)?.length ?? 0;
-      return UNIT_H + (expanded.has(id) ? n * PERSON_H : 0);
+      return UNIT_H + (expanded.has(id) ? n * PERSON_H + 8 : 0);
     };
-    const points = layoutTree({ children: kids, height, width: CARD_W, gapX: GAP_X, gapY: GAP_Y });
+    const width = (id: string) => (id.startsWith("page-") ? PAGE_W : CARD_W);
+    const points = layoutTree({ children: kids, height, width, gapX: GAP_X, gapY: GAP_Y });
+
+    const menu = (id: string, pageHref: string) => ({
+      canEdit,
+      menuOpen: menuFor === id,
+      onMenu: (open: boolean) => setMenuFor((cur) => (open ? id : cur === id ? null : cur)),
+      onCreateUnit: (name: string) => onCreateUnit(id === ROOT_ID ? null : id, name),
+      pageHref,
+      highlight: highlightId === id,
+    });
 
     const rootNode: RootNodeType = {
       id: ROOT_ID,
       type: "root",
       position: points.get(ROOT_ID) ?? { x: 0, y: 0 },
+      zIndex: menuFor === ROOT_ID ? 1000 : 0,
       data: {
+        ...menu(ROOT_ID, "/work/pages/new?scope=organization&from=canvas"),
         name: organization.name,
         logoUrl: organization.logoUrl,
         members: people.length,
         branches: tree.children.get(null)?.length ?? 0,
-        units: units.length,
-        canEdit,
-        onAdd: () => setSheet({ kind: "add", parentId: null }),
       },
     };
     const unitNodes: UnitNodeType[] = units.map((u) => {
@@ -129,14 +158,16 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit, 
         id: u.id,
         type: "unit",
         position: points.get(u.id) ?? { x: 0, y: 0 },
+        zIndex: menuFor === u.id ? 1000 : 0,
         data: {
+          ...menu(u.id, `/work/pages/new?unit=${u.id}&from=canvas`),
           name: u.name,
-          head: u.head_user_id ? peopleById.get(u.head_user_id) ?? null : null,
+          tint: colors.get(u.id) ?? null,
+          head: u.head_user_id ? (peopleById.get(u.head_user_id) ?? null) : null,
           direct: direct.length,
           branch: branchPeople(tree, u.id).size,
           people: direct.flatMap((id) => (peopleById.get(id) ? [peopleById.get(id)!] : [])),
           expanded: expanded.has(u.id),
-          canEdit,
           onToggle: () =>
             setExpanded((s) => {
               const next = new Set(s);
@@ -144,8 +175,10 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit, 
               else next.add(u.id);
               return next;
             }),
-          onOpen: () => setSheet({ kind: "unit", id: u.id }),
-          onAdd: () => setSheet({ kind: "add", parentId: u.id }),
+          onOpen: () => {
+            setMenuFor(null);
+            setOpenUnitId(u.id);
+          },
         },
       };
     });
@@ -154,46 +187,48 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit, 
       source: u.parent_id && tree.byId.has(u.parent_id) ? u.parent_id : ROOT_ID,
       target: u.id,
       type: "default", // плавная кривая, как связи в Figma
-      style: { stroke: "#a3a3a3", strokeWidth: 1.5 },
+      style: { stroke: lineColor(colors.get(u.id)), strokeWidth: 2 },
     }));
-    // Рабочие страницы — столбцом справа от дерева, пунктир к тем, кому они доступны.
-    let right = (points.get(ROOT_ID)?.x ?? 0) + CARD_W;
-    for (const pt of points.values()) right = Math.max(right, pt.x + CARD_W);
-    const pageNodes: PageNodeType[] = pages.map((pg, i) => ({
-      id: `page-${pg.id}`,
+    const pageNodes: PageNodeType[] = pages.map((pg) => ({
+      id: pageNodeId(pg.id),
       type: "page",
-      position: { x: right + 120, y: i * (PAGE_H + 16) },
+      position: points.get(pageNodeId(pg.id)) ?? { x: 0, y: 0 },
       data: {
         name: pg.name,
         moduleKey: pg.moduleKey,
+        tint: pageTint(pg),
         locked: !pg.hasAccess,
         extraPeople: pg.scopes.filter((s) => s.kind === "user").length,
+        highlight: highlightId === pageNodeId(pg.id),
         onOpen: () => router.push(`/work/p/${pg.id}`),
       },
     }));
+    // Пунктир от каждого, кому доступна страница (компания, подразделения).
     for (const pg of pages) {
+      const sources = new Set<string>();
       for (const s of pg.scopes) {
-        const source = s.kind === "organization" ? ROOT_ID : s.kind === "unit" && s.unit_id && tree.byId.has(s.unit_id) ? s.unit_id : null;
-        if (!source) continue;
+        if (s.kind === "organization") sources.add(ROOT_ID);
+        else if (s.kind === "unit" && s.unit_id && tree.byId.has(s.unit_id)) sources.add(s.unit_id);
+      }
+      // Страница только для отдельных людей — линия к компании, под которой она стоит.
+      if (sources.size === 0) sources.add(ROOT_ID);
+      for (const source of sources) {
         edgeList.push({
           id: `p-${pg.id}-${source}`,
           source,
-          sourceHandle: "r",
-          target: `page-${pg.id}`,
-          targetHandle: "l",
+          target: pageNodeId(pg.id),
           type: "default",
           style: {
-            stroke: pg.hasAccess ? "var(--tandem-accent)" : "#a3a3a3",
-            strokeWidth: 1.25,
+            stroke: pg.hasAccess ? lineColor(source === ROOT_ID ? undefined : colors.get(source)) : "#d4d4d4",
+            strokeWidth: 1.5,
             strokeDasharray: "6 5",
-            opacity: 0.7,
           },
         });
       }
     }
     const all: CanvasNode[] = [rootNode, ...unitNodes, ...pageNodes];
     return { layoutNodes: all, edges: edgeList };
-  }, [tree, units, people.length, peopleById, expanded, canEdit, organization.name, organization.logoUrl, pages, router]);
+  }, [tree, colors, units, people.length, peopleById, expanded, canEdit, organization.name, organization.logoUrl, pages, router, menuFor, highlightId, onCreateUnit]);
 
   // Состояние карточек ведёт сам холст (рекомендованная схема React Flow): во время перетаскивания
   // меняется только передвигаемая карточка, а размеры, которые React Flow измерил, не теряются.
@@ -212,6 +247,26 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit, 
     });
   }
 
+  // Новая карточка появилась — плавно показываем её и коротко подсвечиваем.
+  const focusNode = focusId ? nodes.find((n) => n.id === focusId) : undefined;
+  useEffect(() => {
+    if (!focusNode || !rfRef.current) return;
+    const rf = rfRef.current;
+    const w = focusNode.measured?.width ?? (focusNode.type === "page" ? PAGE_W : CARD_W);
+    const h = focusNode.measured?.height ?? (focusNode.type === "page" ? PAGE_H : UNIT_H);
+    void rf.setCenter(focusNode.position.x + w / 2, focusNode.position.y + h / 2, { zoom: Math.max(rf.getZoom(), 0.8), duration: 500 });
+    const id = focusNode.id;
+    const show = setTimeout(() => {
+      setFocusId(null);
+      setHighlightId(id);
+    }, 0);
+    const hide = setTimeout(() => setHighlightId((cur) => (cur === id ? null : cur)), 2000);
+    return () => {
+      clearTimeout(show);
+      clearTimeout(hide);
+    };
+  }, [focusNode]);
+
   const onNodesChange: OnNodesChange<CanvasNode> = useCallback((changes) => {
     setNodes((nds) => changes.applyTo(nds));
     // Конец перетаскивания — запоминаем позицию (одно обновление вместо обновления на каждый кадр).
@@ -227,21 +282,14 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit, 
 
   // При первом открытии компания — по центру экрана по горизонтали, дерево ниже.
   const onInit = useCallback((rf: ReactFlowInstance<CanvasNode, Edge>) => {
+    rfRef.current = rf;
     void rf.setCenter(0, ROOT_H / 2 + 160, { zoom: 0.85 });
   }, []);
 
-  const parentName = (id: string | null) => (id ? tree.byId.get(id)?.name ?? "" : organization.name);
-  const openUnit = view?.kind === "unit" ? tree.byId.get(view.id) : undefined;
+  const openUnit = shownUnitId ? tree.byId.get(shownUnitId) : undefined;
   // Подразделение удалили, пока панель была открыта, — панель закрывается.
-  const sheetOpen = sheet !== null && (sheet.kind !== "unit" || !!openUnit);
-  const sheetTitle =
-    view?.kind === "unit"
-      ? openUnit?.name ?? ""
-      : view?.kind === "add"
-        ? format(c.addTo, { name: parentName(view.parentId) })
-        : view?.kind === "create"
-          ? c.addUnit
-          : "";
+  const sheetOpen = openUnitId !== null && !!tree.byId.get(openUnitId);
+  const closeSheet = useCallback(() => setOpenUnitId(null), []);
 
   return (
     // touch-none и overscroll-none: жесты на холсте не прокручивают страницу и не «обновляют» её на телефоне.
@@ -253,6 +301,8 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit, 
         nodeTypes={nodeTypes}
         onInit={onInit}
         onNodesChange={onNodesChange}
+        // Нажатие на пустое место холста закрывает меню «+».
+        onPaneClick={() => setMenuFor(null)}
         // Перетаскивать карточки можно; короткое касание — это нажатие, а не перетаскивание.
         nodesDraggable
         nodeDragThreshold={8}
@@ -265,14 +315,15 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit, 
       >
         {/* Фон «в точку», как блокнот. */}
         <Background variant={BackgroundVariant.Dots} gap={20} size={1.5} color="#cfc8c0" />
-        <UnassignedList people={unassigned} />
+        {/* «Нераспределённые» видят только Owner и Admin — те, кто распределяет людей. */}
+        {canEdit ? <UnassignedList people={unassigned} /> : null}
         <ZoomButtons canReset={moved.size > 0} onReset={() => setMoved(new Map())} />
         {units.length === 0 ? (
           <Panel position="bottom-center" className="mb-6! w-[calc(100%-2rem)] max-w-sm">
             <div className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-4 text-center shadow-sm">
               <p className="text-base text-ink">{canEdit ? c.emptyEditor : c.emptyViewer}</p>
               {canEdit ? (
-                <Button type="button" onClick={() => setSheet({ kind: "create", parentId: null })}>
+                <Button type="button" onClick={() => setMenuFor(ROOT_ID)}>
                   {c.createFirst}
                 </Button>
               ) : null}
@@ -281,41 +332,9 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit, 
         ) : null}
       </ReactFlow>
 
-      <Sheet open={sheetOpen} title={sheetTitle} onClose={closeSheet}>
-        {view?.kind === "unit" && openUnit ? (
-          <UnitPanel
-            unit={openUnit}
-            tree={tree}
-            people={peopleById}
-            organizationId={organization.id}
-            canEdit={canEdit}
-          />
-        ) : null}
-        {view?.kind === "add" ? (
-          <div className="flex flex-col gap-3">
-            <Button type="button" onClick={() => setSheet({ kind: "create", parentId: view.parentId })}>
-              {c.addUnit}
-            </Button>
-            <Link
-              href={view.parentId ? `/work/pages/new?unit=${view.parentId}` : "/work/pages/new?scope=organization"}
-              className="inline-flex h-12 w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-base font-medium text-ink hover:bg-neutral-50"
-            >
-              {c.addPage}
-            </Link>
-          </div>
-        ) : null}
-        {view?.kind === "create" ? (
-          <>
-            <p className="mb-4 text-sm text-ink">{format(c.addTo, { name: parentName(view.parentId) })}</p>
-            <UnitForm
-              submitLabel={c.create}
-              pendingLabel={c.creating}
-              onSubmit={(name, address) =>
-                createUnit({ organizationId: organization.id, parentId: view.parentId, name, address })
-              }
-              onDone={closeSheet}
-            />
-          </>
+      <Sheet open={sheetOpen} title={openUnit?.name ?? ""} onClose={closeSheet}>
+        {openUnit ? (
+          <UnitPanel unit={openUnit} tree={tree} people={peopleById} organizationId={organization.id} canEdit={canEdit} />
         ) : null}
       </Sheet>
     </div>

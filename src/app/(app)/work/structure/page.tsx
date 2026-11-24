@@ -40,7 +40,7 @@ async function StructureContent() {
   // На холсте — все активные страницы компании; недоступные показываются серыми с замком.
   const pages = allPages
     .filter((p) => !p.archived)
-    .map((p) => ({ id: p.id, name: p.name, moduleKey: p.moduleKey, hasAccess: p.hasAccess, scopes: p.scopes }));
+    .map((p) => ({ id: p.id, name: p.name, moduleKey: p.moduleKey, hasAccess: p.hasAccess, createdAt: p.createdAt, scopes: p.scopes }));
   return (
     <CanvasView
       organization={{ id: company.org.id, name: company.org.name, logoUrl: company.org.logo_url }}

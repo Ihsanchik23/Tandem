@@ -18,6 +18,7 @@ type CreateProps = {
   organizationId: string;
   options: ScopeOptions;
   initialSelection: ScopeSelection;
+  returnToCanvas?: boolean;
 };
 type EditProps = { mode: "edit"; pageId: string; initial: { name: string; description: string } };
 
@@ -50,7 +51,7 @@ export function PageForm(props: CreateProps | EditProps) {
     if (Object.keys(found).length > 0) return;
     start(async () => {
       const res = isCreate
-        ? await createPage({ organizationId: props.organizationId, module, name, description, selection })
+        ? await createPage({ organizationId: props.organizationId, module, name, description, selection, returnToCanvas: props.returnToCanvas })
         : await updatePage(props.pageId, name, description);
       setErrors(res.fieldErrors ?? {});
       setFormError(res.error && !res.fieldErrors ? res.error : null);

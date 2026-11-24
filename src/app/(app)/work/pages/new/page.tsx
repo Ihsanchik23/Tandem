@@ -28,10 +28,19 @@ async function NewPageContent({ searchParams }: { searchParams: PageProps<"/work
   if (!company) redirect("/work");
   if (!canCreatePage(company.role)) redirect("/work");
 
-  const [{ unit, scope }, options] = await Promise.all([searchParams, getScopeOptions(company.org.id, userId, company.role)]);
+  const [{ unit, scope, from }, options] = await Promise.all([searchParams, getScopeOptions(company.org.id, userId, company.role)]);
   let initial: ScopeSelection = options.allowOrganization ? { ...EMPTY_SELECTION, organization: true } : EMPTY_SELECTION;
   if (typeof unit === "string" && options.units.some((u) => u.id === unit)) initial = { ...EMPTY_SELECTION, units: [unit] };
   else if (scope === "organization" && options.allowOrganization) initial = { ...EMPTY_SELECTION, organization: true };
 
-  return <PageForm mode="create" organizationId={company.org.id} options={options} initialSelection={initial} />;
+  // Создают из «+» на «Структуре» — после создания возвращаемся туда и показываем новую карточку.
+  return (
+    <PageForm
+      mode="create"
+      organizationId={company.org.id}
+      options={options}
+      initialSelection={initial}
+      returnToCanvas={from === "canvas"}
+    />
+  );
 }

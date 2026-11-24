@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { branchPeople, buildTree, moveTargets, subtreeIds, unassignedIds, unitPath, type UnitRow } from "./tree.ts";
+import { branchColors, branchPeople, buildTree, moveTargets, pageHome, subtreeIds, treeOrder, unassignedIds, unitPath, type UnitRow } from "./tree.ts";
 import { layoutTree, ROOT_ID } from "./layout.ts";
 import { unitDbError, validateUnit } from "./errors.ts";
 
@@ -15,7 +15,7 @@ const members = [
   { unit_id: "b", user_id: "petr" },
 ];
 
-test("дерево: дети по алфавиту, прямые сотрудники", () => {
+test("дерево: без даты создания — по алфавиту, прямые сотрудники", () => {
   const tree = buildTree(units, members);
   assert.deepEqual(tree.children.get(null)!.map((x) => x.id), ["a", "b"]);
   assert.deepEqual(tree.children.get("a")!.map((x) => x.id), ["k", "s"]);
@@ -92,4 +92,40 @@ test("удаление ветки: без людей и страниц — ср�
     "1 сотрудник попадёт в «Нераспределённые».",
   ]);
   assert.deepEqual(confirmLines({ units: 5, members: 1, unassigned: 0, pages: 0, toArchive: 0 }), ["В ветке 5 подразделений."]);
+});
+
+test("порядок по дате создания: новое — последним в ряду", () => {
+  const rows = [
+    { ...u("z", null, "Я-филиал"), created_at: "2026-11-01T00:00:00Z" },
+    { ...u("y", null, "А-филиал"), created_at: "2026-11-02T00:00:00Z" },
+  ];
+  assert.deepEqual(buildTree(rows, []).children.get(null)!.map((x) => x.id), ["z", "y"]);
+});
+
+test("цвет направления: у каждого филиала свой, вложенные — цвет филиала", () => {
+  const tree = buildTree(units, members);
+  const colors = branchColors(tree);
+  assert.deepEqual(colors.get("a"), { color: 1, nested: false });
+  assert.deepEqual(colors.get("b"), { color: 2, nested: false });
+  assert.deepEqual(colors.get("s"), { color: 1, nested: true });
+  const many = buildTree(Array.from({ length: 7 }, (_, i) => u(`t${i}`, null, `Ф${i}`)), []);
+  assert.equal(branchColors(many).get("t6")!.color, 1, "после шести цветов — по кругу");
+});
+
+test("страница стоит под первым подразделением из доступа, иначе под компанией", () => {
+  const order = treeOrder(buildTree(units, members));
+  assert.equal(pageHome(order, [{ kind: "unit", unit_id: "b" }, { kind: "unit", unit_id: "s" }]), "s", "Склад (в ветке А) левее Филиала Б");
+  assert.equal(pageHome(order, [{ kind: "organization", unit_id: null }]), null);
+  assert.equal(pageHome(order, [{ kind: "user", unit_id: null }]), null);
+  assert.equal(pageHome(order, [{ kind: "unit", unit_id: "удалено" }]), null);
+});
+
+test("раскладка с карточками разной ширины: дети не наезжают друг на друга", () => {
+  const kids: Record<string, string[]> = { [ROOT_ID]: ["a", "p"], a: [], p: [] };
+  const w = (id: string) => (id === "p" ? 100 : 200);
+  const pts = layoutTree({ children: (id) => kids[id] ?? [], height: () => 50, width: w, gapX: 20, gapY: 30 });
+  const a = pts.get("a")!;
+  const p = pts.get("p")!;
+  assert.equal(p.x - (a.x + 200), 20, "между карточками ровно gapX");
+  assert.equal(a.y, p.y);
 });

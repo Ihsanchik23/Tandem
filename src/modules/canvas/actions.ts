@@ -24,18 +24,23 @@ export async function createUnit(input: {
   parentId: string | null;
   name: string;
   address: string;
-}): Promise<UnitResult> {
+}): Promise<UnitResult & { id?: string }> {
   const invalid = validateUnit(input.name, input.address);
   if (invalid) return { error: invalid };
   const supabase = await createClient();
-  const { error } = await supabase.from("units").insert({
-    organization_id: input.organizationId,
-    parent_id: input.parentId,
-    name: input.name.trim(),
-    address: input.address.trim() || null,
-  });
+  const { data, error } = await supabase
+    .from("units")
+    .insert({
+      organization_id: input.organizationId,
+      parent_id: input.parentId,
+      name: input.name.trim(),
+      address: input.address.trim() || null,
+    })
+    .select("id")
+    .single();
   if (error) return { error: unitDbError(error) };
-  return done();
+  // id — чтобы холст сразу показал новую карточку.
+  return { ...done(), id: data.id };
 }
 
 async function updateUnitRow(

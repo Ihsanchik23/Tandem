@@ -45,7 +45,8 @@ async function PeopleContent() {
           seats={seats !== null ? { used: members.length, total: seats } : null}
         />
       ) : null}
-      <PeopleList members={members} unassignedIds={unassignedIds} />
+      {/* «Нераспределённые» видят только Owner и Admin — те, кто распределяет людей по подразделениям. */}
+      <PeopleList members={members} unassignedIds={canInvite ? unassignedIds : []} />
     </div>
   );
 }

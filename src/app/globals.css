@@ -14,6 +14,16 @@
   --tandem-gradient: linear-gradient(135deg, var(--tandem-grad-1) 0%, var(--tandem-grad-2) 50%, var(--tandem-grad-3) 100%);
   --tandem-gradient-hover: linear-gradient(135deg, var(--tandem-grad-2) 0%, var(--tandem-grad-3) 100%);
   color-scheme: light;
+
+  /* Цвета направлений на «Структуре»: у каждого филиала верхнего уровня свой.
+     bg — карточка, soft — вложенные подразделения, line — линии, strong — кнопки и значки,
+     text — подписи на цветном фоне (контраст не ниже 4.5:1), chip — аватары без фото. */
+  --branch-1-bg: #ebe6ff; --branch-1-soft: #f4f1ff; --branch-1-line: #8f7fe0; --branch-1-strong: #5b4bc4; --branch-1-text: #45399b; --branch-1-chip: #c9bfff;
+  --branch-2-bg: #dcf3e6; --branch-2-soft: #edf9f2; --branch-2-line: #3f9c6d; --branch-2-strong: #2f7d57; --branch-2-text: #22613f; --branch-2-chip: #b5e3c9;
+  --branch-3-bg: #ffe6d8; --branch-3-soft: #fff2ea; --branch-3-line: #d77a4a; --branch-3-strong: #b4532a; --branch-3-text: #8f3f1c; --branch-3-chip: #ffc9ad;
+  --branch-4-bg: #deedff; --branch-4-soft: #eef6ff; --branch-4-line: #5b93d6; --branch-4-strong: #2c6bb0; --branch-4-text: #22558c; --branch-4-chip: #bcd8fb;
+  --branch-5-bg: #fff4c7; --branch-5-soft: #fffae3; --branch-5-line: #c9a227; --branch-5-strong: #8a6d00; --branch-5-text: #665000; --branch-5-chip: #f5e08a;
+  --branch-6-bg: #ffe3ef; --branch-6-soft: #fff1f7; --branch-6-line: #d9709c; --branch-6-strong: #b03f70; --branch-6-text: #8c2f57; --branch-6-chip: #fbc2da;
 }
 
 @theme inline {
@@ -26,6 +36,7 @@
   --color-foreground: var(--tandem-ink);
   --font-sans: var(--font-geist-sans);
   --animate-fade-in: tandem-fade-in 200ms ease-out;
+  --animate-focus-pulse: tandem-focus-pulse 1.8s ease-out 1;
 }
 
 @keyframes tandem-fade-in {
@@ -36,6 +47,19 @@
   to {
     opacity: 1;
     transform: none;
+  }
+}
+
+/* Новая карточка на «Структуре»: короткая подсветка, чтобы её было видно. */
+@keyframes tandem-focus-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(191, 74, 49, 0.55);
+  }
+  60% {
+    box-shadow: 0 0 0 14px rgba(191, 74, 49, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(191, 74, 49, 0);
   }
 }
 
