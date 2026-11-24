@@ -23,10 +23,11 @@ export function AppNavView({ pathname, myUsername }: Props) {
                 <Link
                   href={href}
                   aria-current={active ? "page" : undefined}
-                  className="flex h-16 flex-col items-center justify-center gap-1 text-ink"
+                  // Только значки, без подписей; название раздела — для экранного диктора.
+                  aria-label={label}
+                  className="flex h-16 items-center justify-center text-ink"
                 >
-                  <Icon active={active} className="h-[26px] w-[26px]" />
-                  <span className={`text-[11px] leading-none ${active ? "font-semibold" : "font-medium"}`}>{label}</span>
+                  <Icon active={active} className="h-7 w-7" />
                 </Link>
               </li>
             );
