@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { ErrorKey } from "@/lib/i18n/ru";
 import { authErrorKey } from "./errors";
 import { AFTER_LOGIN_PATH, AFTER_SIGNUP_PATH, safeNext } from "./redirect";
+import { isAlreadyRegistered } from "./signup";
 
 export type AuthFormState = {
   error?: ErrorKey;
@@ -62,7 +63,7 @@ export async function signUp(_prev: AuthFormState, formData: FormData): Promise<
   if (password.length < MIN_PASSWORD) return { error: "passwordTooShort", values };
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -73,8 +74,11 @@ export async function signUp(_prev: AuthFormState, formData: FormData): Promise<
   });
   if (error) return { error: authErrorKey(error), values };
 
-  // Если email уже занят, Supabase не сообщает об этом (защита от перебора адресов) —
-  // показываем тот же экран «Проверьте почту».
+  // Адрес уже зарегистрирован и подтверждён — говорим об этом прямо в форме.
+  // Осознанное решение для закрытого пилота: так можно проверить, занят ли адрес
+  // (см. docs/handoff.md). Не подтверждённый адрес — Supabase сам шлёт письмо ещё раз.
+  if (isAlreadyRegistered(data.user)) return { error: "emailTaken", values };
+
   redirect(checkEmailUrl("signup", email, next));
 }
 

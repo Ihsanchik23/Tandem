@@ -22,7 +22,8 @@ export function LoginForm() {
   const noticeKey = params.get("notice");
   const notice = noticeKey && noticeKey in NOTICES ? NOTICES[noticeKey as keyof typeof NOTICES] : null;
   const error = state.error ? t.errors[state.error] : errorFromParam(params.get("error"));
-  const email = state.values?.email ?? "";
+  // Email из формы после ошибки или из адреса (?email=, например со страницы регистрации).
+  const email = state.values?.email ?? params.get("email") ?? "";
 
   return (
     <>

@@ -15,7 +15,8 @@ export function ForgotPasswordForm() {
   const params = useSearchParams();
   const [state, action, pending] = useActionState<AuthFormState, FormData>(requestPasswordReset, {});
   const error = state.error ? t.errors[state.error] : errorFromParam(params.get("error"));
-  const email = state.values?.email ?? "";
+  // Email из формы после ошибки или из адреса (?email=, например со страницы регистрации).
+  const email = state.values?.email ?? params.get("email") ?? "";
 
   return (
     <>

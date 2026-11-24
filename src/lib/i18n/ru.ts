@@ -146,6 +146,7 @@ export const ru = {
     passwordTooShort: "Пароль должен быть не меньше 8 символов",
     passwordsDontMatch: "Пароли не совпадают",
     invalidCredentials: "Неверный email или пароль",
+    emailTaken: "Этот email уже зарегистрирован",
     emailNotConfirmed: "Email ещё не подтверждён. Откройте письмо и нажмите на ссылку",
     weakPassword: "Пароль слишком простой. Придумайте пароль подлиннее",
     samePassword: "Новый пароль совпадает со старым",

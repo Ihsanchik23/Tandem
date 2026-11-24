@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { safeNext, isPublicPath, withNext } from "./redirect.ts";
 import { authErrorKey } from "./errors.ts";
+import { isAlreadyRegistered, prefillUrl } from "./signup.ts";
 
 test("safeNext пропускает внутренние адреса", () => {
   assert.equal(safeNext("/invite/abc123"), "/invite/abc123");
@@ -41,4 +42,19 @@ test("ошибки Supabase Auth переводятся в понятные те
   assert.equal(authErrorKey({ status: 429 }), "rateLimited");
   assert.equal(authErrorKey({ code: "что-то_новое", status: 500 }), "generic");
   assert.equal(authErrorKey(null), "generic");
+});
+
+test("регистрация: подтверждённый адрес распознаётся по пустому identities", () => {
+  assert.equal(isAlreadyRegistered({ identities: [] }), true);
+  // не подтверждённый адрес или новый пользователь — Supabase шлёт письмо, ведём на «Проверьте почту»
+  assert.equal(isAlreadyRegistered({ identities: [{ id: "x" }] }), false);
+  assert.equal(isAlreadyRegistered({ identities: null }), false);
+  assert.equal(isAlreadyRegistered({}), false);
+  assert.equal(isAlreadyRegistered(null), false);
+});
+
+test("prefillUrl подставляет email и адрес возврата", () => {
+  assert.equal(prefillUrl("/login", "a+b@mail.ru", null), "/login?email=a%2Bb%40mail.ru");
+  assert.equal(prefillUrl("/login", "a@b.kz", "/invite/tok"), "/login?email=a%40b.kz&next=%2Finvite%2Ftok");
+  assert.equal(prefillUrl("/forgot-password", "", null), "/forgot-password");
 });

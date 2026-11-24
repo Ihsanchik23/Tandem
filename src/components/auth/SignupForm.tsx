@@ -5,6 +5,7 @@ import { useActionState } from "react";
 import { useSearchParams } from "next/navigation";
 import { signUp, type AuthFormState } from "@/lib/auth/actions";
 import { safeNext, withNext } from "@/lib/auth/redirect";
+import { prefillUrl } from "@/lib/auth/signup";
 import { t } from "@/lib/i18n";
 import { Button } from "@/components/ui/Button";
 import { FormMessage } from "@/components/ui/FormMessage";
@@ -21,7 +22,23 @@ export function SignupForm() {
   return (
     <>
       <AuthHeader title={t.auth.signup.title} subtitle={t.auth.signup.subtitle} />
-      {state.error ? <FormMessage kind="error">{t.errors[state.error]}</FormMessage> : null}
+      {state.error ? (
+        <FormMessage kind="error">
+          {t.errors[state.error]}
+          {state.error === "emailTaken" ? (
+            <>
+              {". "}
+              <Link href={prefillUrl("/login", v.email ?? "", next)} className="font-medium underline">
+                {t.auth.signup.toLogin}
+              </Link>
+              {" · "}
+              <Link href={prefillUrl("/forgot-password", v.email ?? "", null)} className="font-medium underline">
+                {t.auth.login.forgot}
+              </Link>
+            </>
+          ) : null}
+        </FormMessage>
+      ) : null}
 
       <form action={action} className="flex flex-col gap-4" noValidate key={k}>
         {next ? <input type="hidden" name="next" value={next} /> : null}
