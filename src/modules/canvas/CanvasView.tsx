@@ -156,13 +156,26 @@ function CanvasInner({ organization, units, unitMembers, people, canEdit, pages 
     return people.filter((p) => ids.has(p.user_id));
   }, [people, unitMembers]);
 
+  // Карточки на холсте (собираются ниже из раскладки и расстановки); ссылка — для обработчиков.
+  const [nodes, setNodes] = useState<CanvasNode[]>([]);
+  const nodesRef = useRef(nodes);
+  useEffect(() => {
+    nodesRef.current = nodes;
+  }, [nodes]);
+
+  // Перед созданием запоминаем текущую схему: новая карточка встанет рядом с родителем,
+  // а остальные не сдвинутся (иначе автораскладка переставила бы соседей).
+  const pinLayout = useCallback(() => {
+    setMoved((m) => (m.size > 0 ? m : new Map(nodesRef.current.map((n) => [n.id, n.position]))));
+  }, []);
   const onCreateUnit = useCallback(
     async (parentId: string | null, name: string) => {
+      pinLayout();
       const res = await createUnit({ organizationId: organization.id, parentId, name, address: "" });
       if (res.id) setFocusId(res.id);
       return res;
     },
-    [organization.id],
+    [organization.id, pinLayout],
   );
 
   const { layoutNodes, edges, parentOf } = useMemo(() => {
@@ -195,6 +208,7 @@ function CanvasInner({ organization, units, unitMembers, people, canEdit, pages 
       menuOpen: menuFor === id,
       onMenu: (open: boolean) => setMenuFor((cur) => (open ? id : cur === id ? null : cur)),
       onCreateUnit: (name: string) => onCreateUnit(id === ROOT_ID ? null : id, name),
+      onPickPage: pinLayout,
       pageHref,
       highlight: highlightId === id,
     });
@@ -293,16 +307,13 @@ function CanvasInner({ organization, units, unitMembers, people, canEdit, pages 
     for (const u of units) parentOf.set(u.id, u.parent_id && tree.byId.has(u.parent_id) ? u.parent_id : ROOT_ID);
     for (const pg of pages) parentOf.set(pageNodeId(pg.id), pageHome(order, pg.scopes) ?? ROOT_ID);
     return { layoutNodes: all, edges: edgeList, parentOf };
-  }, [tree, colors, units, people.length, peopleById, expanded, canEdit, organization.name, organization.logoUrl, pages, router, menuFor, highlightId, onCreateUnit]);
+  }, [tree, colors, units, people.length, peopleById, expanded, canEdit, organization.name, organization.logoUrl, pages, router, menuFor, highlightId, onCreateUnit, pinLayout]);
 
   // Состояние карточек ведёт сам холст (рекомендованная схема React Flow): во время перетаскивания
   // меняется только передвигаемая карточка, а размеры, которые React Flow измерил, не теряются.
-  const [nodes, setNodes] = useState<CanvasNode[]>(layoutNodes);
-  const nodesRef = useRef(nodes);
-  useEffect(() => {
-    nodesRef.current = nodes;
-  }, [nodes]);
-  const [synced, setSynced] = useState({ layoutNodes, moved });
+  // Первая отрисовка тоже проходит через сборку ниже — сразу с расстановкой человека,
+  // а не сначала по автораскладке (иначе схема «прыгала» при первом движении).
+  const [synced, setSynced] = useState<{ layoutNodes: CanvasNode[] | null; moved: Positions | null }>({ layoutNodes: null, moved: null });
   if (synced.layoutNodes !== layoutNodes || synced.moved !== moved) {
     // Данные или расстановка изменились — пересобираем карточки, сохраняя размеры и выделение.
     setSynced({ layoutNodes, moved });
@@ -347,18 +358,26 @@ function CanvasInner({ organization, units, unitMembers, people, canEdit, pages 
   // Сохраняем расстановку в базу через секунду после последнего изменения (не на каждое движение).
   // Храним только карточки, которые есть на холсте, — удалённые подразделения не копятся.
   const lastSaved = useRef(initial.saved);
+  // Не успели сохранить, а человек ушёл со «Структуры» (например, создавать страницу) — дописываем при уходе.
+  const pending = useRef<{ key: string; positions: Record<string, [number, number]> } | null>(null);
+  const flush = useCallback(async () => {
+    const job = pending.current;
+    if (!job) return;
+    pending.current = null;
+    const res = await saveCanvasPositions(organization.id, job.positions);
+    if (res.error) return; // не сохранилось — попробуем при следующем изменении
+    lastSaved.current = job.key;
+    dropLegacyPositions(organization.id);
+  }, [organization.id]);
   useEffect(() => {
     const key = keyOf(moved);
     if (key === lastSaved.current) return;
     const ids = new Set(nodesRef.current.map((n) => n.id));
-    const id = setTimeout(async () => {
-      const res = await saveCanvasPositions(organization.id, toRecord(moved, ids));
-      if (res.error) return; // не сохранилось — попробуем при следующем изменении
-      lastSaved.current = key;
-      dropLegacyPositions(organization.id);
-    }, 1000);
+    pending.current = { key, positions: toRecord(moved, ids.size > 0 ? ids : new Set(moved.keys())) };
+    const id = setTimeout(() => void flush(), 1000);
     return () => clearTimeout(id);
-  }, [moved, organization.id]);
+  }, [moved, flush]);
+  useEffect(() => () => void flush(), [flush]);
 
   // Новая карточка появилась — плавно показываем её и коротко подсвечиваем.
   const focusNode = focusId ? nodes.find((n) => n.id === focusId) : undefined;

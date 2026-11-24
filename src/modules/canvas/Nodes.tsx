@@ -35,6 +35,7 @@ type AddMenu = {
   menuOpen: boolean;
   onMenu: (open: boolean) => void;
   onCreateUnit: (name: string) => Promise<CreateUnitResult>;
+  onPickPage: () => void; // перед уходом создавать страницу — запомнить текущую схему
   pageHref: string;
   highlight: boolean; // только что созданная карточка — короткая подсветка
 };
@@ -206,7 +207,11 @@ function AddButton({ data, tint, label, dark = false }: { data: AddMenu; tint: T
                 <UnitIcon className="h-[18px] w-[18px]" />
                 {c.menuUnit}
               </button>
-              <Link href={data.pageHref} className="flex h-11 items-center gap-2.5 rounded-xl px-3 text-sm font-medium text-ink hover:bg-neutral-100">
+              <Link
+                href={data.pageHref}
+                onClick={data.onPickPage}
+                className="flex h-11 items-center gap-2.5 rounded-xl px-3 text-sm font-medium text-ink hover:bg-neutral-100"
+              >
                 <PageIcon className="h-[18px] w-[18px]" />
                 {c.menuPage}
               </Link>

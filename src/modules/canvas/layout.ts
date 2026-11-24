@@ -1,9 +1,7 @@
 // Своя раскладка дерева по уровням (без библиотек): у каждого подразделения один родитель.
 // Карточки могут быть разной ширины (подразделения и страницы): width — число или функция.
-// Ширина ветки = сумма ширин дочерних веток. Дерево растёт вправо от левого края:
-// родитель стоит над своим первым ребёнком, компания — в точке (0, 0).
-// Так новое подразделение сдвигает только ветки правее себя, и только если ему не хватает места;
-// карточки левее и выше не двигаются (при центрировании сдвигалось всё дерево).
+// Ширина ветки = сумма ширин дочерних веток; родитель стоит по центру над детьми, компания — по центру (x = 0).
+// Чтобы при добавлении карточки соседи не прыгали, холст сначала запоминает расстановку (placeNear ниже).
 // Высота уровня = самая высокая карточка на этом уровне (раскрытый список людей делает карточку выше).
 export const ROOT_ID = "root";
 
@@ -41,19 +39,22 @@ export function layoutTree({ children, height, width: w, gapX, gapY }: LayoutInp
   levelHeight.forEach((h, d) => (levelY[d] = d === 0 ? 0 : levelY[d - 1]! + levelHeight[d - 1]! + gapY));
 
   const points = new Map<string, Point>();
-  // left — левый край ветки; узел стоит у левого края, дети — подряд слева направо.
+  // left — левый край ветки; узел ставим по центру своей ветки, дети — по центру под ним.
   function place(id: string, left: number, seen: Set<string>) {
     if (seen.has(id)) return;
     seen.add(id);
-    points.set(id, { x: left, y: levelY[depthOf.get(id) ?? 0] ?? 0 });
+    const span = spans.get(id) ?? width(id);
+    points.set(id, { x: left + span / 2 - width(id) / 2, y: levelY[depthOf.get(id) ?? 0] ?? 0 });
     const kids = children(id);
-    let x = left;
+    const kidsWidth = kids.reduce((acc, k) => acc + (spans.get(k) ?? width(k)), 0) + gapX * Math.max(0, kids.length - 1);
+    let x = left + (span - kidsWidth) / 2;
     for (const k of kids) {
       place(k, x, seen);
       x += (spans.get(k) ?? width(k)) + gapX;
     }
   }
-  place(ROOT_ID, 0, new Set());
+  // Корень — по центру в x = 0.
+  place(ROOT_ID, -(spans.get(ROOT_ID) ?? width(ROOT_ID)) / 2, new Set());
   return points;
 }
 

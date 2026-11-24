@@ -118,9 +118,12 @@ export async function removeUnitMember(unitId: string, userId: string): Promise<
   return done();
 }
 
-// Личная расстановка карточек: сохраняется целиком; {} — «вернуть на места». Страницу не перерисовываем.
+// Личная расстановка карточек: сохраняется целиком; {} — «вернуть на места».
 export async function saveCanvasPositions(organizationId: string, positions: Record<string, [number, number]>): Promise<UnitResult> {
   const supabase = await createClient();
   const { error } = await supabase.rpc("save_canvas_positions", { p_org: organizationId, p_positions: positions });
-  return error ? { error: unitDbError(error) } : {};
+  if (error) return { error: unitDbError(error) };
+  // Иначе при возврате на «Структуру» браузер показал бы запомненную старую расстановку.
+  revalidatePath(PATH);
+  return {};
 }
