@@ -5,7 +5,7 @@ import type { Member } from "@/lib/company/queries";
 import { format, pluralRu, t } from "@/lib/i18n";
 import { Avatar } from "@/components/profile/Avatar";
 import { Collapse } from "@/components/ui/Collapse";
-import { ChevronDownIcon, PlusIcon } from "@/components/nav/icons";
+import { ChatPageIcon, ChevronDownIcon, LockIcon, PlusIcon, TasksPageIcon } from "@/components/nav/icons";
 
 // Размеры карточек для раскладки (layout.ts). Высоты — с запасом, чтобы карточки не наезжали.
 export const CARD_W = 240;
@@ -35,15 +35,29 @@ export type UnitData = {
   onAdd: () => void;
 };
 
+export type PageData = {
+  name: string;
+  moduleKey: string;
+  locked: boolean; // нет доступа — серая, с замком, не открывается
+  extraPeople: number; // отдельные сотрудники в доступе — счётчик без линий
+  onOpen: () => void;
+};
+
 export type RootNodeType = Node<RootData, "root">;
 export type UnitNodeType = Node<UnitData, "unit">;
+export type PageNodeType = Node<PageData, "page">;
 
-// Невидимые точки крепления линий: сверху — от родителя, снизу — к детям.
+export const PAGE_W = 220;
+export const PAGE_H = 64;
+
+// Невидимые точки крепления линий: сверху — от родителя, снизу — к детям,
+// справа — к рабочим страницам (пунктир).
 function Handles() {
   return (
     <>
       <Handle type="target" position={Position.Top} style={{ opacity: 0 }} isConnectable={false} />
       <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} isConnectable={false} />
+      <Handle id="r" type="source" position={Position.Right} style={{ opacity: 0 }} isConnectable={false} />
     </>
   );
 }
@@ -140,4 +154,40 @@ export function UnitNode({ data }: NodeProps<UnitNodeType>) {
   );
 }
 
-export const nodeTypes = { root: RootNode, unit: UnitNode };
+// Карточка рабочей страницы. Недоступная — серая с замком: видно только название и тип.
+export function PageNode({ data }: NodeProps<PageNodeType>) {
+  const c = t.canvas;
+  const p = t.pages;
+  return (
+    <div
+      className={`relative rounded-2xl border bg-white shadow-sm ${data.locked ? "border-neutral-200 opacity-60" : "border-accent/40"}`}
+      style={{ width: PAGE_W }}
+    >
+      <Handle id="l" type="target" position={Position.Left} style={{ opacity: 0 }} isConnectable={false} />
+      <button
+        type="button"
+        onClick={data.locked ? undefined : data.onOpen}
+        disabled={data.locked}
+        aria-label={data.locked ? `${data.name} · ${p.locked}` : data.name}
+        className="flex w-full items-center gap-3 px-3 py-2.5 text-left disabled:cursor-not-allowed"
+        style={{ minHeight: PAGE_H }}
+      >
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-ink">
+          {data.locked ? <LockIcon className="h-5 w-5" /> : data.moduleKey === "chat" ? <ChatPageIcon className="h-5 w-5" /> : <TasksPageIcon className="h-5 w-5" />}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-semibold text-ink">{data.name}</span>
+          <span className="block truncate text-xs text-ink">
+            {p.modules[data.moduleKey as "tasks" | "chat"] ?? ""}
+            {data.extraPeople > 0
+              ? ` · ${format(p.scopeExtraPeople, { n: data.extraPeople, people: pluralRu(data.extraPeople, p.peopleForms) })}`
+              : ""}
+          </span>
+        </span>
+      </button>
+      <span className="sr-only">{c.title}</span>
+    </div>
+  );
+}
+
+export const nodeTypes = { root: RootNode, unit: UnitNode, page: PageNode };

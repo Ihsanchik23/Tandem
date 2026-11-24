@@ -7,12 +7,16 @@ import { t } from "@/lib/i18n";
 import type { ShellData } from "@/lib/nav/shell";
 import { Avatar } from "@/components/profile/Avatar";
 import { ConfirmAction } from "@/components/ui/ConfirmAction";
+import { isNewPage } from "@/modules/pages/logic";
+import { NewBadge } from "@/modules/pages/PagesList";
+import { useSeenPages } from "@/modules/pages/seen";
 import { ChatPageIcon, TasksPageIcon } from "./icons";
 
 // Панель компании: компания, рабочие страницы, «Моя компания», выход.
 // На компьютере — постоянная панель в «Работе», на телефоне — выдвижное меню слева.
 export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate?: () => void }) {
   const pathname = usePathname() ?? "";
+  const seen = useSeenPages();
   const w = t.work;
   // Выбранный пункт: жирный шрифт и полоска с градиентом слева.
   const item = (active: boolean) =>
@@ -64,11 +68,11 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
             <p className="px-3 py-1 text-sm text-ink">{w.noPages}</p>
           ) : (
             pages.map((p) => (
-              // Открытие страниц появится вместе с модулями «Задачи» и «Чат» (день 5).
-              <span key={p.id} className={item(false)}>
+              <Link key={p.id} href={`/work/p/${p.id}`} onClick={onNavigate} className={item(pathname.startsWith(`/work/p/${p.id}`))}>
                 {p.moduleKey === "chat" ? <ChatPageIcon className="h-5 w-5 shrink-0" /> : <TasksPageIcon className="h-5 w-5 shrink-0" />}
-                <span className="truncate">{p.name}</span>
-              </span>
+                <span className="min-w-0 flex-1 truncate">{p.name}</span>
+                {seen && isNewPage(p, seen) ? <NewBadge /> : null}
+              </Link>
             ))
           )}
         </section>

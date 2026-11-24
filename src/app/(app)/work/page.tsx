@@ -7,6 +7,7 @@ import { FormMessage } from "@/components/ui/FormMessage";
 import { getUserId } from "@/lib/auth/session";
 import { getMyCompany, hasFreeSubscription } from "@/lib/company/queries";
 import { t } from "@/lib/i18n";
+import { getCompanyPages } from "@/modules/pages/queries";
 
 // «Работа». Сюда попадают при обычном входе и после создания компании.
 export default function WorkPage({ searchParams }: PageProps<"/work">) {
@@ -26,7 +27,11 @@ async function WorkContent() {
   const userId = await getUserId();
   if (!userId) redirect("/login");
   const company = await getMyCompany(userId);
-  if (company) return <WorkHome company={company} />;
+  if (company) {
+    // В список — только доступные мне страницы (метаданные компании видят все, доступ — по page_access).
+    const pages = (await getCompanyPages(company.org.id, userId)).filter((p) => p.hasAccess);
+    return <WorkHome company={company} pages={pages} />;
+  }
   return <NoCompany canCreate={await hasFreeSubscription(userId)} />;
 }
 

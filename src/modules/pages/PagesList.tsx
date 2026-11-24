@@ -1,0 +1,107 @@
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+import { t } from "@/lib/i18n";
+import { ChatPageIcon, PlusIcon, TasksPageIcon } from "@/components/nav/icons";
+import { filterPages, isNewPage, PAGE_MODULES, sortPages, type ModuleKey } from "./logic";
+import { useSeenPages } from "./seen";
+
+export type ListPage = { id: string; name: string; description: string | null; moduleKey: ModuleKey; createdAt: string; archived: boolean };
+
+export function ModuleIcon({ moduleKey, className = "h-6 w-6" }: { moduleKey: string; className?: string }) {
+  return moduleKey === "chat" ? <ChatPageIcon className={className} /> : <TasksPageIcon className={className} />;
+}
+
+export function NewBadge() {
+  return (
+    <span className="animate-fade-in shrink-0 rounded-full bg-brand px-2 py-0.5 text-xs font-semibold text-white">
+      {t.pages.badgeNew}
+    </span>
+  );
+}
+
+// «Рабочие страницы»: только доступные, новые сверху, поиск, фильтр по модулю, вкладка «Архив».
+export function PagesList({ pages, canCreate }: { pages: ListPage[]; canCreate: boolean }) {
+  const p = t.pages;
+  const seen = useSeenPages();
+  const [tab, setTab] = useState<"active" | "archive">("active");
+  const [query, setQuery] = useState("");
+  const [module, setModule] = useState<ModuleKey | "all">("all");
+
+  const inTab = pages.filter((x) => (tab === "archive" ? x.archived : !x.archived));
+  // «Новые сверху» считаем только в браузере (нужны память устройства и текущее время);
+  // при сборке на сервере — просто свежие раньше старых.
+  const sorted = seen ? sortPages(inTab, seen) : [...inTab].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const shown = filterPages(sorted, query, module);
+  const chip = (active: boolean) =>
+    `h-9 rounded-full px-4 text-sm font-medium transition-colors ${active ? "bg-ink text-white" : "bg-neutral-100 text-ink hover:bg-neutral-200"}`;
+
+  return (
+    <section className="flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-lg font-semibold text-ink">{p.title}</h2>
+        {canCreate ? (
+          <Link
+            href="/work/pages/new"
+            aria-label={p.create}
+            title={p.create}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-white hover:bg-brand-hover"
+          >
+            <PlusIcon className="h-5 w-5" />
+          </Link>
+        ) : null}
+      </div>
+
+      <div className="flex gap-2">
+        <button type="button" onClick={() => setTab("active")} className={chip(tab === "active")}>
+          {p.tabActive}
+        </button>
+        <button type="button" onClick={() => setTab("archive")} className={chip(tab === "archive")}>
+          {p.tabArchive}
+        </button>
+      </div>
+
+      <input
+        type="search"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder={p.searchPlaceholder}
+        aria-label={p.searchPlaceholder}
+        className="h-11 w-full rounded-xl border border-neutral-300 bg-white px-4 text-base text-ink placeholder:text-neutral-400 focus:border-accent focus:outline-none"
+      />
+      <div className="flex gap-2">
+        {(["all", ...PAGE_MODULES] as const).map((m) => (
+          <button key={m} type="button" onClick={() => setModule(m)} className={chip(module === m)}>
+            {m === "all" ? p.filterAll : p.modules[m]}
+          </button>
+        ))}
+      </div>
+
+      {shown.length === 0 ? (
+        <p className="rounded-2xl border border-dashed border-neutral-300 px-4 py-6 text-center text-base text-ink">
+          {inTab.length === 0 ? (tab === "archive" ? p.emptyArchive : p.empty) : p.emptySearch}
+        </p>
+      ) : (
+        <ul className="flex flex-col">
+          {shown.map((page) => (
+            <li key={page.id}>
+              <Link href={`/work/p/${page.id}`} className="flex items-center gap-3 rounded-xl px-2 py-3 hover:bg-neutral-50">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-ink">
+                  <ModuleIcon moduleKey={page.moduleKey} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-2">
+                    <span className="truncate text-base font-medium text-ink">{page.name}</span>
+                    {seen && !page.archived && isNewPage(page, seen) ? <NewBadge /> : null}
+                  </span>
+                  <span className="block truncate text-sm text-ink">{page.description || p.modules[page.moduleKey]}</span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}

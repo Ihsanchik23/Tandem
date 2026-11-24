@@ -6,6 +6,7 @@ import { getMembers, getMyCompany } from "@/lib/company/queries";
 import { t } from "@/lib/i18n";
 import { CanvasView } from "@/modules/canvas/CanvasView";
 import { getStructure } from "@/modules/canvas/queries";
+import { getCompanyPages } from "@/modules/pages/queries";
 
 // «Моя компания → Структура» (Canvas). Видят все сотрудники, меняют Owner и Admin.
 export default function StructurePage() {
@@ -31,7 +32,15 @@ async function StructureContent() {
   const company = await getMyCompany(userId);
   if (!company) redirect("/work");
 
-  const [structure, people] = await Promise.all([getStructure(company.org.id), getMembers(company.org.id)]);
+  const [structure, people, allPages] = await Promise.all([
+    getStructure(company.org.id),
+    getMembers(company.org.id),
+    getCompanyPages(company.org.id, userId),
+  ]);
+  // На холсте — все активные страницы компании; недоступные показываются серыми с замком.
+  const pages = allPages
+    .filter((p) => !p.archived)
+    .map((p) => ({ id: p.id, name: p.name, moduleKey: p.moduleKey, hasAccess: p.hasAccess, scopes: p.scopes }));
   return (
     <CanvasView
       organization={{ id: company.org.id, name: company.org.name, logoUrl: company.org.logo_url }}
@@ -39,6 +48,7 @@ async function StructureContent() {
       unitMembers={structure.unitMembers}
       people={people}
       canEdit={canEditCompany(company.role)}
+      pages={pages}
     />
   );
 }

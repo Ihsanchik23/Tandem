@@ -2,6 +2,7 @@
 
 import "@xyflow/react/dist/style.css";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Background,
@@ -29,7 +30,9 @@ import {
   ROOT_H,
   UNIT_H,
   type RootNodeType,
+  type PageNodeType,
   type UnitNodeType,
+  PAGE_H,
 } from "./Nodes";
 import { Sheet } from "./Sheet";
 import { branchPeople, buildTree, unassignedIds, type UnitMemberRow, type UnitRow } from "./tree";
@@ -42,9 +45,19 @@ type Props = {
   unitMembers: UnitMemberRow[];
   people: Member[];
   canEdit: boolean;
+  pages?: CanvasPage[]; // активные рабочие страницы компании
 };
 
-type CanvasNode = RootNodeType | UnitNodeType;
+// Рабочая страница на холсте: линии к Scope (компания, подразделения), люди — счётчиком.
+export type CanvasPage = {
+  id: string;
+  name: string;
+  moduleKey: string;
+  hasAccess: boolean;
+  scopes: { kind: "organization" | "unit" | "user"; unit_id: string | null; user_id: string | null }[];
+};
+
+type CanvasNode = RootNodeType | UnitNodeType | PageNodeType;
 
 // Что открыто поверх холста.
 type OpenSheet =
@@ -57,7 +70,8 @@ const GAP_X = 32;
 const GAP_Y = 64;
 
 // Canvas (ТЗ, раздел 10): дерево компании с перемещением и масштабом.
-export function CanvasView({ organization, units, unitMembers, people, canEdit }: Props) {
+export function CanvasView({ organization, units, unitMembers, people, canEdit, pages = [] }: Props) {
+  const router = useRouter();
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [sheet, setSheet] = useState<OpenSheet>(null);
   // Карточки, которые передвинули руками (запоминаем, когда палец/мышь отпущены).
@@ -142,9 +156,44 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit }
       type: "default", // плавная кривая, как связи в Figma
       style: { stroke: "#a3a3a3", strokeWidth: 1.5 },
     }));
-    const all: CanvasNode[] = [rootNode, ...unitNodes];
+    // Рабочие страницы — столбцом справа от дерева, пунктир к тем, кому они доступны.
+    let right = (points.get(ROOT_ID)?.x ?? 0) + CARD_W;
+    for (const pt of points.values()) right = Math.max(right, pt.x + CARD_W);
+    const pageNodes: PageNodeType[] = pages.map((pg, i) => ({
+      id: `page-${pg.id}`,
+      type: "page",
+      position: { x: right + 120, y: i * (PAGE_H + 16) },
+      data: {
+        name: pg.name,
+        moduleKey: pg.moduleKey,
+        locked: !pg.hasAccess,
+        extraPeople: pg.scopes.filter((s) => s.kind === "user").length,
+        onOpen: () => router.push(`/work/p/${pg.id}`),
+      },
+    }));
+    for (const pg of pages) {
+      for (const s of pg.scopes) {
+        const source = s.kind === "organization" ? ROOT_ID : s.kind === "unit" && s.unit_id && tree.byId.has(s.unit_id) ? s.unit_id : null;
+        if (!source) continue;
+        edgeList.push({
+          id: `p-${pg.id}-${source}`,
+          source,
+          sourceHandle: "r",
+          target: `page-${pg.id}`,
+          targetHandle: "l",
+          type: "default",
+          style: {
+            stroke: pg.hasAccess ? "var(--tandem-accent)" : "#a3a3a3",
+            strokeWidth: 1.25,
+            strokeDasharray: "6 5",
+            opacity: 0.7,
+          },
+        });
+      }
+    }
+    const all: CanvasNode[] = [rootNode, ...unitNodes, ...pageNodes];
     return { layoutNodes: all, edges: edgeList };
-  }, [tree, units, people.length, peopleById, expanded, canEdit, organization.name, organization.logoUrl]);
+  }, [tree, units, people.length, peopleById, expanded, canEdit, organization.name, organization.logoUrl, pages, router]);
 
   // Состояние карточек ведёт сам холст (рекомендованная схема React Flow): во время перетаскивания
   // меняется только передвигаемая карточка, а размеры, которые React Flow измерил, не теряются.
@@ -247,9 +296,12 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit }
             <Button type="button" onClick={() => setSheet({ kind: "create", parentId: view.parentId })}>
               {c.addUnit}
             </Button>
-            <Button type="button" variant="secondary" disabled>
-              {c.addPage} · {c.soon}
-            </Button>
+            <Link
+              href={view.parentId ? `/work/pages/new?unit=${view.parentId}` : "/work/pages/new?scope=organization"}
+              className="inline-flex h-12 w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-base font-medium text-ink hover:bg-neutral-50"
+            >
+              {c.addPage}
+            </Link>
           </div>
         ) : null}
         {view?.kind === "create" ? (

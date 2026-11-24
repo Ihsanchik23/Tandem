@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { t } from "@/lib/i18n";
 import { ArrowRightIcon } from "@/components/nav/icons";
+import { canCreatePage } from "@/modules/pages/logic";
+import { PagesList, type ListPage } from "@/modules/pages/PagesList";
 import type { MyCompany } from "@/lib/company/queries";
 
 const btnPrimary =
@@ -40,28 +42,20 @@ export function NoCompany({ canCreate }: { canCreate: boolean }) {
 
 // «Работа», если компания есть: быстрый старт для Owner и рабочие страницы.
 // Компания и меню — в панели слева (компьютер) и в выдвижном меню из шапки (телефон).
-export function WorkHome({ company }: { company: MyCompany }) {
-  const w = t.work;
+export function WorkHome({ company, pages }: { company: MyCompany; pages: ListPage[] }) {
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-8">
       {company.role === "owner" ? <QuickStart /> : null}
-
-      <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-medium text-ink">{w.menuPages}</h2>
-        <p className="rounded-2xl border border-dashed border-neutral-300 px-4 py-6 text-center text-base text-ink">
-          {w.noPages}
-        </p>
-      </section>
+      <PagesList pages={pages} canCreate={canCreatePage(company.role)} />
     </div>
   );
 }
 
-// Панель быстрого старта для Owner (ТЗ, раздел 9). Ещё не готовые разделы — серые.
+// Панель быстрого старта для Owner (ТЗ, раздел 9).
 function QuickStart() {
   const w = t.work;
   const ready =
     "flex items-center justify-between rounded-xl border border-neutral-300 px-4 py-3 text-base font-medium text-ink hover:bg-neutral-50";
-  const soon = "flex items-center justify-between rounded-xl border border-neutral-200 px-4 py-3 text-base text-neutral-400";
   return (
     <section className="flex flex-col gap-2">
       <h2 className="text-sm font-medium text-ink">{w.quickStartTitle}</h2>
@@ -71,9 +65,9 @@ function QuickStart() {
       <Link href="/work/people" className={ready}>
         {w.quickInvite} <ArrowRightIcon className="h-5 w-5" />
       </Link>
-      <span className={soon}>
-        {w.quickPage} <span className="text-sm">{w.soon}</span>
-      </span>
+      <Link href="/work/pages/new" className={ready}>
+        {w.quickPage} <ArrowRightIcon className="h-5 w-5" />
+      </Link>
     </section>
   );
 }

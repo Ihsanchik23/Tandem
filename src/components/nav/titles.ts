@@ -9,6 +9,8 @@ export function sectionTitle(path: string, myUsername: string | null): string {
   if (path.startsWith("/work/structure")) return t.canvas.title;
   if (path.startsWith("/work/people")) return t.company.peopleTitle;
   if (path.startsWith("/work/new")) return t.company.createTitle;
+  if (path.startsWith("/work/pages/new")) return t.pages.createTitle;
+  if (path.startsWith("/work/p/")) return t.pages.title;
   if (path.startsWith("/work")) return n.work;
   if (path.startsWith("/c/")) return t.company.profileTitle;
   if (path.startsWith("/profile")) return n.profile;

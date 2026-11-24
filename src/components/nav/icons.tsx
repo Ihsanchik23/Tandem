@@ -201,3 +201,12 @@ export function TasksPageIcon({ className }: IconProps) {
     </Svg>
   );
 }
+
+export function LockIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <rect x="5" y="10.5" width="14" height="10" rx="2.5" {...line} />
+      <path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" {...line} />
+    </Svg>
+  );
+}
