@@ -56,3 +56,39 @@ export function layoutTree({ children, height, width: w, gapX, gapY }: LayoutInp
   place(ROOT_ID, 0, new Set());
   return points;
 }
+
+// ---------- Новая карточка в расставленной вручную схеме ----------
+export type Rect = { x: number; y: number; w: number; h: number };
+
+function overlaps(a: Rect, b: Rect, pad: number): boolean {
+  return a.x < b.x + b.w + pad && a.x + a.w + pad > b.x && a.y < b.y + b.h + pad && a.y + a.h + pad > b.y;
+}
+
+// Когда человек расставил карточки по-своему, они больше не двигаются сами. Новая карточка встаёт
+// рядом с тем местом, где родитель стоит СЕЙЧАС: правее последнего «брата» (на его высоте),
+// а если детей ещё нет — под родителем. Место занято — сдвигаем новую вправо до первого свободного.
+export function placeNear(
+  parent: Rect,
+  siblings: Rect[],
+  size: { w: number; h: number },
+  obstacles: Rect[],
+  gapX: number,
+  gapY: number,
+): Point {
+  let x: number;
+  let y: number;
+  if (siblings.length > 0) {
+    const last = siblings.reduce((a, b) => (b.x + b.w > a.x + a.w ? b : a));
+    x = last.x + last.w + gapX;
+    y = last.y;
+  } else {
+    x = parent.x;
+    y = parent.y + parent.h + gapY;
+  }
+  for (let i = 0; i < 500; i++) {
+    const hit = obstacles.find((o) => overlaps({ x, y, w: size.w, h: size.h }, o, gapX / 2));
+    if (!hit) break;
+    x = hit.x + hit.w + gapX;
+  }
+  return { x, y };
+}

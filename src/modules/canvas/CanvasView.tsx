@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/Button";
 import { Collapse } from "@/components/ui/Collapse";
 import { Sheet } from "@/components/ui/Sheet";
 import { createUnit } from "./actions";
-import { layoutTree, ROOT_ID } from "./layout";
+import { layoutTree, placeNear, ROOT_ID, type Rect } from "./layout";
 import {
   CARD_W,
   nodeTypes,
@@ -78,8 +78,40 @@ function useTouchScreen(): boolean {
   return useSyncExternalStore(subscribeCoarse, () => window.matchMedia(coarseQuery).matches, () => false);
 }
 
+// Ручная расстановка карточек — в памяти этого браузера (личная, на других не влияет).
+type Positions = Map<string, XYPosition>;
+const storageKey = (orgId: string) => `tandem.canvas.positions.${orgId}`;
+function loadPositions(orgId: string): Positions {
+  try {
+    const raw = JSON.parse(localStorage.getItem(storageKey(orgId)) ?? "{}") as Record<string, [number, number]>;
+    return new Map(
+      Object.entries(raw)
+        .filter(([, p]) => Array.isArray(p) && Number.isFinite(p[0]) && Number.isFinite(p[1]))
+        .map(([id, [x, y]]) => [id, { x, y }]),
+    );
+  } catch {
+    return new Map();
+  }
+}
+function savePositions(orgId: string, pos: Positions) {
+  try {
+    if (pos.size === 0) localStorage.removeItem(storageKey(orgId));
+    else localStorage.setItem(storageKey(orgId), JSON.stringify(Object.fromEntries([...pos].map(([id, p]) => [id, [Math.round(p.x), Math.round(p.y)]]))));
+  } catch {
+    // память браузера недоступна (приватный режим) — расстановка просто не сохранится
+  }
+}
+const noopSubscribe = () => () => {};
+
+// Холст рисуется только в браузере: расстановка карточек хранится в его памяти.
+export function CanvasView(props: Props) {
+  const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false);
+  if (!mounted) return <div className="h-full w-full bg-neutral-50" aria-hidden />;
+  return <CanvasInner {...props} />;
+}
+
 // Canvas (ТЗ, раздел 10): дерево компании с перемещением и масштабом.
-export function CanvasView({ organization, units, unitMembers, people, canEdit, pages = [] }: Props) {
+function CanvasInner({ organization, units, unitMembers, people, canEdit, pages = [] }: Props) {
   const router = useRouter();
   const params = useSearchParams();
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -94,9 +126,11 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit, 
   // Страница, созданная из «+», возвращает сюда с ?focus=page-<id>.
   const [focusId, setFocusId] = useState<string | null>(() => params.get("focus"));
   const [highlightId, setHighlightId] = useState<string | null>(null);
-  // Карточки, которые передвинули руками (запоминаем, когда палец/мышь отпущены).
-  // Не сохраняются: после обновления страницы — автораскладка.
-  const [moved, setMoved] = useState<Map<string, XYPosition>>(new Map());
+  // Ручная расстановка. Пусто — автораскладка. После первого перемещения руками запоминаем места ВСЕХ
+  // карточек: дальше они сами не двигаются, а новые встают рядом с настоящим местом родителя.
+  // «Вернуть на места» — снова автораскладка.
+  const [moved, setMoved] = useState<Positions>(() => loadPositions(organization.id));
+  useEffect(() => savePositions(organization.id, moved), [organization.id, moved]);
   const rfRef = useRef<ReactFlowInstance<CanvasNode, Edge> | null>(null);
   const touch = useTouchScreen();
   const c = t.canvas;
@@ -118,7 +152,7 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit, 
     [organization.id],
   );
 
-  const { layoutNodes, edges } = useMemo(() => {
+  const { layoutNodes, edges, parentOf } = useMemo(() => {
     const order = treeOrder(tree);
     // Страницы — дети своего подразделения (или компании): раскладка сама раздвигает соседей.
     const pagesAt = new Map<string, CanvasPage[]>();
@@ -171,7 +205,8 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit, 
         id: u.id,
         type: "unit",
         position: points.get(u.id) ?? { x: 0, y: 0 },
-        zIndex: menuFor === u.id ? 1000 : 0,
+        // Открытое меню — поверх всего; раскрытый список людей — поверх карточек ниже.
+        zIndex: menuFor === u.id ? 1000 : expanded.has(u.id) ? 10 : 0,
         data: {
           ...menu(u.id, `/work/pages/new?unit=${u.id}&from=canvas`),
           name: u.name,
@@ -242,25 +277,60 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit, 
       }
     }
     const all: CanvasNode[] = [rootNode, ...unitNodes, ...pageNodes];
-    return { layoutNodes: all, edges: edgeList };
+    // Кто чей «родитель» на холсте — чтобы ставить новые карточки рядом с ним.
+    const parentOf = new Map<string, string>();
+    for (const u of units) parentOf.set(u.id, u.parent_id && tree.byId.has(u.parent_id) ? u.parent_id : ROOT_ID);
+    for (const pg of pages) parentOf.set(pageNodeId(pg.id), pageHome(order, pg.scopes) ?? ROOT_ID);
+    return { layoutNodes: all, edges: edgeList, parentOf };
   }, [tree, colors, units, people.length, peopleById, expanded, canEdit, organization.name, organization.logoUrl, pages, router, menuFor, highlightId, onCreateUnit]);
 
   // Состояние карточек ведёт сам холст (рекомендованная схема React Flow): во время перетаскивания
   // меняется только передвигаемая карточка, а размеры, которые React Flow измерил, не теряются.
   const [nodes, setNodes] = useState<CanvasNode[]>(layoutNodes);
+  const nodesRef = useRef(nodes);
+  useEffect(() => {
+    nodesRef.current = nodes;
+  }, [nodes]);
   const [synced, setSynced] = useState({ layoutNodes, moved });
   if (synced.layoutNodes !== layoutNodes || synced.moved !== moved) {
-    // Данные или раскладка изменились — пересобираем карточки, сохраняя ручные позиции и размеры.
+    // Данные или расстановка изменились — пересобираем карточки, сохраняя размеры и выделение.
     setSynced({ layoutNodes, moved });
-    setNodes((prev) => {
-      const before = new Map(prev.map((n) => [n.id, n]));
-      return layoutNodes.map((n) => ({
+    const before = new Map(nodes.map((n) => [n.id, n]));
+    const sizeOf = (n: CanvasNode) => ({
+      w: before.get(n.id)?.measured?.width ?? (n.type === "page" ? PAGE_W : CARD_W),
+      h: before.get(n.id)?.measured?.height ?? (n.type === "root" ? ROOT_H : n.type === "page" ? PAGE_H : UNIT_H),
+    });
+    // Расставлено вручную: новые карточки ищут свободное место рядом с родителем.
+    const placed = new Map<string, XYPosition>();
+    if (moved.size > 0) {
+      const at = (id: string) => moved.get(id) ?? placed.get(id);
+      const rects: Rect[] = layoutNodes.flatMap((n) => (moved.has(n.id) ? [{ ...moved.get(n.id)!, ...sizeOf(n) }] : []));
+      for (const n of layoutNodes) {
+        if (moved.has(n.id)) continue;
+        const parentId = parentOf.get(n.id);
+        const parentNode = parentId ? layoutNodes.find((x) => x.id === parentId) : undefined;
+        const parentPos = parentId ? at(parentId) : undefined;
+        if (!parentNode || !parentPos) continue;
+        const siblings = layoutNodes.flatMap((x) => {
+          const p = x.id !== n.id && parentOf.get(x.id) === parentId ? at(x.id) : undefined;
+          return p ? [{ ...p, ...sizeOf(x) }] : [];
+        });
+        const size = sizeOf(n);
+        const pos = placeNear({ ...parentPos, ...sizeOf(parentNode) }, siblings, size, rects, GAP_X, GAP_Y);
+        placed.set(n.id, pos);
+        rects.push({ ...pos, ...size });
+      }
+    }
+    setNodes(
+      layoutNodes.map((n) => ({
         ...n,
-        position: moved.get(n.id) ?? n.position,
+        position: moved.get(n.id) ?? placed.get(n.id) ?? n.position,
         measured: before.get(n.id)?.measured,
         selected: before.get(n.id)?.selected ?? false, // выделение не сбрасывается при обновлении данных
-      })) as CanvasNode[];
-    });
+      })) as CanvasNode[],
+    );
+    // Новые карточки тоже закрепляем, чтобы дальше они стояли на месте.
+    if (placed.size > 0) setMoved(new Map([...moved, ...placed]));
   }
 
   // Новая карточка появилась — плавно показываем её и коротко подсвечиваем.
@@ -289,7 +359,8 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit, 
     const finished = changes.getByType("position").filter((ch) => ch.dragging === false && ch.position);
     if (finished.length > 0) {
       setMoved((m) => {
-        const next = new Map(m);
+        // Первое перемещение руками — запоминаем места всех карточек, чтобы остальные больше не прыгали.
+        const next: Positions = m.size > 0 ? new Map(m) : new Map(nodesRef.current.map((n) => [n.id, n.position]));
         for (const ch of finished) next.set(ch.id, ch.position!);
         return next;
       });

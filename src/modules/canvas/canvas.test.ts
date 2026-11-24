@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { branchColors, branchPeople, buildTree, moveTargets, pageHome, subtreeIds, treeOrder, unassignedIds, unitPath, type UnitRow } from "./tree.ts";
-import { layoutTree, ROOT_ID } from "./layout.ts";
+import { layoutTree, placeNear, ROOT_ID } from "./layout.ts";
 import { unitDbError, validateUnit } from "./errors.ts";
 
 const u = (id: string, parent_id: string | null, name = id): UnitRow => ({ id, parent_id, name, address: null, head_user_id: null });
@@ -141,4 +141,17 @@ test("новое подразделение сдвигает только вет
   // Первый ребёнок встаёт под родителем и никого не двигает.
   const p3 = run({ [ROOT_ID]: ["a", "b"], a: ["a1"], b: ["b1"] });
   for (const id of [ROOT_ID, "a", "a1", "b"]) assert.deepEqual(p3.get(id), p1.get(id), `${id} не сдвинулся`);
+});
+
+test("новая карточка в ручной схеме: рядом с родителем, на свободном месте", () => {
+  const size = { w: 100, h: 50 };
+  const parent = { x: 500, y: 400, w: 100, h: 80 };
+  // Детей нет — прямо под родителем, где бы он ни стоял.
+  assert.deepEqual(placeNear(parent, [], size, [parent], 20, 30), { x: 500, y: 510 });
+  // Есть дети — правее последнего, на его высоте.
+  const kid = { x: 480, y: 520, w: 100, h: 50 };
+  assert.deepEqual(placeNear(parent, [kid], size, [parent, kid], 20, 30), { x: 600, y: 520 });
+  // Место занято чужой карточкой — встаём правее неё, саму карточку не трогаем.
+  const other = { x: 590, y: 500, w: 100, h: 60 };
+  assert.deepEqual(placeNear(parent, [kid], size, [parent, kid, other], 20, 30), { x: 710, y: 520 });
 });
