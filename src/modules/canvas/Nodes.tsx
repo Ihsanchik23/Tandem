@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";
 import type { Member } from "@/lib/company/queries";
 import { format, pluralRu, t } from "@/lib/i18n";
@@ -8,11 +7,19 @@ import { Avatar } from "@/components/profile/Avatar";
 
 // Размеры карточек для раскладки (layout.ts). Высоты — с запасом, чтобы карточки не наезжали.
 export const CARD_W = 240;
-export const ROOT_H = 112;
-export const UNIT_H = 184;
+export const ROOT_H = 150;
+export const UNIT_H = 150;
 export const PERSON_H = 40;
 
-export type RootData = { name: string; logoUrl: string | null; canEdit: boolean; onAdd: () => void };
+export type RootData = {
+  name: string;
+  logoUrl: string | null;
+  members: number; // сотрудников в компании
+  branches: number; // подразделений первого уровня
+  units: number; // всего подразделений
+  canEdit: boolean;
+  onAdd: () => void;
+};
 export type UnitData = {
   name: string;
   head: Member | null;
@@ -25,11 +32,9 @@ export type UnitData = {
   onOpen: () => void;
   onAdd: () => void;
 };
-export type UnassignedData = { count: number };
 
 export type RootNodeType = Node<RootData, "root">;
 export type UnitNodeType = Node<UnitData, "unit">;
-export type UnassignedNodeType = Node<UnassignedData, "unassigned">;
 
 // Невидимые точки крепления линий: сверху — от родителя, снизу — к детям.
 function Handles() {
@@ -54,15 +59,23 @@ function PlusButton({ onClick, label }: { onClick: () => void; label: string }) 
   );
 }
 
+// Карточка компании: круглый логотип, название, сотрудники, ветки и все подразделения.
 export function RootNode({ data }: NodeProps<RootNodeType>) {
+  const c = t.canvas;
+  const stats = [
+    `${data.members} ${pluralRu(data.members, c.direct)}`,
+    `${data.branches} ${pluralRu(data.branches, c.branchForms)}`,
+    `${data.units} ${pluralRu(data.units, c.unitForms)}`,
+  ];
   return (
     <div
-      className="relative flex flex-col items-center gap-2 rounded-2xl border-2 border-neutral-900 bg-white px-4 py-3 text-center"
+      className="relative flex flex-col items-center gap-2 rounded-2xl border border-neutral-300 bg-white px-4 pb-6 pt-4 text-center shadow-sm"
       style={{ width: CARD_W }}
     >
-      <Avatar url={data.logoUrl} name={data.name} size={48} shape="rounded" />
+      <Avatar url={data.logoUrl} name={data.name} size={48} />
       <p className="line-clamp-2 break-words text-base font-semibold text-neutral-900">{data.name}</p>
-      {data.canEdit ? <PlusButton onClick={data.onAdd} label={t.canvas.add} /> : null}
+      <p className="text-xs leading-5 text-neutral-500">{stats.join(" · ")}</p>
+      {data.canEdit ? <PlusButton onClick={data.onAdd} label={c.add} /> : null}
       <Handles />
     </div>
   );
@@ -71,53 +84,64 @@ export function RootNode({ data }: NodeProps<RootNodeType>) {
 export function UnitNode({ data }: NodeProps<UnitNodeType>) {
   const c = t.canvas;
   const headName = data.head ? `${data.head.first_name} ${data.head.last_name}`.trim() : null;
+  const count = `${data.direct} ${pluralRu(data.direct, c.direct)}`;
   return (
-    <div className="relative rounded-2xl border border-neutral-300 bg-white shadow-sm" style={{ width: CARD_W }}>
-      <button type="button" onClick={data.onOpen} className="flex w-full flex-col gap-2 px-4 pb-2 pt-3 text-left">
+    <div className="relative rounded-2xl border border-neutral-300 bg-white pb-5 shadow-sm" style={{ width: CARD_W }}>
+      {/* Нажатие на название — панель подразделения. */}
+      <button type="button" onClick={data.onOpen} className="flex w-full flex-col gap-2 px-4 pb-1 pt-3 text-left">
         <span className="line-clamp-2 break-words text-base font-semibold text-neutral-900">{data.name}</span>
-        <span className="flex items-center gap-2">
-          {data.head ? (
-            <>
-              <Avatar url={data.head.avatar_url} name={headName ?? ""} size={24} />
-              <span className="truncate text-sm text-neutral-800">{headName}</span>
-            </>
-          ) : (
-            <span className="text-sm text-neutral-400">{c.noHead}</span>
-          )}
-        </span>
-        <span className="text-sm text-neutral-600">
-          {data.direct} {pluralRu(data.direct, c.direct)}
-          {data.branch !== data.direct ? ` · ${format(c.inBranch, { n: data.branch })}` : ""}
-        </span>
+        {data.head ? (
+          <span className="flex items-center gap-2">
+            <Avatar url={data.head.avatar_url} name={headName ?? ""} size={24} />
+            <span className="truncate text-sm text-neutral-800">{headName}</span>
+          </span>
+        ) : null}
       </button>
 
-      {data.direct > 0 ? (
-        <div className="border-t border-neutral-100 px-4 pb-4 pt-1">
+      <div className="px-4">
+        {/* «N сотрудников» сам раскрывает список; при 0 — просто текст. */}
+        {data.direct > 0 ? (
           <button
             type="button"
             onClick={data.onToggle}
             aria-expanded={data.expanded}
-            className="nodrag py-1 text-sm font-medium text-neutral-700 underline underline-offset-4"
+            className="nodrag flex items-center gap-1 py-1 text-sm text-neutral-700 hover:text-neutral-900"
           >
-            {data.expanded ? c.hidePeople : c.showPeople}
+            {count}
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              aria-hidden
+              className={`transition-transform ${data.expanded ? "rotate-180" : ""}`}
+            >
+              <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </button>
-          {data.expanded ? (
-            <ul className="flex flex-col">
-              {data.people.map((p) => {
-                const name = `${p.first_name} ${p.last_name}`.trim();
-                return (
-                  <li key={p.user_id} className="flex items-center gap-2" style={{ height: PERSON_H }}>
-                    <Avatar url={p.avatar_url} name={name} size={28} />
-                    <span className="truncate text-sm text-neutral-800">{name}</span>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : null}
-        </div>
-      ) : (
-        <div className="pb-4" />
-      )}
+        ) : (
+          <p className="py-1 text-sm text-neutral-500">{count}</p>
+        )}
+        {data.branch !== data.direct ? (
+          <p className="text-xs text-neutral-500">{format(c.inBranch, { n: data.branch })}</p>
+        ) : null}
+
+        {data.expanded ? (
+          <ul className="mt-1 flex flex-col">
+            {data.people.map((p) => {
+              const name = `${p.first_name} ${p.last_name}`.trim();
+              return (
+                <li key={p.user_id} className="flex items-center gap-2" style={{ height: PERSON_H }}>
+                  <Avatar url={p.avatar_url} name={name} size={28} />
+                  <span className="truncate text-sm text-neutral-800">{name}</span>
+                </li>
+              );
+            })}
+          </ul>
+        ) : null}
+      </div>
 
       {data.canEdit ? <PlusButton onClick={data.onAdd} label={format(c.addTo, { name: data.name })} /> : null}
       <Handles />
@@ -125,20 +149,4 @@ export function UnitNode({ data }: NodeProps<UnitNodeType>) {
   );
 }
 
-export function UnassignedNode({ data }: NodeProps<UnassignedNodeType>) {
-  const c = t.canvas;
-  return (
-    <Link
-      href="/work/people"
-      className="flex flex-col gap-1 rounded-2xl border border-dashed border-amber-300 bg-amber-50 px-4 py-3"
-      style={{ width: CARD_W }}
-    >
-      <span className="text-base font-medium text-amber-900">{c.unassigned}</span>
-      <span className="text-sm text-amber-900">
-        {data.count} {pluralRu(data.count, c.direct)} · {c.unassignedOpen}
-      </span>
-    </Link>
-  );
-}
-
-export const nodeTypes = { root: RootNode, unit: UnitNode, unassigned: UnassignedNode };
+export const nodeTypes = { root: RootNode, unit: UnitNode };

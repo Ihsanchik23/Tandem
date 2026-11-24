@@ -1,9 +1,11 @@
 "use client";
 
 import "@xyflow/react/dist/style.css";
+import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import {
   Background,
+  BackgroundVariant,
   Panel,
   ReactFlow,
   useReactFlow,
@@ -14,6 +16,7 @@ import {
 } from "@xyflow/react";
 import type { Member } from "@/lib/company/queries";
 import { format, t } from "@/lib/i18n";
+import { Avatar } from "@/components/profile/Avatar";
 import { Button } from "@/components/ui/Button";
 import { createUnit } from "./actions";
 import { layoutTree, ROOT_ID } from "./layout";
@@ -24,7 +27,6 @@ import {
   ROOT_H,
   UNIT_H,
   type RootNodeType,
-  type UnassignedNodeType,
   type UnitNodeType,
 } from "./Nodes";
 import { Sheet } from "./Sheet";
@@ -40,7 +42,7 @@ type Props = {
   canEdit: boolean;
 };
 
-type CanvasNode = RootNodeType | UnitNodeType | UnassignedNodeType;
+type CanvasNode = RootNodeType | UnitNodeType;
 
 // Что открыто поверх холста.
 type OpenSheet =
@@ -64,10 +66,10 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit }
 
   const tree = useMemo(() => buildTree(units, unitMembers), [units, unitMembers]);
   const peopleById = useMemo(() => new Map(people.map((p) => [p.user_id, p])), [people]);
-  const freeCount = useMemo(
-    () => unassignedIds(people.map((p) => p.user_id), unitMembers).length,
-    [people, unitMembers],
-  );
+  const unassigned = useMemo(() => {
+    const ids = new Set(unassignedIds(people.map((p) => p.user_id), unitMembers));
+    return people.filter((p) => ids.has(p.user_id));
+  }, [people, unitMembers]);
 
   const { layoutNodes, edges } = useMemo(() => {
     const kids = (id: string) => (tree.children.get(id === ROOT_ID ? null : id) ?? []).map((u) => u.id);
@@ -85,15 +87,12 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit }
       data: {
         name: organization.name,
         logoUrl: organization.logoUrl,
+        members: people.length,
+        branches: tree.children.get(null)?.length ?? 0,
+        units: units.length,
         canEdit,
         onAdd: () => setSheet({ kind: "add", parentId: null }),
       },
-    };
-    const unassignedNode: UnassignedNodeType = {
-      id: "unassigned",
-      type: "unassigned",
-      position: { x: (points.get(ROOT_ID)?.x ?? 0) + CARD_W + GAP_X, y: 0 },
-      data: { count: freeCount },
     };
     const unitNodes: UnitNodeType[] = units.map((u) => {
       const direct = tree.members.get(u.id) ?? [];
@@ -128,9 +127,9 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit }
       type: "default", // плавная кривая, как связи в Figma
       style: { stroke: "#a3a3a3", strokeWidth: 1.5 },
     }));
-    const all: CanvasNode[] = [rootNode, unassignedNode, ...unitNodes];
+    const all: CanvasNode[] = [rootNode, ...unitNodes];
     return { layoutNodes: all, edges: edgeList };
-  }, [tree, units, peopleById, expanded, canEdit, organization.name, organization.logoUrl, freeCount]);
+  }, [tree, units, people.length, peopleById, expanded, canEdit, organization.name, organization.logoUrl]);
 
   // Состояние карточек ведёт сам холст (рекомендованная схема React Flow): во время перетаскивания
   // меняется только передвигаемая карточка, а размеры, которые React Flow измерил, не теряются.
@@ -190,7 +189,9 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit }
         zoomOnDoubleClick={false}
         forceColorMode="light"
       >
-        <Background gap={24} color="#e5e5e5" />
+        {/* Фон «в точку», как блокнот. */}
+        <Background variant={BackgroundVariant.Dots} gap={20} size={1.5} color="#cfc8c0" />
+        <UnassignedList people={unassigned} />
         <ZoomButtons canReset={moved.size > 0} onReset={() => setMoved(new Map())} />
         {units.length === 0 ? (
           <Panel position="bottom-center" className="mb-6! w-[calc(100%-2rem)] max-w-sm">
@@ -274,6 +275,54 @@ function ZoomButtons({ canReset, onReset }: { canReset: boolean; onReset: () => 
           </svg>
         </button>
       ) : null}
+    </Panel>
+  );
+}
+
+// «Нераспределённые» — не на холсте, а раскрывающийся список справа сверху.
+function UnassignedList({ people }: { people: Member[] }) {
+  const [open, setOpen] = useState(false);
+  const c = t.canvas;
+  return (
+    <Panel position="top-right" className="w-64 max-w-[calc(100vw-2rem)]">
+      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          className="flex h-10 w-full items-center justify-between gap-2 px-3 text-sm font-medium text-neutral-900 hover:bg-neutral-50"
+        >
+          <span>
+            {c.unassigned} · {people.length}
+          </span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden
+            className={`transition-transform ${open ? "rotate-180" : ""}`}>
+            <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        {open ? (
+          people.length === 0 ? (
+            <p className="border-t border-neutral-100 px-3 py-3 text-sm text-neutral-500">{c.unassignedEmpty}</p>
+          ) : (
+            <ul className="max-h-72 overflow-y-auto border-t border-neutral-100">
+              {people.map((p) => {
+                const name = `${p.first_name} ${p.last_name}`.trim();
+                return (
+                  <li key={p.user_id}>
+                    <Link href={`/work/people/${p.user_id}`} className="flex items-center gap-2 px-3 py-2 hover:bg-neutral-50">
+                      <Avatar url={p.avatar_url} name={name} size={28} />
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm text-neutral-900">{name}</span>
+                        {p.position ? <span className="block truncate text-xs text-neutral-500">{p.position}</span> : null}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          )
+        ) : null}
+      </div>
     </Panel>
   );
 }
