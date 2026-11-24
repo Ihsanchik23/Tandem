@@ -3,12 +3,13 @@
 import "@xyflow/react/dist/style.css";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import {
   Background,
   BackgroundVariant,
   Panel,
   ReactFlow,
+  SelectionMode,
   useReactFlow,
   type Edge,
   type OnNodesChange,
@@ -66,6 +67,17 @@ const GAP_Y = 72;
 const pageNodeId = (id: string) => `page-${id}`;
 const lineColor = (tint: Tint | undefined) => (tint ? `var(--branch-${tint.color}-line)` : "#a3a3a3");
 
+// Телефон или планшет (палец вместо мыши): там рамки выделения нет — один палец двигает карту.
+const coarseQuery = "(pointer: coarse)";
+function subscribeCoarse(cb: () => void) {
+  const mq = window.matchMedia(coarseQuery);
+  mq.addEventListener("change", cb);
+  return () => mq.removeEventListener("change", cb);
+}
+function useTouchScreen(): boolean {
+  return useSyncExternalStore(subscribeCoarse, () => window.matchMedia(coarseQuery).matches, () => false);
+}
+
 // Canvas (ТЗ, раздел 10): дерево компании с перемещением и масштабом.
 export function CanvasView({ organization, units, unitMembers, people, canEdit, pages = [] }: Props) {
   const router = useRouter();
@@ -86,6 +98,7 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit, 
   // Не сохраняются: после обновления страницы — автораскладка.
   const [moved, setMoved] = useState<Map<string, XYPosition>>(new Map());
   const rfRef = useRef<ReactFlowInstance<CanvasNode, Edge> | null>(null);
+  const touch = useTouchScreen();
   const c = t.canvas;
 
   const tree = useMemo(() => buildTree(units, unitMembers), [units, unitMembers]);
@@ -187,6 +200,7 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit, 
       source: u.parent_id && tree.byId.has(u.parent_id) ? u.parent_id : ROOT_ID,
       target: u.id,
       type: "default", // плавная кривая, как связи в Figma
+      selectable: false,
       style: { stroke: lineColor(colors.get(u.id)), strokeWidth: 2 },
     }));
     const pageNodes: PageNodeType[] = pages.map((pg) => ({
@@ -218,6 +232,7 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit, 
           source,
           target: pageNodeId(pg.id),
           type: "default",
+          selectable: false,
           style: {
             stroke: pg.hasAccess ? lineColor(source === ROOT_ID ? undefined : colors.get(source)) : "#d4d4d4",
             strokeWidth: 1.5,
@@ -238,11 +253,12 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit, 
     // Данные или раскладка изменились — пересобираем карточки, сохраняя ручные позиции и размеры.
     setSynced({ layoutNodes, moved });
     setNodes((prev) => {
-      const measured = new Map(prev.map((n) => [n.id, n.measured]));
+      const before = new Map(prev.map((n) => [n.id, n]));
       return layoutNodes.map((n) => ({
         ...n,
         position: moved.get(n.id) ?? n.position,
-        measured: measured.get(n.id),
+        measured: before.get(n.id)?.measured,
+        selected: before.get(n.id)?.selected ?? false, // выделение не сбрасывается при обновлении данных
       })) as CanvasNode[];
     });
   }
@@ -280,10 +296,19 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit, 
     }
   }, []);
 
-  // При первом открытии компания — по центру экрана по горизонтали, дерево ниже.
+  // При первом открытии компания — слева вверху, дерево уходит вправо и вниз.
   const onInit = useCallback((rf: ReactFlowInstance<CanvasNode, Edge>) => {
     rfRef.current = rf;
-    void rf.setCenter(0, ROOT_H / 2 + 160, { zoom: 0.85 });
+    void rf.setCenter(CARD_W / 2 + 280, ROOT_H / 2 + 160, { zoom: 0.85 });
+  }, []);
+
+  // Esc снимает выделение.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setNodes((nds) => (nds.some((n) => n.selected) ? nds.map((n) => ({ ...n, selected: false })) : nds));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   const openUnit = shownUnitId ? tree.byId.get(shownUnitId) : undefined;
@@ -294,7 +319,11 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit, 
   return (
     // touch-none и overscroll-none: жесты на холсте не прокручивают страницу и не «обновляют» её на телефоне.
     // Картинки (логотип, аватары) не перехватывают нажатия и не перетаскиваются браузером.
-    <div className="relative h-full w-full touch-none overscroll-none select-none [&_img]:pointer-events-none [-webkit-touch-callout:none]">
+    <div
+      className={`relative h-full w-full touch-none overscroll-none select-none [&_img]:pointer-events-none [-webkit-touch-callout:none] ${
+        touch ? "" : "[&_.react-flow__pane]:cursor-default"
+      }`}
+    >
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -307,7 +336,18 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit, 
         nodesDraggable
         nodeDragThreshold={8}
         nodesConnectable={false}
-        elementsSelectable={false}
+        // Компьютер (как в Figma): левая кнопка на пустом месте — рамка выделения, выделенное двигается разом;
+        // карта — пробел + мышь или зажатое колёсико; Shift/Cmd/Ctrl + клик — добавить к выделению.
+        // Телефон: один палец двигает карту, рамки нет.
+        elementsSelectable={!touch}
+        selectionOnDrag={!touch}
+        selectionMode={SelectionMode.Partial}
+        panOnDrag={touch ? true : [1]}
+        panActivationKeyCode="Space"
+        selectionKeyCode={null}
+        multiSelectionKeyCode={["Meta", "Control", "Shift"]}
+        // Клавишами ничего не удаляется: удалить подразделение можно только из панели.
+        deleteKeyCode={null}
         minZoom={0.2}
         maxZoom={1.5}
         zoomOnDoubleClick={false}

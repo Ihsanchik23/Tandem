@@ -50,13 +50,12 @@ test("раскладка: корень по центру, дети под род
   const kids = (id: string) => (tree.children.get(id === ROOT_ID ? null : id) ?? []).map((x) => x.id);
   const W = 200;
   const pts = layoutTree({ children: kids, height: (id) => (id === "s" ? 300 : 100), width: W, gapX: 20, gapY: 50 });
-  assert.equal(pts.get(ROOT_ID)!.x, -W / 2); // центр корня в x = 0
+  assert.equal(pts.get(ROOT_ID)!.x, 0); // компания — в левом верхнем углу
   assert.equal(pts.get(ROOT_ID)!.y, 0);
   assert.equal(pts.get("a")!.y, 150); // 100 + 50
   assert.equal(pts.get("s")!.y, 300); // 150 + 100 + 50
-  // Филиал А по центру над своими детьми
-  const center = (id: string) => pts.get(id)!.x + W / 2;
-  assert.equal(center("a"), (center("k") + center("s")) / 2);
+  // Филиал А — над своим первым ребёнком
+  assert.equal(pts.get("a")!.x, pts.get("k")!.x);
   // соседи на одном уровне не накладываются
   assert.ok(pts.get("s")!.x - pts.get("k")!.x >= W);
   assert.ok(pts.get("b")!.x - pts.get("s")!.x >= W);
@@ -128,4 +127,18 @@ test("раскладка с карточками разной ширины: де
   const p = pts.get("p")!;
   assert.equal(p.x - (a.x + 200), 20, "между карточками ровно gapX");
   assert.equal(a.y, p.y);
+});
+
+test("новое подразделение сдвигает только ветки правее, левые и родитель на месте", () => {
+  const W = 100;
+  const before: Record<string, string[]> = { [ROOT_ID]: ["a", "b"], a: ["a1"], b: [] };
+  const after: Record<string, string[]> = { [ROOT_ID]: ["a", "b"], a: ["a1", "a2"], b: [] };
+  const run = (k: Record<string, string[]>) => layoutTree({ children: (id) => k[id] ?? [], height: () => 50, width: W, gapX: 20, gapY: 30 });
+  const p1 = run(before);
+  const p2 = run(after);
+  for (const id of [ROOT_ID, "a", "a1"]) assert.deepEqual(p2.get(id), p1.get(id), `${id} не сдвинулся`);
+  assert.equal(p2.get("b")!.x - p1.get("b")!.x, W + 20, "соседняя ветка справа подвинулась ровно на одну карточку");
+  // Первый ребёнок встаёт под родителем и никого не двигает.
+  const p3 = run({ [ROOT_ID]: ["a", "b"], a: ["a1"], b: ["b1"] });
+  for (const id of [ROOT_ID, "a", "a1", "b"]) assert.deepEqual(p3.get(id), p1.get(id), `${id} не сдвинулся`);
 });

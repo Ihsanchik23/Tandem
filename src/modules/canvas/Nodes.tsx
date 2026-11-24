@@ -242,12 +242,14 @@ function AddButton({ data, tint, label, dark = false }: { data: AddMenu; tint: T
 }
 
 // Карточка компании: тёмная, логотип, название, сотрудники и филиалы.
-export function RootNode({ data }: NodeProps<RootNodeType>) {
+export function RootNode({ data, selected }: NodeProps<RootNodeType>) {
   const c = t.canvas;
   const stats = [`${data.members} ${pluralRu(data.members, c.direct)}`, `${data.branches} ${pluralRu(data.branches, c.branchForms)}`];
   return (
     <div
-      className={`relative flex flex-col items-center gap-2 rounded-3xl bg-ink px-5 pb-7 pt-5 text-center text-white shadow-[0_8px_24px_rgba(0,0,0,0.14)] ${data.highlight ? "animate-focus-pulse" : ""}`}
+      className={`relative flex flex-col items-center gap-2 rounded-3xl bg-ink px-5 pb-7 pt-5 text-center text-white shadow-[0_8px_24px_rgba(0,0,0,0.14)] ${data.highlight ? "animate-focus-pulse" : ""} ${
+        selected ? "ring-2 ring-ink ring-offset-2 ring-offset-white" : ""
+      }`}
       style={{ width: CARD_W }}
     >
       <span className="rounded-full bg-white p-0.5">
@@ -263,7 +265,7 @@ export function RootNode({ data }: NodeProps<RootNodeType>) {
 
 // Карточка подразделения (вариант A): вся залита цветом своего направления.
 // Нажатие на любую часть открывает панель; «›» справа и подъём при наведении подсказывают это.
-export function UnitNode({ data }: NodeProps<UnitNodeType>) {
+export function UnitNode({ data, selected }: NodeProps<UnitNodeType>) {
   const c = t.canvas;
   const { tint } = data;
   const count = `${data.direct} ${pluralRu(data.direct, c.peopleForms)}`;
@@ -275,13 +277,14 @@ export function UnitNode({ data }: NodeProps<UnitNodeType>) {
       <div
         className={`relative flex flex-col gap-3 rounded-3xl p-4 pb-6 transition-[transform,box-shadow] duration-200 ease-out group-hover:-translate-y-0.5 group-hover:shadow-[0_10px_24px_rgba(0,0,0,0.12)] ${
           data.highlight ? "animate-focus-pulse" : ""
-        }`}
+        } ${selected ? "ring-2 ring-ink ring-offset-2 ring-offset-white" : ""}`}
         style={{ background: cardBg(tint) }}
       >
         {/* Вся карточка — одна большая кнопка «открыть»; кнопки внутри лежат поверх неё. */}
         <button
           type="button"
-          onClick={data.onOpen}
+          // Shift/Cmd/Ctrl + клик — добавить к выделению, а не открыть.
+          onClick={(e) => !(e.shiftKey || e.metaKey || e.ctrlKey) && data.onOpen()}
           aria-label={format(c.openUnit, { name: data.name })}
           className="absolute inset-0 rounded-3xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
         />
@@ -375,7 +378,7 @@ export function UnitNode({ data }: NodeProps<UnitNodeType>) {
 }
 
 // Карточка рабочей страницы — в цвете своей ветки. Недоступная — серая с замком: видно только название и тип.
-export function PageNode({ data }: NodeProps<PageNodeType>) {
+export function PageNode({ data, selected }: NodeProps<PageNodeType>) {
   const p = t.pages;
   const { tint } = data;
   const icon = data.locked ? (
@@ -390,12 +393,12 @@ export function PageNode({ data }: NodeProps<PageNodeType>) {
       <Handle type="target" position={Position.Top} style={{ opacity: 0 }} isConnectable={false} />
       <button
         type="button"
-        onClick={data.locked ? undefined : data.onOpen}
+        onClick={(e) => !data.locked && !(e.shiftKey || e.metaKey || e.ctrlKey) && data.onOpen()}
         disabled={data.locked}
         aria-label={data.locked ? `${data.name} · ${p.locked}` : data.name}
         className={`flex w-full items-center gap-2.5 rounded-2xl border-2 bg-white px-3 py-2.5 text-left transition-[transform,box-shadow] duration-200 enabled:group-hover:-translate-y-0.5 enabled:group-hover:shadow-[0_8px_20px_rgba(0,0,0,0.1)] disabled:cursor-not-allowed disabled:opacity-60 ${
           data.highlight ? "animate-focus-pulse" : ""
-        }`}
+        } ${selected ? "ring-2 ring-ink ring-offset-2 ring-offset-white" : ""}`}
         style={{ minHeight: PAGE_H, borderColor: data.locked ? "#e5e5e5" : v(tint, "chip", "#d4d4d4") }}
       >
         <span
