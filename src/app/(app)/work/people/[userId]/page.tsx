@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { StubPage } from "@/components/layout/StubPage";
 import { FormFallback } from "@/components/auth/FormFallback";
-import { ConfirmAction } from "@/components/company/ConfirmAction";
+import { ConfirmAction } from "@/components/ui/ConfirmAction";
 import { PositionForm, RoleForm } from "@/components/company/MemberForms";
 import { Avatar } from "@/components/profile/Avatar";
 import { getUserId } from "@/lib/auth/session";

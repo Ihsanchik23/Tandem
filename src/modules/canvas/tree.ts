@@ -1,0 +1,84 @@
+// Дерево подразделений (ТЗ, раздел 10). Чистые функции без сервера — покрыты тестами.
+export type UnitRow = {
+  id: string;
+  parent_id: string | null;
+  name: string;
+  address: string | null;
+  head_user_id: string | null;
+};
+export type UnitMemberRow = { unit_id: string; user_id: string };
+
+export type Tree = {
+  byId: Map<string, UnitRow>;
+  children: Map<string | null, UnitRow[]>; // null — верхний уровень (под компанией)
+  members: Map<string, string[]>; // прямые сотрудники подразделения
+};
+
+export function buildTree(units: UnitRow[], unitMembers: UnitMemberRow[]): Tree {
+  const byId = new Map(units.map((u) => [u.id, u]));
+  const children = new Map<string | null, UnitRow[]>();
+  for (const u of units) {
+    // Родитель не найден (не должно случаться) — показываем на верхнем уровне, а не теряем.
+    const parent = u.parent_id && byId.has(u.parent_id) ? u.parent_id : null;
+    const list = children.get(parent) ?? [];
+    list.push(u);
+    children.set(parent, list);
+  }
+  for (const list of children.values()) list.sort((a, b) => a.name.localeCompare(b.name, "ru"));
+
+  const members = new Map<string, string[]>();
+  for (const m of unitMembers) {
+    if (!byId.has(m.unit_id)) continue;
+    const list = members.get(m.unit_id) ?? [];
+    list.push(m.user_id);
+    members.set(m.unit_id, list);
+  }
+  return { byId, children, members };
+}
+
+// Само подразделение и все вложенные (на любую глубину).
+export function subtreeIds(tree: Tree, unitId: string): Set<string> {
+  const seen = new Set<string>();
+  const stack = [unitId];
+  while (stack.length) {
+    const id = stack.pop()!;
+    if (seen.has(id)) continue; // защита от цикла в данных
+    seen.add(id);
+    for (const c of tree.children.get(id) ?? []) stack.push(c.id);
+  }
+  return seen;
+}
+
+// Уникальные сотрудники всей ветки: человек в двух вложенных отделах считается один раз.
+export function branchPeople(tree: Tree, unitId: string): Set<string> {
+  const people = new Set<string>();
+  for (const id of subtreeIds(tree, unitId)) for (const u of tree.members.get(id) ?? []) people.add(u);
+  return people;
+}
+
+// Куда можно перенести подразделение: никуда внутрь себя. null — верхний уровень.
+export function moveTargets(tree: Tree, unitId: string): (string | null)[] {
+  const blocked = subtreeIds(tree, unitId);
+  const result: (string | null)[] = [null];
+  for (const u of tree.byId.values()) if (!blocked.has(u.id)) result.push(u.id);
+  return result;
+}
+
+// Путь для подписи в списке переноса: «Филиал 1 / Склад».
+export function unitPath(tree: Tree, unitId: string): string {
+  const names: string[] = [];
+  const seen = new Set<string>();
+  let cur = tree.byId.get(unitId);
+  while (cur && !seen.has(cur.id)) {
+    seen.add(cur.id);
+    names.unshift(cur.name);
+    cur = cur.parent_id ? tree.byId.get(cur.parent_id) : undefined;
+  }
+  return names.join(" / ");
+}
+
+// Сотрудники компании без подразделения.
+export function unassignedIds(allUserIds: string[], unitMembers: UnitMemberRow[]): string[] {
+  const assigned = new Set(unitMembers.map((m) => m.user_id));
+  return allUserIds.filter((id) => !assigned.has(id));
+}

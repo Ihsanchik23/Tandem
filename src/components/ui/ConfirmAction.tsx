@@ -1,10 +1,13 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import type { ActionState } from "@/lib/company/actions";
 import { t } from "@/lib/i18n";
+import type { ErrorKey } from "@/lib/i18n/ru";
 import { Button } from "@/components/ui/Button";
 import { FormMessage } from "@/components/ui/FormMessage";
+
+// Результат действия: текст ошибки или отметка «выполнено».
+type ActionState = { error?: ErrorKey; done?: number };
 
 type Props = {
   action: (prev: ActionState, formData: FormData) => Promise<ActionState>;
@@ -15,7 +18,7 @@ type Props = {
   pendingLabel: string;
 };
 
-// Красная кнопка опасного действия с подтверждением в два шага (удалить сотрудника, выйти из компании).
+// Красная кнопка опасного действия с подтверждением в два шага (удалить сотрудника или подразделение, выйти из компании).
 export function ConfirmAction({ action, fields = {}, label, confirmText, yesLabel, pendingLabel }: Props) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(action, {});
   const [asking, setAsking] = useState(false);

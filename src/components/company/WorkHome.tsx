@@ -3,7 +3,7 @@ import { leaveCompany } from "@/lib/company/actions";
 import { t } from "@/lib/i18n";
 import type { MyCompany } from "@/lib/company/queries";
 import { Avatar } from "@/components/profile/Avatar";
-import { ConfirmAction } from "./ConfirmAction";
+import { ConfirmAction } from "@/components/ui/ConfirmAction";
 
 const btnPrimary =
   "inline-flex h-12 items-center justify-center rounded-xl bg-neutral-900 px-4 text-base font-medium text-white hover:bg-neutral-800";
@@ -91,9 +91,9 @@ function CompanyMenu({ slug, isOwner }: { slug: string; isOwner: boolean }) {
         <Link href={`/c/${slug}`} className={item}>
           {w.menuProfile}
         </Link>
-        <span className={`${item} text-neutral-400 hover:bg-transparent`}>
-          {w.menuStructure} · {w.soon}
-        </span>
+        <Link href="/work/structure" className={item}>
+          {w.menuStructure}
+        </Link>
         <Link href="/work/people" className={item}>
           {w.menuPeople}
         </Link>
@@ -118,17 +118,16 @@ function CompanyMenu({ slug, isOwner }: { slug: string; isOwner: boolean }) {
 // Панель быстрого старта для Owner (ТЗ, раздел 9). Ещё не готовые разделы — серые.
 function QuickStart() {
   const w = t.work;
+  const ready =
+    "flex items-center justify-between rounded-xl border border-neutral-300 px-4 py-3 text-base font-medium text-neutral-900 hover:bg-neutral-50";
   const soon = "flex items-center justify-between rounded-xl border border-neutral-200 px-4 py-3 text-base text-neutral-400";
   return (
     <section className="flex flex-col gap-2">
       <h2 className="text-sm font-medium text-neutral-500">{w.quickStartTitle}</h2>
-      <span className={soon}>
-        {w.quickStructure} <span className="text-sm">{w.soon}</span>
-      </span>
-      <Link
-        href="/work/people"
-        className="flex items-center justify-between rounded-xl border border-neutral-300 px-4 py-3 text-base font-medium text-neutral-900 hover:bg-neutral-50"
-      >
+      <Link href="/work/structure" className={ready}>
+        {w.quickStructure} <span aria-hidden>→</span>
+      </Link>
+      <Link href="/work/people" className={ready}>
         {w.quickInvite} <span aria-hidden>→</span>
       </Link>
       <span className={soon}>
