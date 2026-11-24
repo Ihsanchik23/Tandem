@@ -2,6 +2,7 @@
 
 // Сохранение своего профиля. Обычный update таблицы profiles:
 // RLS (profiles_update_own) разрешает менять только свою строку.
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { ErrorKey } from "@/lib/i18n/ru";
@@ -57,5 +58,7 @@ export async function updateProfile(
       : { error: mapped.key, values };
   }
 
+  // Обновить навигацию (она знает имя пользователя) и профиль.
+  revalidatePath("/", "layout");
   redirect(`/@${values.username}`);
 }
