@@ -56,17 +56,9 @@ const GAP_Y = 64;
 export function CanvasView({ organization, units, unitMembers, people, canEdit }: Props) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [sheet, setSheet] = useState<OpenSheet>(null);
-  // Карточки, которые передвинули руками. Не сохраняются: после обновления страницы — автораскладка.
+  // Карточки, которые передвинули руками (запоминаем, когда палец/мышь отпущены).
+  // Не сохраняются: после обновления страницы — автораскладка.
   const [moved, setMoved] = useState<Map<string, XYPosition>>(new Map());
-  const onNodesChange: OnNodesChange<CanvasNode> = useCallback((changes) => {
-    const drags = changes.getByType("position").filter((ch) => ch.position);
-    if (drags.length === 0) return;
-    setMoved((m) => {
-      const next = new Map(m);
-      for (const ch of drags) next.set(ch.id, ch.position!);
-      return next;
-    });
-  }, []);
   const closeSheet = useCallback(() => setSheet(null), []);
   const c = t.canvas;
 
@@ -77,7 +69,7 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit }
     [people, unitMembers],
   );
 
-  const { nodes, edges } = useMemo(() => {
+  const { layoutNodes, edges } = useMemo(() => {
     const kids = (id: string) => (tree.children.get(id === ROOT_ID ? null : id) ?? []).map((u) => u.id);
     const height = (id: string) => {
       if (id === ROOT_ID) return ROOT_H;
@@ -137,8 +129,38 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit }
       style: { stroke: "#a3a3a3", strokeWidth: 1.5 },
     }));
     const all: CanvasNode[] = [rootNode, unassignedNode, ...unitNodes];
-    return { nodes: all.map((n) => (moved.has(n.id) ? { ...n, position: moved.get(n.id)! } : n)), edges: edgeList };
-  }, [tree, units, peopleById, expanded, canEdit, organization, freeCount, moved]);
+    return { layoutNodes: all, edges: edgeList };
+  }, [tree, units, peopleById, expanded, canEdit, organization.name, organization.logoUrl, freeCount]);
+
+  // Состояние карточек ведёт сам холст (рекомендованная схема React Flow): во время перетаскивания
+  // меняется только передвигаемая карточка, а размеры, которые React Flow измерил, не теряются.
+  const [nodes, setNodes] = useState<CanvasNode[]>(layoutNodes);
+  const [synced, setSynced] = useState({ layoutNodes, moved });
+  if (synced.layoutNodes !== layoutNodes || synced.moved !== moved) {
+    // Данные или раскладка изменились — пересобираем карточки, сохраняя ручные позиции и размеры.
+    setSynced({ layoutNodes, moved });
+    setNodes((prev) => {
+      const measured = new Map(prev.map((n) => [n.id, n.measured]));
+      return layoutNodes.map((n) => ({
+        ...n,
+        position: moved.get(n.id) ?? n.position,
+        measured: measured.get(n.id),
+      })) as CanvasNode[];
+    });
+  }
+
+  const onNodesChange: OnNodesChange<CanvasNode> = useCallback((changes) => {
+    setNodes((nds) => changes.applyTo(nds));
+    // Конец перетаскивания — запоминаем позицию (одно обновление вместо обновления на каждый кадр).
+    const finished = changes.getByType("position").filter((ch) => ch.dragging === false && ch.position);
+    if (finished.length > 0) {
+      setMoved((m) => {
+        const next = new Map(m);
+        for (const ch of finished) next.set(ch.id, ch.position!);
+        return next;
+      });
+    }
+  }, []);
 
   // При первом открытии компания — по центру экрана по горизонтали, дерево ниже.
   const onInit = useCallback((rf: ReactFlowInstance<CanvasNode, Edge>) => {
@@ -149,7 +171,9 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit }
   const parentName = (id: string | null) => (id ? tree.byId.get(id)?.name ?? "" : organization.name);
 
   return (
-    <div className="relative h-full w-full">
+    // touch-none и overscroll-none: жесты на холсте не прокручивают страницу и не «обновляют» её на телефоне.
+    // Картинки (логотип, аватары) не перехватывают нажатия и не перетаскиваются браузером.
+    <div className="relative h-full w-full touch-none overscroll-none select-none [&_img]:pointer-events-none [-webkit-touch-callout:none]">
       <ReactFlow
         nodes={nodes}
         edges={edges}
