@@ -94,7 +94,7 @@ export function ProfileEditForm({ initial, cancelHref }: Props) {
         error={err("username")}
         hint={
           <>
-            {e.usernameHint} <span className="break-all font-medium text-neutral-700">/@{values.username || "…"}</span>
+            {e.usernameHint} <span className="break-all font-medium text-ink">/@{values.username || "…"}</span>
           </>
         }
       />

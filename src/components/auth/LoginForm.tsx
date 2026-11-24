@@ -67,7 +67,7 @@ export function LoginForm() {
           required
         />
         <div className="-mt-1 text-right">
-          <Link href="/forgot-password" className="text-sm font-medium text-neutral-700 underline-offset-4 hover:underline">
+          <Link href="/forgot-password" className="text-sm font-medium text-ink underline-offset-4 hover:underline">
             {t.auth.login.forgot}
           </Link>
         </div>
@@ -76,7 +76,7 @@ export function LoginForm() {
         </Button>
       </form>
 
-      <p className="text-center text-base text-neutral-600">
+      <p className="text-center text-base text-ink">
         {t.auth.login.noAccount}{" "}
         <Link href={withNext("/signup", next)} className="font-medium text-accent underline underline-offset-4">
           {t.auth.login.toSignup}

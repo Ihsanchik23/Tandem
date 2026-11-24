@@ -48,18 +48,18 @@ export async function ProfileView({ username }: Props) {
           <Avatar url={profile.avatar_url} name={fullName} size={96} alt={t.profile.avatarAlt} />
           <div className="flex flex-col gap-0.5">
             <h1 className="text-2xl font-semibold tracking-tight text-ink">{fullName}</h1>
-            <p className="text-base text-neutral-500">@{profile.username}</p>
-            {profile.city ? <p className="text-base text-neutral-600">{profile.city}</p> : null}
+            <p className="text-base text-ink">@{profile.username}</p>
+            {profile.city ? <p className="text-base text-ink">{profile.city}</p> : null}
           </div>
         </div>
 
         {profile.bio ? (
-          <p className="whitespace-pre-line break-words text-base text-neutral-800">{profile.bio}</p>
+          <p className="whitespace-pre-line break-words text-base text-ink">{profile.bio}</p>
         ) : null}
 
         {jobs && jobs.length > 0 ? (
           <section className="flex flex-col gap-2">
-            <h2 className="text-sm font-medium text-neutral-500">{t.profile.workplace}</h2>
+            <h2 className="text-sm font-medium text-ink">{t.profile.workplace}</h2>
             {jobs.map((job) =>
               job.organizations ? (
                 <Link
@@ -70,7 +70,7 @@ export async function ProfileView({ username }: Props) {
                   <Avatar url={job.organizations.logo_url} name={job.organizations.name} size={44} />
                   <div className="min-w-0">
                     <p className="truncate text-base font-medium text-ink">{job.organizations.name}</p>
-                    {job.position ? <p className="truncate text-sm text-neutral-600">{job.position}</p> : null}
+                    {job.position ? <p className="truncate text-sm text-ink">{job.position}</p> : null}
                   </div>
                 </Link>
               ) : null,
@@ -82,7 +82,7 @@ export async function ProfileView({ username }: Props) {
           <div className="flex flex-col gap-3">
             <Link
               href="/profile/edit"
-              className="inline-flex h-12 items-center justify-center rounded-xl bg-accent px-4 text-base font-medium text-white hover:bg-accent-hover"
+              className="inline-flex h-12 items-center justify-center rounded-xl bg-brand px-4 text-base font-medium text-white hover:bg-brand-hover"
             >
               {t.profile.edit}
             </Link>

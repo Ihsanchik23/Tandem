@@ -19,7 +19,7 @@ export function PeoplePicker({ candidates, onAdd }: Props) {
   const [pending, start] = useTransition();
   const c = t.canvas;
 
-  if (candidates.length === 0) return <p className="text-sm text-neutral-500">{c.addPeopleAllIn}</p>;
+  if (candidates.length === 0) return <p className="text-sm text-ink">{c.addPeopleAllIn}</p>;
 
   const q = query.trim().toLowerCase();
   const shown = candidates.filter((m) =>
@@ -71,7 +71,7 @@ export function PeoplePicker({ candidates, onAdd }: Props) {
                 <Avatar url={m.avatar_url} name={name} size={32} />
                 <span className="min-w-0">
                   <span className="block truncate text-base text-ink">{name}</span>
-                  {m.position ? <span className="block truncate text-sm text-neutral-500">{m.position}</span> : null}
+                  {m.position ? <span className="block truncate text-sm text-ink">{m.position}</span> : null}
                 </span>
               </label>
             </li>

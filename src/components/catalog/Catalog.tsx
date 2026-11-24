@@ -95,7 +95,7 @@ export function Catalog() {
             aria-selected={tab === value}
             onClick={() => setTab(value)}
             className={`h-10 rounded-lg text-base font-medium transition-colors ${
-              tab === value ? "bg-white text-ink shadow-sm" : "text-neutral-600"
+              tab === value ? "bg-white text-ink shadow-sm" : "text-ink"
             }`}
           >
             {value === "people" ? c.people : c.companies}
@@ -106,7 +106,7 @@ export function Catalog() {
       <div className="flex flex-col gap-2">
         <label className="relative block">
           <span className="sr-only">{tab === "people" ? c.peoplePlaceholder : c.companiesPlaceholder}</span>
-          <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-400" />
+          <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-ink" />
           <input
             type="search"
             enterKeyHint="search"
@@ -119,7 +119,7 @@ export function Catalog() {
           />
         </label>
         <label className="flex items-center gap-2">
-          <span className="w-14 shrink-0 text-sm font-medium text-neutral-700">{c.city}</span>
+          <span className="w-14 shrink-0 text-sm font-medium text-ink">{c.city}</span>
           <input
             type="text"
             autoComplete="address-level2"
@@ -136,7 +136,7 @@ export function Catalog() {
       {loading ? (
         <ListSkeleton />
       ) : result && result.items.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-neutral-300 px-6 py-10 text-center text-base text-neutral-600">
+        <p className="rounded-2xl border border-dashed border-neutral-300 px-6 py-10 text-center text-base text-ink">
           {result.tab === "people" ? c.emptyPeople : c.emptyCompanies}
         </p>
       ) : result ? (
@@ -165,8 +165,8 @@ function PersonItem({ p }: { p: PersonRow }) {
         <Avatar url={p.avatar_url} name={name} size={48} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-base font-medium text-ink">{name || `@${p.username}`}</p>
-          <p className="truncate text-sm text-neutral-500">@{p.username}</p>
-          {work ? <p className="truncate text-sm text-neutral-600">{work}</p> : null}
+          <p className="truncate text-sm text-ink">@{p.username}</p>
+          {work ? <p className="truncate text-sm text-ink">{work}</p> : null}
         </div>
       </Link>
     </li>
@@ -183,7 +183,7 @@ function CompanyItem({ o }: { o: CompanyRow }) {
         <Avatar url={o.logo_url} name={o.name} size={48} />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-base font-medium text-ink">{o.name}</span>
-          <span className="block truncate text-sm text-neutral-600">{meta}</span>
+          <span className="block truncate text-sm text-ink">{meta}</span>
         </span>
       </Link>
     </li>

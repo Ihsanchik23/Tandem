@@ -34,7 +34,7 @@ export function MobileHeader({ data }: { data: ShellData | null }) {
 
   return (
     <>
-      <header className="sticky top-0 z-30 grid h-14 grid-cols-[3rem_1fr_3rem] items-center border-b border-neutral-200 bg-canvas/95 px-2 pt-[env(safe-area-inset-top)] backdrop-blur md:hidden">
+      <header className="sticky top-0 z-30 grid h-14 grid-cols-[3rem_1fr_3rem] items-center border-b border-neutral-200 bg-white/95 px-2 pt-[env(safe-area-inset-top)] backdrop-blur md:hidden">
         <button
           type="button"
           onClick={() => setOpen(true)}

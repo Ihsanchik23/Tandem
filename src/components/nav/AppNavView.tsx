@@ -22,7 +22,7 @@ export function AppNavView({ pathname, myUsername }: Props) {
                   href={href}
                   aria-current={active ? "page" : undefined}
                   className={`flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium ${
-                    active ? "text-accent" : "text-neutral-500"
+                    active ? "text-accent" : "text-ink"
                   }`}
                 >
                   <Icon className={active ? "stroke-[2.2]" : ""} />
@@ -40,7 +40,7 @@ export function AppNavView({ pathname, myUsername }: Props) {
         className="group/nav fixed inset-y-0 left-0 z-40 hidden w-16 flex-col gap-6 overflow-hidden border-r border-neutral-200 bg-white px-2 py-5 transition-[width,box-shadow] duration-150 hover:w-56 hover:shadow-xl focus-within:w-56 md:flex"
       >
         <Link href="/" className="flex h-9 items-center gap-3 px-2.5 text-xl font-semibold tracking-tight text-ink">
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-sm text-white">T</span>
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand text-sm text-white">T</span>
           <span className="whitespace-nowrap opacity-0 transition-opacity group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
             {t.app.name}
           </span>
@@ -55,7 +55,7 @@ export function AppNavView({ pathname, myUsername }: Props) {
                   aria-current={active ? "page" : undefined}
                   aria-label={label}
                   className={`flex h-11 items-center gap-3 rounded-xl px-3 text-base ${
-                    active ? "bg-accent/10 font-medium text-accent" : "text-neutral-600 hover:bg-neutral-100"
+                    active ? "bg-accent/10 font-medium text-accent" : "text-ink hover:bg-neutral-100"
                   }`}
                 >
                   <Icon className="shrink-0" />

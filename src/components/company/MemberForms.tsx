@@ -57,7 +57,7 @@ export function RoleForm({ role, options, ...ids }: Ids & { role: Role; options:
     <form action={action} className="flex flex-col gap-3">
       <Hidden {...ids} />
       <fieldset className="flex flex-col gap-2">
-        <legend className="mb-1 text-sm font-medium text-neutral-700">{c.role}</legend>
+        <legend className="mb-1 text-sm font-medium text-ink">{c.role}</legend>
         {options.map((r) => (
           <label
             key={r}

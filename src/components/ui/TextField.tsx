@@ -15,10 +15,10 @@ function Frame({ id, label, hint, error, aside, children }: Common & { id: strin
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-baseline justify-between gap-2">
-        <label htmlFor={id} className="text-sm font-medium text-neutral-800">
+        <label htmlFor={id} className="text-sm font-medium text-ink">
           {label}
         </label>
-        {aside ? <span className="text-sm text-neutral-500">{aside}</span> : null}
+        {aside ? <span className="text-sm text-ink">{aside}</span> : null}
       </div>
       {children}
       {error ? (
@@ -26,7 +26,7 @@ function Frame({ id, label, hint, error, aside, children }: Common & { id: strin
           {error}
         </p>
       ) : hint ? (
-        <p id={`${id}-hint`} className="text-sm text-neutral-500">
+        <p id={`${id}-hint`} className="text-sm text-ink">
           {hint}
         </p>
       ) : null}

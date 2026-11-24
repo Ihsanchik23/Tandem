@@ -35,7 +35,7 @@ export function Avatar({ url, name, size = 48, alt = "" }: Props) {
       aria-hidden={alt ? undefined : true}
       role={alt ? "img" : undefined}
       aria-label={alt || undefined}
-      className={`${radius} inline-flex shrink-0 items-center justify-center bg-neutral-200 font-medium text-neutral-600`}
+      className={`${radius} inline-flex shrink-0 items-center justify-center bg-neutral-200 font-medium text-ink`}
       style={{ width: size, height: size, fontSize: Math.max(12, Math.round(size * 0.36)) }}
     >
       {initials(name)}

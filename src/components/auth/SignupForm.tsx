@@ -82,7 +82,7 @@ export function SignupForm() {
         </Button>
       </form>
 
-      <p className="text-center text-base text-neutral-600">
+      <p className="text-center text-base text-ink">
         {t.auth.signup.haveAccount}{" "}
         <Link href={withNext("/login", next)} className="font-medium text-accent underline underline-offset-4">
           {t.auth.signup.toLogin}

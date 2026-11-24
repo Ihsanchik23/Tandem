@@ -30,7 +30,7 @@ export function WorkPanel({ data }: { data: ShellData }) {
           onClick={() => setCollapsed(false)}
           aria-label={n.expandPanel}
           title={n.expandPanel}
-          className="flex h-10 w-10 items-center justify-center rounded-xl text-neutral-600 hover:bg-neutral-100"
+          className="flex h-10 w-10 items-center justify-center rounded-xl text-ink hover:bg-neutral-100"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
             <rect x="3" y="4" width="18" height="16" rx="2" />
@@ -48,7 +48,7 @@ export function WorkPanel({ data }: { data: ShellData }) {
         onClick={() => setCollapsed(true)}
         aria-label={n.collapsePanel}
         title={n.collapsePanel}
-        className="absolute right-2 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-100"
+        className="absolute right-2 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-lg text-ink hover:bg-neutral-100"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
           <rect x="3" y="4" width="18" height="16" rx="2" />

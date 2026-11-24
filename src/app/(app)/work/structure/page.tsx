@@ -15,7 +15,7 @@ export default function StructurePage() {
     <main className="flex h-[calc(100dvh-7.5rem-env(safe-area-inset-bottom)-env(safe-area-inset-top))] flex-col md:h-dvh">
       {/* На телефоне заголовок — в общей шапке. */}
       <header className="hidden items-center gap-3 border-b border-neutral-200 bg-white px-5 py-3 md:flex">
-        <Link href="/work" className="text-base text-neutral-600 underline-offset-4 hover:underline">
+        <Link href="/work" className="text-base text-ink underline-offset-4 hover:underline">
           ← {t.work.title}
         </Link>
         <h1 className="text-lg font-semibold tracking-tight text-ink">{t.canvas.title}</h1>

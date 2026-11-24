@@ -10,7 +10,7 @@ export default function HomePage() {
       <Suspense fallback={<div className="h-7 w-48 rounded-lg bg-neutral-100" />}>
         <Greeting />
       </Suspense>
-      <p className="text-base text-neutral-600">{t.home.placeholder}</p>
+      <p className="text-base text-ink">{t.home.placeholder}</p>
     </StubPage>
   );
 }

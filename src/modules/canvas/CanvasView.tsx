@@ -196,7 +196,7 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit }
         {units.length === 0 ? (
           <Panel position="bottom-center" className="mb-6! w-[calc(100%-2rem)] max-w-sm">
             <div className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-4 text-center shadow-sm">
-              <p className="text-base text-neutral-700">{canEdit ? c.emptyEditor : c.emptyViewer}</p>
+              <p className="text-base text-ink">{canEdit ? c.emptyEditor : c.emptyViewer}</p>
               {canEdit ? (
                 <Button type="button" onClick={() => setSheet({ kind: "create", parentId: null })}>
                   {c.createFirst}
@@ -234,7 +234,7 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit }
 
       {sheet?.kind === "create" ? (
         <Sheet title={c.addUnit} onClose={closeSheet}>
-          <p className="mb-4 text-sm text-neutral-500">{format(c.addTo, { name: parentName(sheet.parentId) })}</p>
+          <p className="mb-4 text-sm text-ink">{format(c.addTo, { name: parentName(sheet.parentId) })}</p>
           <UnitForm
             submitLabel={c.create}
             pendingLabel={c.creating}
@@ -254,7 +254,7 @@ function ZoomButtons({ canReset, onReset }: { canReset: boolean; onReset: () => 
   const rf = useReactFlow();
   const c = t.canvas;
   const btn =
-    "flex h-10 w-10 items-center justify-center bg-white text-lg text-neutral-800 hover:bg-neutral-50 border-neutral-200";
+    "flex h-10 w-10 items-center justify-center bg-white text-lg text-ink hover:bg-neutral-50 border-neutral-200";
   return (
     <Panel position="bottom-left" className="flex flex-col overflow-hidden rounded-xl border border-neutral-200 shadow-sm">
       <button type="button" aria-label={c.zoomIn} onClick={() => void rf.zoomIn()} className={`${btn} border-b`}>
@@ -302,7 +302,7 @@ function UnassignedList({ people }: { people: Member[] }) {
         </button>
         {open ? (
           people.length === 0 ? (
-            <p className="border-t border-neutral-100 px-3 py-3 text-sm text-neutral-500">{c.unassignedEmpty}</p>
+            <p className="border-t border-neutral-100 px-3 py-3 text-sm text-ink">{c.unassignedEmpty}</p>
           ) : (
             <ul className="max-h-72 overflow-y-auto border-t border-neutral-100">
               {people.map((p) => {
@@ -313,7 +313,7 @@ function UnassignedList({ people }: { people: Member[] }) {
                       <Avatar url={p.avatar_url} name={name} size={28} />
                       <span className="min-w-0">
                         <span className="block truncate text-sm text-ink">{name}</span>
-                        {p.position ? <span className="block truncate text-xs text-neutral-500">{p.position}</span> : null}
+                        {p.position ? <span className="block truncate text-xs text-ink">{p.position}</span> : null}
                       </span>
                     </Link>
                   </li>

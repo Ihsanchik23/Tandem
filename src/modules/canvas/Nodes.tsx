@@ -52,7 +52,7 @@ function PlusButton({ onClick, label }: { onClick: () => void; label: string }) 
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="nodrag absolute -bottom-4 left-1/2 flex h-8 w-8 -translate-x-1/2 items-center justify-center rounded-full border border-neutral-300 bg-white text-lg leading-none text-neutral-700 shadow-sm hover:bg-neutral-50"
+      className="nodrag absolute -bottom-4 left-1/2 flex h-8 w-8 -translate-x-1/2 items-center justify-center rounded-full border border-neutral-300 bg-white text-lg leading-none text-ink shadow-sm hover:bg-neutral-50"
     >
       +
     </button>
@@ -74,7 +74,7 @@ export function RootNode({ data }: NodeProps<RootNodeType>) {
     >
       <Avatar url={data.logoUrl} name={data.name} size={48} />
       <p className="line-clamp-2 break-words text-base font-semibold text-ink">{data.name}</p>
-      <p className="text-xs leading-5 text-neutral-500">{stats.join(" · ")}</p>
+      <p className="text-xs leading-5 text-ink">{stats.join(" · ")}</p>
       {data.canEdit ? <PlusButton onClick={data.onAdd} label={c.add} /> : null}
       <Handles />
     </div>
@@ -93,7 +93,7 @@ export function UnitNode({ data }: NodeProps<UnitNodeType>) {
         {data.head ? (
           <span className="flex items-center gap-2">
             <Avatar url={data.head.avatar_url} name={headName ?? ""} size={24} />
-            <span className="truncate text-sm text-neutral-800">{headName}</span>
+            <span className="truncate text-sm text-ink">{headName}</span>
           </span>
         ) : null}
       </button>
@@ -105,7 +105,7 @@ export function UnitNode({ data }: NodeProps<UnitNodeType>) {
             type="button"
             onClick={data.onToggle}
             aria-expanded={data.expanded}
-            className="nodrag flex items-center gap-1 py-1 text-sm text-neutral-700 hover:text-ink"
+            className="nodrag flex items-center gap-1 py-1 text-sm text-ink hover:text-ink"
           >
             {count}
             <svg
@@ -122,10 +122,10 @@ export function UnitNode({ data }: NodeProps<UnitNodeType>) {
             </svg>
           </button>
         ) : (
-          <p className="py-1 text-sm text-neutral-500">{count}</p>
+          <p className="py-1 text-sm text-ink">{count}</p>
         )}
         {data.branch !== data.direct ? (
-          <p className="text-xs text-neutral-500">{format(c.inBranch, { n: data.branch })}</p>
+          <p className="text-xs text-ink">{format(c.inBranch, { n: data.branch })}</p>
         ) : null}
 
         {data.expanded ? (
@@ -135,7 +135,7 @@ export function UnitNode({ data }: NodeProps<UnitNodeType>) {
               return (
                 <li key={p.user_id} className="flex items-center gap-2" style={{ height: PERSON_H }}>
                   <Avatar url={p.avatar_url} name={name} size={28} />
-                  <span className="truncate text-sm text-neutral-800">{name}</span>
+                  <span className="truncate text-sm text-ink">{name}</span>
                 </li>
               );
             })}

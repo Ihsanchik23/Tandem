@@ -3,7 +3,7 @@ import { t } from "@/lib/i18n";
 import type { MyCompany } from "@/lib/company/queries";
 
 const btnPrimary =
-  "inline-flex h-12 items-center justify-center rounded-xl bg-accent px-4 text-base font-medium text-white hover:bg-accent-hover";
+  "inline-flex h-12 items-center justify-center rounded-xl bg-brand px-4 text-base font-medium text-white hover:bg-brand-hover";
 const btnSecondary =
   "inline-flex h-12 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-base font-medium text-ink hover:bg-neutral-50";
 
@@ -14,7 +14,7 @@ export function NoCompany({ canCreate }: { canCreate: boolean }) {
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-2">
         <p className="text-lg font-medium text-ink">{w.noCompanyTitle}</p>
-        <p className="text-base text-neutral-600">{w.noCompanyText}</p>
+        <p className="text-base text-ink">{w.noCompanyText}</p>
       </div>
       <div className="flex flex-col gap-3">
         <Link href="/search" className={btnSecondary}>
@@ -29,7 +29,7 @@ export function NoCompany({ canCreate }: { canCreate: boolean }) {
             <span aria-disabled className={`${btnPrimary} cursor-not-allowed opacity-40`}>
               {w.createCompany}
             </span>
-            <p className="text-sm text-neutral-600">{w.needSubscription}</p>
+            <p className="text-sm text-ink">{w.needSubscription}</p>
           </>
         )}
       </div>
@@ -46,8 +46,8 @@ export function WorkHome({ company }: { company: MyCompany }) {
       {company.role === "owner" ? <QuickStart /> : null}
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-medium text-neutral-500">{w.menuPages}</h2>
-        <p className="rounded-2xl border border-dashed border-neutral-300 px-4 py-6 text-center text-base text-neutral-600">
+        <h2 className="text-sm font-medium text-ink">{w.menuPages}</h2>
+        <p className="rounded-2xl border border-dashed border-neutral-300 px-4 py-6 text-center text-base text-ink">
           {w.noPages}
         </p>
       </section>
@@ -63,7 +63,7 @@ function QuickStart() {
   const soon = "flex items-center justify-between rounded-xl border border-neutral-200 px-4 py-3 text-base text-neutral-400";
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="text-sm font-medium text-neutral-500">{w.quickStartTitle}</h2>
+      <h2 className="text-sm font-medium text-ink">{w.quickStartTitle}</h2>
       <Link href="/work/structure" className={ready}>
         {w.quickStructure} <span aria-hidden>→</span>
       </Link>

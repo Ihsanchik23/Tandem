@@ -27,7 +27,7 @@ async function NewCompanyContent() {
   if (!(await hasFreeSubscription(userId))) {
     return (
       <div className="flex flex-col gap-4">
-        <p className="text-base text-neutral-600">{t.work.needSubscription}</p>
+        <p className="text-base text-ink">{t.work.needSubscription}</p>
         <Link href="/work" className="text-base font-medium text-accent underline underline-offset-4">
           {t.company.cancel}
         </Link>

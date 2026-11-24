@@ -19,7 +19,7 @@ export function Button({
     "inline-flex h-12 w-full items-center justify-center rounded-xl px-4 text-base font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
   const styles =
     variant === "primary"
-      ? "bg-accent text-white hover:bg-accent-hover"
+      ? "bg-brand text-white hover:bg-brand-hover"
       : "border border-neutral-300 bg-white text-ink hover:bg-neutral-50";
   return (
     <button

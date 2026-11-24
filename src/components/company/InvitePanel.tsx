@@ -30,16 +30,16 @@ export function InvitePanel({ organizationId, organizationName, invites, seats }
     <section className="flex flex-col gap-3 rounded-2xl border border-neutral-200 p-4">
       <div className="flex flex-col gap-1">
         <h2 className="text-base font-medium text-ink">{c.inviteTitle}</h2>
-        <p className="text-sm text-neutral-600">{c.inviteHint}</p>
+        <p className="text-sm text-ink">{c.inviteHint}</p>
         {seats ? (
-          <p className="text-sm text-neutral-600">{format(c.seats, { used: seats.used, seats: seats.total })}</p>
+          <p className="text-sm text-ink">{format(c.seats, { used: seats.used, seats: seats.total })}</p>
         ) : null}
       </div>
 
       {invites.map((inv) => (
         <InviteLink key={inv.id} invite={inv} organizationName={organizationName} />
       ))}
-      {!current ? <p className="text-sm text-neutral-500">{c.inviteNone}</p> : null}
+      {!current ? <p className="text-sm text-ink">{c.inviteNone}</p> : null}
 
       {state.error ? <FormMessage kind="error">{t.errors[state.error]}</FormMessage> : null}
       <form action={action} className="flex flex-col gap-1">
@@ -47,7 +47,7 @@ export function InvitePanel({ organizationId, organizationName, invites, seats }
         <Button type="submit" variant={current ? "secondary" : "primary"} pending={pending} pendingText={c.inviteCreating}>
           {current ? c.inviteNew : c.inviteCreate}
         </Button>
-        {current ? <p className="text-center text-xs text-neutral-500">{c.inviteNewHint}</p> : null}
+        {current ? <p className="text-center text-xs text-ink">{c.inviteNewHint}</p> : null}
       </form>
     </section>
   );
@@ -91,7 +91,7 @@ function InviteLink({ invite, organizationName }: { invite: InviteRow; organizat
   return (
     <div className="flex flex-col gap-2 rounded-xl bg-neutral-50 p-3">
       <p className="select-all break-all text-sm font-medium text-ink">{url}</p>
-      <p className="text-xs text-neutral-500" suppressHydrationWarning>
+      <p className="text-xs text-ink" suppressHydrationWarning>
         {format(c.inviteValidUntil, { date: until })}
       </p>
       <div className="grid grid-cols-2 gap-2">

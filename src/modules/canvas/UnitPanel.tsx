@@ -41,17 +41,17 @@ export function UnitPanel({ unit, tree, people, organizationId, canEdit }: Props
   return (
     <div className="flex flex-col gap-7">
       <section className="flex flex-col gap-2">
-        {unit.address ? <p className="text-base text-neutral-700">{unit.address}</p> : null}
-        <h3 className="text-sm font-medium text-neutral-500">{c.head}</h3>
-        {head ? <PersonLine m={head} /> : <p className="text-base text-neutral-400">{c.noHead}</p>}
-        {childCount > 0 ? <p className="text-sm text-neutral-500">{format(c.children, { n: childCount })}</p> : null}
+        {unit.address ? <p className="text-base text-ink">{unit.address}</p> : null}
+        <h3 className="text-sm font-medium text-ink">{c.head}</h3>
+        {head ? <PersonLine m={head} /> : <p className="text-base text-ink">{c.noHead}</p>}
+        {childCount > 0 ? <p className="text-sm text-ink">{format(c.children, { n: childCount })}</p> : null}
       </section>
 
       <section className="flex flex-col gap-1">
-        <h3 className="text-sm font-medium text-neutral-500">
+        <h3 className="text-sm font-medium text-ink">
           {c.people} · {members.length}
         </h3>
-        {members.length === 0 ? <p className="text-base text-neutral-500">{c.peopleEmpty}</p> : null}
+        {members.length === 0 ? <p className="text-base text-ink">{c.peopleEmpty}</p> : null}
         <ul className="divide-y divide-neutral-100">
           {members.map((m) => (
             <li key={m.user_id} className="flex items-center gap-2 py-1">
@@ -114,7 +114,7 @@ function PersonLine({ m }: { m: Member }) {
       <Avatar url={m.avatar_url} name={name} size={36} />
       <span className="min-w-0">
         <span className="block truncate text-base text-ink">{name}</span>
-        {m.position ? <span className="block truncate text-sm text-neutral-500">{m.position}</span> : null}
+        {m.position ? <span className="block truncate text-sm text-ink">{m.position}</span> : null}
       </span>
     </Link>
   );

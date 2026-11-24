@@ -14,7 +14,7 @@ export function MemberRow({ m, toCard = false }: { m: Member; toCard?: boolean }
         <Avatar url={m.avatar_url} name={name} size={44} />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-base font-medium text-ink">{name}</span>
-          <span className="block truncate text-sm text-neutral-600">{meta}</span>
+          <span className="block truncate text-sm text-ink">{meta}</span>
         </span>
       </Link>
     </li>

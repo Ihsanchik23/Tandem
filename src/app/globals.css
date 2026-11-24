@@ -2,11 +2,14 @@
 
 /* Только светлая тема (тёмной в MVP нет). Фирменная палитра Tandem — только через эти токены. */
 :root {
-  --tandem-accent: #bf4a31; /* кнопки, активные элементы, ссылки */
+  --tandem-accent: #bf4a31; /* ссылки, мелкие акценты (одним цветом — так читается лучше градиента) */
   --tandem-accent-hover: #ae3926; /* наведение */
   --tandem-accent-soft: #d86750; /* светлый акцент — редко */
-  --tandem-ink: #1e1e1e; /* основной текст */
-  --tandem-canvas: #f8f6f4; /* фон страниц */
+  --tandem-ink: #1e1e1e; /* основной текст — весь текст чёрный */
+  --tandem-canvas: #ffffff; /* фон страниц */
+  /* Градиент бренда: кнопки, логотип, выбранные элементы. */
+  --tandem-gradient: linear-gradient(135deg, #d86750 0%, #bf4a31 50%, #ae3926 100%);
+  --tandem-gradient-hover: linear-gradient(135deg, #bf4a31 0%, #ae3926 100%);
   color-scheme: light;
 }
 
@@ -19,6 +22,14 @@
   --color-background: var(--tandem-canvas);
   --color-foreground: var(--tandem-ink);
   --font-sans: var(--font-geist-sans);
+}
+
+/* Градиентная заливка: bg-brand, при наведении — hover:bg-brand-hover. */
+@utility bg-brand {
+  background-image: var(--tandem-gradient);
+}
+@utility bg-brand-hover {
+  background-image: var(--tandem-gradient-hover);
 }
 
 body {

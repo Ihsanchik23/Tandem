@@ -70,16 +70,16 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
 
       <nav aria-label={w.menu} className="flex flex-1 flex-col gap-5 overflow-y-auto p-3">
         <section className="flex flex-col gap-0.5">
-          <Link href="/work" onClick={onNavigate} className="px-3 pb-1 text-xs font-medium uppercase tracking-wide text-neutral-500 hover:text-ink">
+          <Link href="/work" onClick={onNavigate} className="px-3 pb-1 text-xs font-medium uppercase tracking-wide text-ink hover:text-ink">
             {w.menuPages}
           </Link>
           {pages.length === 0 ? (
-            <p className="px-3 py-1 text-sm text-neutral-500">{w.noPages}</p>
+            <p className="px-3 py-1 text-sm text-ink">{w.noPages}</p>
           ) : (
             pages.map((p) => (
               // Открытие страниц появится вместе с модулями «Задачи» и «Чат» (день 5).
               <span key={p.id} className={item(false)}>
-                <span className="text-neutral-500">
+                <span className="text-ink">
                   <ModuleIcon moduleKey={p.moduleKey} />
                 </span>
                 <span className="truncate">{p.name}</span>
@@ -89,7 +89,7 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
         </section>
 
         <section className="flex flex-col gap-0.5">
-          <p className="px-3 pb-1 text-xs font-medium uppercase tracking-wide text-neutral-500">{w.menuMyCompany}</p>
+          <p className="px-3 pb-1 text-xs font-medium uppercase tracking-wide text-ink">{w.menuMyCompany}</p>
           {links.map((l) => (
             <Link key={l.href} href={l.href} onClick={onNavigate} className={item(pathname.startsWith(l.href))}>
               {l.label}
@@ -100,7 +100,7 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
 
       <div className="border-t border-neutral-200 p-3">
         {company.role === "owner" ? (
-          <p className="px-1 text-sm text-neutral-500">{w.ownerCannotLeaveHint}</p>
+          <p className="px-1 text-sm text-ink">{w.ownerCannotLeaveHint}</p>
         ) : (
           <ConfirmAction
             action={leaveCompany}

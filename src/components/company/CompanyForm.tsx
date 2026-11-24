@@ -106,7 +106,7 @@ export function CompanyForm(props: Props) {
           error={err("slug")}
           hint={
             <>
-              {c.slugHint} <span className="break-all font-medium text-neutral-700">/c/{values.slug || "…"}</span>
+              {c.slugHint} <span className="break-all font-medium text-ink">/c/{values.slug || "…"}</span>
             </>
           }
         />
@@ -132,7 +132,7 @@ export function CompanyForm(props: Props) {
         error={err("description")}
         aside={format(c.counter, { n: values.description.length, max: LIMITS.description })}
       />
-      {isCreate ? <p className="text-sm text-neutral-500">{c.logoHint}</p> : null}
+      {isCreate ? <p className="text-sm text-ink">{c.logoHint}</p> : null}
 
       <div className="flex flex-col gap-3 pt-2">
         <Button

@@ -33,7 +33,7 @@ export async function CompanyView({ slug }: { slug: string }) {
           <Avatar url={org.logo_url} name={org.name} size={96} alt={c.logoAlt} />
           <div className="flex flex-col gap-0.5">
             <h1 className="break-words text-2xl font-semibold tracking-tight text-ink">{org.name}</h1>
-            <p className="text-base text-neutral-600">
+            <p className="text-base text-ink">
               {[org.city, `${members.length} ${pluralRu(members.length, c.members)}`].filter(Boolean).join(" · ")}
             </p>
           </div>
@@ -49,12 +49,12 @@ export async function CompanyView({ slug }: { slug: string }) {
         ) : null}
 
         {org.description ? (
-          <p className="whitespace-pre-line break-words text-base text-neutral-800">{org.description}</p>
+          <p className="whitespace-pre-line break-words text-base text-ink">{org.description}</p>
         ) : null}
 
         {founders.length > 0 ? (
           <section className="flex flex-col gap-1">
-            <h2 className="text-sm font-medium text-neutral-500">{c.founders}</h2>
+            <h2 className="text-sm font-medium text-ink">{c.founders}</h2>
             <p className="text-base text-ink">
               {founders.map((f, i) => (
                 <span key={f.username}>
@@ -69,7 +69,7 @@ export async function CompanyView({ slug }: { slug: string }) {
         ) : null}
 
         <section className="flex flex-col">
-          <h2 className="text-sm font-medium text-neutral-500">{c.people}</h2>
+          <h2 className="text-sm font-medium text-ink">{c.people}</h2>
           <ul className="divide-y divide-neutral-100">
             {members.map((m) => (
               <MemberRow key={m.user_id} m={m} />

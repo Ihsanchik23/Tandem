@@ -118,12 +118,12 @@ export function ImageUploader({ kind, ownerId, name, initialUrl, labels }: Props
           {busy ? labels.uploading : url ? labels.change : labels.upload}
         </label>
         {url && !busy ? (
-          <button type="button" onClick={onRemove} className="text-base text-neutral-600 underline underline-offset-4">
+          <button type="button" onClick={onRemove} className="text-base text-ink underline underline-offset-4">
             {labels.remove}
           </button>
         ) : null}
       </div>
-      <p className="text-sm text-neutral-500">{t.profileEdit.avatarHint}</p>
+      <p className="text-sm text-ink">{t.profileEdit.avatarHint}</p>
       {error ? <FormMessage kind="error">{t.errors[error]}</FormMessage> : null}
     </div>
   );

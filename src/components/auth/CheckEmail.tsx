@@ -23,7 +23,7 @@ export function CheckEmail() {
   return (
     <>
       <AuthHeader title={c.title} />
-      <div className="flex flex-col gap-3 text-base text-neutral-700">
+      <div className="flex flex-col gap-3 text-base text-ink">
         <p>
           {text}
           {email ? (
@@ -33,7 +33,7 @@ export function CheckEmail() {
             </>
           ) : null}
         </p>
-        <p className="text-neutral-600">{c.hint}</p>
+        <p className="text-ink">{c.hint}</p>
       </div>
 
       {state.error ? <FormMessage kind="error">{t.errors[state.error]}</FormMessage> : null}

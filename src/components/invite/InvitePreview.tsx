@@ -10,7 +10,7 @@ import { Avatar } from "@/components/profile/Avatar";
 import { JoinButton } from "./JoinButton";
 
 const linkPrimary =
-  "inline-flex h-12 w-full items-center justify-center rounded-xl bg-accent px-4 text-base font-medium text-white hover:bg-accent-hover";
+  "inline-flex h-12 w-full items-center justify-center rounded-xl bg-brand px-4 text-base font-medium text-white hover:bg-brand-hover";
 
 // Предпросмотр приглашения: логотип, название, «Присоединиться».
 // get_invite_preview доступна и без входа; вступление проверяет accept_invite.
@@ -41,7 +41,7 @@ export async function InvitePreview({ token }: { token: string }) {
     <>
       <div className="flex flex-col items-center gap-3 text-center">
         <Avatar url={preview.logo_url} name={preview.name} size={96} alt={t.company.logoAlt} />
-        <p className="text-base text-neutral-600">{i.text}</p>
+        <p className="text-base text-ink">{i.text}</p>
         <h1 className="break-words text-2xl font-semibold tracking-tight text-ink">{preview.name}</h1>
       </div>
 
@@ -50,7 +50,7 @@ export async function InvitePreview({ token }: { token: string }) {
           <Link href={withNext("/signup", back)} className={linkPrimary}>
             {i.join}
           </Link>
-          <p className="text-center text-base text-neutral-600">
+          <p className="text-center text-base text-ink">
             {i.haveAccount}{" "}
             <Link href={withNext("/login", back)} className="font-medium text-accent underline underline-offset-4">
               {i.login}
@@ -59,14 +59,14 @@ export async function InvitePreview({ token }: { token: string }) {
         </>
       ) : company?.org.id === preview.organization_id ? (
         <>
-          <p className="text-center text-base text-neutral-700">{i.alreadyHere}</p>
+          <p className="text-center text-base text-ink">{i.alreadyHere}</p>
           <Link href="/work" className={linkPrimary}>
             {i.toWork}
           </Link>
         </>
       ) : company ? (
         <>
-          <p className="text-center text-base text-neutral-700">{i.otherCompany}</p>
+          <p className="text-center text-base text-ink">{i.otherCompany}</p>
           <Link href="/work" className={linkPrimary}>
             {i.toWork}
           </Link>

@@ -46,7 +46,7 @@ async function MemberContent({ params }: { params: PageProps<"/work/people/[user
         <Avatar url={m.avatar_url} name={name} size={64} />
         <div className="min-w-0">
           <p className="truncate text-lg font-medium text-ink">{name}</p>
-          <p className="truncate text-base text-neutral-600">
+          <p className="truncate text-base text-ink">
             {[m.position, c.roles[m.role]].filter(Boolean).join(" · ")}
           </p>
           <Link href={`/@${m.username}`} className="text-sm font-medium text-accent underline underline-offset-4">
