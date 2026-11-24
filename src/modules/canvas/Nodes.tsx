@@ -23,6 +23,9 @@ export type Tint = { color: number; nested: boolean } | null;
 const v = (tint: Tint, key: "bg" | "soft" | "line" | "strong" | "text" | "chip", fallback: string) =>
   tint ? `var(--branch-${tint.color}-${key})` : fallback;
 const cardBg = (tint: Tint) => v(tint, tint?.nested ? "soft" : "bg", "#f3f0ec");
+// Обводка выделенной карточки — в цвете её ветки (компания — чёрная).
+const SELECTED = "ring-[2.5px] ring-offset-2 ring-offset-white";
+const ringColor = (tint: Tint) => ({ "--tw-ring-color": v(tint, "strong", "#1e1e1e") }) as React.CSSProperties;
 
 export type CreateUnitResult = { error?: ErrorKey; id?: string };
 
@@ -248,9 +251,9 @@ export function RootNode({ data, selected }: NodeProps<RootNodeType>) {
   return (
     <div
       className={`relative flex flex-col items-center gap-2 rounded-3xl bg-ink px-5 pb-7 pt-5 text-center text-white shadow-[0_8px_24px_rgba(0,0,0,0.14)] ${data.highlight ? "animate-focus-pulse" : ""} ${
-        selected ? "ring-2 ring-ink ring-offset-2 ring-offset-white" : ""
+        selected ? SELECTED : ""
       }`}
-      style={{ width: CARD_W }}
+      style={{ width: CARD_W, ...ringColor(null) }}
     >
       <span className="rounded-full bg-white p-0.5">
         <Avatar url={data.logoUrl} name={data.name} size={44} />
@@ -277,8 +280,8 @@ export function UnitNode({ data, selected }: NodeProps<UnitNodeType>) {
       <div
         className={`relative flex flex-col gap-3 rounded-3xl p-4 pb-6 transition-[transform,box-shadow] duration-200 ease-out group-hover:-translate-y-0.5 group-hover:shadow-[0_10px_24px_rgba(0,0,0,0.12)] ${
           data.highlight ? "animate-focus-pulse" : ""
-        } ${selected ? "ring-2 ring-ink ring-offset-2 ring-offset-white" : ""}`}
-        style={{ background: cardBg(tint) }}
+        } ${selected ? SELECTED : ""}`}
+        style={{ background: cardBg(tint), ...ringColor(tint) }}
       >
         {/* Вся карточка — одна большая кнопка «открыть»; кнопки внутри лежат поверх неё. */}
         <button
@@ -398,8 +401,8 @@ export function PageNode({ data, selected }: NodeProps<PageNodeType>) {
         aria-label={data.locked ? `${data.name} · ${p.locked}` : data.name}
         className={`flex w-full items-center gap-2.5 rounded-2xl border-2 bg-white px-3 py-2.5 text-left transition-[transform,box-shadow] duration-200 enabled:group-hover:-translate-y-0.5 enabled:group-hover:shadow-[0_8px_20px_rgba(0,0,0,0.1)] disabled:cursor-not-allowed disabled:opacity-60 ${
           data.highlight ? "animate-focus-pulse" : ""
-        } ${selected ? "ring-2 ring-ink ring-offset-2 ring-offset-white" : ""}`}
-        style={{ minHeight: PAGE_H, borderColor: data.locked ? "#e5e5e5" : v(tint, "chip", "#d4d4d4") }}
+        } ${selected ? SELECTED : ""}`}
+        style={{ ...ringColor(tint), minHeight: PAGE_H, borderColor: data.locked ? "#e5e5e5" : v(tint, "chip", "#d4d4d4") }}
       >
         <span
           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px]"
