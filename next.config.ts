@@ -7,6 +7,11 @@ const nextConfig: NextConfig = {
     return [{ source: "/@:username", destination: "/u/:username" }];
   },
   cacheComponents: true,
+  experimental: {
+    // Уже открытые страницы 30 секунд показываются из памяти браузера мгновенно.
+    // После своих изменений (revalidatePath в действиях) они обновляются сразу.
+    staleTimes: { dynamic: 30 },
+  },
   partialPrefetching: true,
   turbopack: {
     rules: {
