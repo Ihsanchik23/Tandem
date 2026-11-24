@@ -11,3 +11,5 @@ export function getMessages(locale: Locale = defaultLocale): Messages {
 }
 
 export const t = getMessages();
+
+export { pluralRu, format } from "./format";

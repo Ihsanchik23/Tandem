@@ -65,16 +65,77 @@ export const ru = {
     signOut: "Выйти",
   },
 
+  nav: {
+    label: "Разделы",
+    home: "Главная",
+    search: "Поиск",
+    work: "Работа",
+    messages: "Сообщения",
+    profile: "Профиль",
+  },
+
   home: {
     title: "Главная",
     greeting: "Здравствуйте",
     placeholder: "Здесь скоро появится главная страница Tandem.",
-    toWork: "Перейти в «Работу»",
   },
 
   work: {
     title: "Работа",
     placeholder: "Здесь скоро появится рабочее пространство компании.",
+  },
+
+  messages: {
+    title: "Сообщения",
+    empty: "Здесь пока нет сообщений",
+  },
+
+  profile: {
+    edit: "Редактировать профиль",
+    workplace: "Место работы",
+    notFoundTitle: "Профиль не найден",
+    notFoundText: "Возможно, человек сменил имя пользователя или ссылка с опечаткой.",
+    toSearch: "Перейти в поиск",
+    chooseUsernameTitle: "Выберите имя пользователя",
+    chooseUsernameText: "Сейчас у вас автоматическое имя. Придумайте своё — по нему вас найдут коллеги.",
+    chooseUsernameCta: "Выбрать имя",
+    avatarAlt: "Фото профиля",
+  },
+
+  profileEdit: {
+    title: "Редактирование профиля",
+    firstName: "Имя",
+    lastName: "Фамилия",
+    username: "Имя пользователя",
+    usernameHint: "3–30 символов: латинские буквы, цифры и _. Ссылка на профиль:",
+    city: "Город",
+    bio: "О себе",
+    bioPlaceholder: "Пара слов о себе и своей работе",
+    counter: "{n} из {max}",
+    save: "Сохранить",
+    saving: "Сохраняем…",
+    cancel: "Отмена",
+    avatarChange: "Изменить фото",
+    avatarUpload: "Загрузить фото",
+    avatarRemove: "Удалить фото",
+    avatarUploading: "Загружаем фото…",
+    avatarHint: "JPG, PNG или WebP",
+  },
+
+  catalog: {
+    title: "Поиск",
+    tabsLabel: "Что искать",
+    people: "Люди",
+    companies: "Компании",
+    peoplePlaceholder: "Имя, фамилия или @username",
+    companiesPlaceholder: "Название компании",
+    city: "Город",
+    cityPlaceholder: "Например, Астана",
+    loadMore: "Показать ещё",
+    loading: "Загружаем…",
+    emptyPeople: "Никого не нашли. Попробуйте другое имя или город",
+    emptyCompanies: "Компаний не нашли. Попробуйте другое название или город",
+    members: ["сотрудник", "сотрудника", "сотрудников"],
   },
 
   errors: {
@@ -97,6 +158,18 @@ export const ru = {
       "Откройте ссылку в том же браузере, где запрашивали сброс пароля, или запросите новое письмо",
     sessionExpired: "Сессия закончилась. Войдите снова",
     userBanned: "Аккаунт заблокирован. Напишите в поддержку Tandem",
+    firstNameRequired: "Укажите имя",
+    lastNameRequired: "Укажите фамилию",
+    nameTooLong: "Не больше 60 символов",
+    cityTooLong: "Не больше 60 символов",
+    bioTooLong: "Не больше 300 символов",
+    usernameFormat: "3–30 символов: латинские буквы, цифры и _",
+    usernameTaken: "Это имя уже занято",
+    fixFields: "Исправьте отмеченные поля",
+    avatarType: "Подойдёт фото в формате JPG, PNG или WebP",
+    avatarTooBig: "Фото слишком большое. Выберите фото до 15 МБ",
+    avatarFailed: "Не удалось загрузить фото. Попробуйте ещё раз",
+    searchFailed: "Не удалось загрузить список. Проверьте интернет и попробуйте ещё раз",
   },
 } as const;
 

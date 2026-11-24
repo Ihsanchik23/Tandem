@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { SignOutButton } from "@/components/auth/SignOutButton";
 import { StubPage } from "@/components/layout/StubPage";
 import { FormMessage } from "@/components/ui/FormMessage";
 import { t } from "@/lib/i18n";
@@ -12,7 +11,6 @@ export default function WorkPage({ searchParams }: PageProps<"/work">) {
         <Notice searchParams={searchParams} />
       </Suspense>
       <p className="text-base text-neutral-600">{t.work.placeholder}</p>
-      <SignOutButton />
     </StubPage>
   );
 }

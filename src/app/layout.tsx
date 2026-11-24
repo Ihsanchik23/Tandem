@@ -18,6 +18,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   colorScheme: "light",
   themeColor: "#ffffff",
+  // Чтобы нижняя панель учитывала «чёлку» и полоску жестов iPhone.
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
