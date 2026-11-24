@@ -2,15 +2,15 @@
 
 /* Только светлая тема (тёмной в MVP нет). Фирменная палитра Tandem — только через эти токены. */
 :root {
-  --tandem-accent: #bf4a31; /* ссылки, мелкие акценты (одним цветом — так читается лучше градиента) */
-  --tandem-accent-hover: #ae3926; /* наведение */
-  --tandem-accent-soft: #d86750; /* светлый акцент — редко */
+  --tandem-accent: #d2400f; /* ссылки, мелкие акценты (одним цветом — так читается лучше градиента) */
+  --tandem-accent-hover: #b83609; /* наведение */
+  --tandem-accent-soft: #ff7a4d; /* светлый акцент — редко */
   --tandem-ink: #1e1e1e; /* основной текст — весь текст чёрный */
   --tandem-canvas: #ffffff; /* фон страниц */
   /* Градиент бренда: кнопки, логотип, выбранные элементы и иконки. */
-  --tandem-grad-1: #d86750;
-  --tandem-grad-2: #bf4a31;
-  --tandem-grad-3: #ae3926;
+  --tandem-grad-1: #ff7a4d;
+  --tandem-grad-2: #f4511e;
+  --tandem-grad-3: #dd4115;
   --tandem-gradient: linear-gradient(135deg, var(--tandem-grad-1) 0%, var(--tandem-grad-2) 50%, var(--tandem-grad-3) 100%);
   --tandem-gradient-hover: linear-gradient(135deg, var(--tandem-grad-2) 0%, var(--tandem-grad-3) 100%);
   color-scheme: light;
@@ -53,13 +53,13 @@
 /* Новая карточка на «Структуре»: короткая подсветка, чтобы её было видно. */
 @keyframes tandem-focus-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(191, 74, 49, 0.55);
+    box-shadow: 0 0 0 0 rgba(244, 81, 30, 0.55);
   }
   60% {
-    box-shadow: 0 0 0 14px rgba(191, 74, 49, 0);
+    box-shadow: 0 0 0 14px rgba(244, 81, 30, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(191, 74, 49, 0);
+    box-shadow: 0 0 0 0 rgba(244, 81, 30, 0);
   }
 }
 
