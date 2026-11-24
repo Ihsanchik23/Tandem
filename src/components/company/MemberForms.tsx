@@ -61,9 +61,9 @@ export function RoleForm({ role, options, ...ids }: Ids & { role: Role; options:
         {options.map((r) => (
           <label
             key={r}
-            className="flex h-12 items-center gap-3 rounded-xl border border-neutral-300 px-4 text-base text-neutral-900 has-[:checked]:border-neutral-900"
+            className="flex h-12 items-center gap-3 rounded-xl border border-neutral-300 px-4 text-base text-ink has-[:checked]:border-accent"
           >
-            <input type="radio" name="role" value={r} defaultChecked={r === role} className="h-4 w-4 accent-neutral-900" />
+            <input type="radio" name="role" value={r} defaultChecked={r === role} className="h-4 w-4 accent-accent" />
             {c.roles[r]}
           </label>
         ))}

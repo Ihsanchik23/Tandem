@@ -9,7 +9,7 @@ type Common = {
 };
 
 const fieldClass =
-  "w-full rounded-xl border bg-white px-4 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-1";
+  "w-full rounded-xl border bg-white px-4 text-base text-ink placeholder:text-neutral-400 focus:outline-none focus:ring-1";
 
 function Frame({ id, label, hint, error, aside, children }: Common & { id: string; children: ReactNode }) {
   return (
@@ -37,7 +37,7 @@ function Frame({ id, label, hint, error, aside, children }: Common & { id: strin
 function stateClass(error?: string | null) {
   return error
     ? "border-red-400 focus:border-red-500 focus:ring-red-500"
-    : "border-neutral-300 focus:border-neutral-900 focus:ring-neutral-900";
+    : "border-neutral-300 focus:border-accent focus:ring-accent";
 }
 
 export function TextField({

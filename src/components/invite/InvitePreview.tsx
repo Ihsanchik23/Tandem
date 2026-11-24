@@ -10,7 +10,7 @@ import { Avatar } from "@/components/profile/Avatar";
 import { JoinButton } from "./JoinButton";
 
 const linkPrimary =
-  "inline-flex h-12 w-full items-center justify-center rounded-xl bg-neutral-900 px-4 text-base font-medium text-white hover:bg-neutral-800";
+  "inline-flex h-12 w-full items-center justify-center rounded-xl bg-accent px-4 text-base font-medium text-white hover:bg-accent-hover";
 
 // Предпросмотр приглашения: логотип, название, «Присоединиться».
 // get_invite_preview доступна и без входа; вступление проверяет accept_invite.
@@ -27,7 +27,7 @@ export async function InvitePreview({ token }: { token: string }) {
     return (
       <>
         <AuthHeader title={i.invalidTitle} subtitle={i.invalidText} />
-        <Link href={userId ? "/work" : "/login"} className="text-base font-medium text-neutral-900 underline underline-offset-4">
+        <Link href={userId ? "/work" : "/login"} className="text-base font-medium text-accent underline underline-offset-4">
           {userId ? i.toWork : i.login}
         </Link>
       </>
@@ -40,9 +40,9 @@ export async function InvitePreview({ token }: { token: string }) {
   return (
     <>
       <div className="flex flex-col items-center gap-3 text-center">
-        <Avatar url={preview.logo_url} name={preview.name} size={96} shape="rounded" alt={t.company.logoAlt} />
+        <Avatar url={preview.logo_url} name={preview.name} size={96} alt={t.company.logoAlt} />
         <p className="text-base text-neutral-600">{i.text}</p>
-        <h1 className="break-words text-2xl font-semibold tracking-tight text-neutral-900">{preview.name}</h1>
+        <h1 className="break-words text-2xl font-semibold tracking-tight text-ink">{preview.name}</h1>
       </div>
 
       {!userId ? (
@@ -52,7 +52,7 @@ export async function InvitePreview({ token }: { token: string }) {
           </Link>
           <p className="text-center text-base text-neutral-600">
             {i.haveAccount}{" "}
-            <Link href={withNext("/login", back)} className="font-medium text-neutral-900 underline underline-offset-4">
+            <Link href={withNext("/login", back)} className="font-medium text-accent underline underline-offset-4">
               {i.login}
             </Link>
           </p>

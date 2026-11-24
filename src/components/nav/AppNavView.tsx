@@ -22,7 +22,7 @@ export function AppNavView({ pathname, myUsername }: Props) {
                   href={href}
                   aria-current={active ? "page" : undefined}
                   className={`flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium ${
-                    active ? "text-neutral-900" : "text-neutral-500"
+                    active ? "text-accent" : "text-neutral-500"
                   }`}
                 >
                   <Icon className={active ? "stroke-[2.2]" : ""} />
@@ -38,7 +38,7 @@ export function AppNavView({ pathname, myUsername }: Props) {
         aria-label={t.nav.label}
         className="fixed inset-y-0 left-0 z-20 hidden w-56 flex-col gap-6 border-r border-neutral-200 bg-white px-3 py-6 md:flex"
       >
-        <Link href="/" className="px-3 text-xl font-semibold tracking-tight text-neutral-900">
+        <Link href="/" className="px-3 text-xl font-semibold tracking-tight text-ink">
           {t.app.name}
         </Link>
         <ul className="flex flex-col gap-1">
@@ -50,7 +50,7 @@ export function AppNavView({ pathname, myUsername }: Props) {
                   href={href}
                   aria-current={active ? "page" : undefined}
                   className={`flex h-11 items-center gap-3 rounded-xl px-3 text-base ${
-                    active ? "bg-neutral-100 font-medium text-neutral-900" : "text-neutral-600 hover:bg-neutral-50"
+                    active ? "bg-accent/10 font-medium text-accent" : "text-neutral-600 hover:bg-neutral-100"
                   }`}
                 >
                   <Icon />

@@ -45,11 +45,11 @@ async function MemberContent({ params }: { params: PageProps<"/work/people/[user
       <div className="flex items-center gap-4">
         <Avatar url={m.avatar_url} name={name} size={64} />
         <div className="min-w-0">
-          <p className="truncate text-lg font-medium text-neutral-900">{name}</p>
+          <p className="truncate text-lg font-medium text-ink">{name}</p>
           <p className="truncate text-base text-neutral-600">
             {[m.position, c.roles[m.role]].filter(Boolean).join(" · ")}
           </p>
-          <Link href={`/@${m.username}`} className="text-sm font-medium text-neutral-900 underline underline-offset-4">
+          <Link href={`/@${m.username}`} className="text-sm font-medium text-accent underline underline-offset-4">
             {c.openProfile}
           </Link>
         </div>
@@ -68,7 +68,7 @@ async function MemberContent({ params }: { params: PageProps<"/work/people/[user
         />
       ) : null}
 
-      <Link href="/work/people" className="text-base font-medium text-neutral-900 underline underline-offset-4">
+      <Link href="/work/people" className="text-base font-medium text-accent underline underline-offset-4">
         {c.peopleTitle}
       </Link>
     </div>

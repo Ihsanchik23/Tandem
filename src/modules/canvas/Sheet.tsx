@@ -21,11 +21,11 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
         className="flex h-full w-full flex-col bg-white md:w-[420px] md:border-l md:border-neutral-200 md:shadow-xl"
       >
         <header className="flex items-center gap-3 border-b border-neutral-200 px-5 py-3 pt-[calc(0.75rem+env(safe-area-inset-top))]">
-          <h2 className="min-w-0 flex-1 truncate text-lg font-semibold text-neutral-900">{title}</h2>
+          <h2 className="min-w-0 flex-1 truncate text-lg font-semibold text-ink">{title}</h2>
           <button
             type="button"
             onClick={onClose}
-            className="h-10 rounded-xl border border-neutral-300 px-3 text-base text-neutral-900 hover:bg-neutral-50"
+            className="h-10 rounded-xl border border-neutral-300 px-3 text-base text-ink hover:bg-neutral-50"
           >
             {t.canvas.close}
           </button>

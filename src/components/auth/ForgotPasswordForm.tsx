@@ -41,7 +41,7 @@ export function ForgotPasswordForm() {
       </form>
 
       <p className="text-center">
-        <Link href="/login" className="text-base font-medium text-neutral-900 underline underline-offset-4">
+        <Link href="/login" className="text-base font-medium text-accent underline underline-offset-4">
           {t.auth.forgot.backToLogin}
         </Link>
       </p>

@@ -54,7 +54,7 @@ export function PeoplePicker({ candidates, onAdd }: Props) {
         onChange={(e) => setQuery(e.target.value)}
         placeholder={c.addPeopleSearch}
         aria-label={c.addPeopleSearch}
-        className="h-12 w-full rounded-xl border border-neutral-300 bg-white px-4 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none"
+        className="h-12 w-full rounded-xl border border-neutral-300 bg-white px-4 text-base text-ink placeholder:text-neutral-400 focus:border-accent focus:outline-none"
       />
       <ul className="flex max-h-72 flex-col overflow-y-auto rounded-xl border border-neutral-200">
         {shown.map((m) => {
@@ -66,11 +66,11 @@ export function PeoplePicker({ candidates, onAdd }: Props) {
                   type="checkbox"
                   checked={picked.has(m.user_id)}
                   onChange={() => toggle(m.user_id)}
-                  className="h-5 w-5 accent-neutral-900"
+                  className="h-5 w-5 accent-accent"
                 />
                 <Avatar url={m.avatar_url} name={name} size={32} />
                 <span className="min-w-0">
-                  <span className="block truncate text-base text-neutral-900">{name}</span>
+                  <span className="block truncate text-base text-ink">{name}</span>
                   {m.position ? <span className="block truncate text-sm text-neutral-500">{m.position}</span> : null}
                 </span>
               </label>

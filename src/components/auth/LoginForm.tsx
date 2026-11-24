@@ -78,7 +78,7 @@ export function LoginForm() {
 
       <p className="text-center text-base text-neutral-600">
         {t.auth.login.noAccount}{" "}
-        <Link href={withNext("/signup", next)} className="font-medium text-neutral-900 underline underline-offset-4">
+        <Link href={withNext("/signup", next)} className="font-medium text-accent underline underline-offset-4">
           {t.auth.login.toSignup}
         </Link>
       </p>

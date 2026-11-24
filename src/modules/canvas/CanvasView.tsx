@@ -290,7 +290,7 @@ function UnassignedList({ people }: { people: Member[] }) {
           type="button"
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
-          className="flex h-10 w-full items-center justify-between gap-2 px-3 text-sm font-medium text-neutral-900 hover:bg-neutral-50"
+          className="flex h-10 w-full items-center justify-between gap-2 px-3 text-sm font-medium text-ink hover:bg-neutral-50"
         >
           <span>
             {c.unassigned} · {people.length}
@@ -312,7 +312,7 @@ function UnassignedList({ people }: { people: Member[] }) {
                     <Link href={`/work/people/${p.user_id}`} className="flex items-center gap-2 px-3 py-2 hover:bg-neutral-50">
                       <Avatar url={p.avatar_url} name={name} size={28} />
                       <span className="min-w-0">
-                        <span className="block truncate text-sm text-neutral-900">{name}</span>
+                        <span className="block truncate text-sm text-ink">{name}</span>
                         {p.position ? <span className="block truncate text-xs text-neutral-500">{p.position}</span> : null}
                       </span>
                     </Link>

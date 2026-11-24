@@ -27,7 +27,7 @@ async function Greeting() {
     .maybeSingle();
   const name = profile?.first_name?.trim();
   return (
-    <p className="text-xl text-neutral-900">
+    <p className="text-xl text-ink">
       {t.home.greeting}
       {name ? `, ${name}` : ""}!
     </p>

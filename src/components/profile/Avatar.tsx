@@ -4,7 +4,6 @@ type Props = {
   url: string | null | undefined;
   name: string;
   size?: number;
-  shape?: "circle" | "rounded";
   alt?: string;
 };
 
@@ -14,8 +13,9 @@ function initials(name: string): string {
 }
 
 // Фото профиля или логотип. Если картинки нет — инициалы на сером фоне.
-export function Avatar({ url, name, size = 48, shape = "circle", alt = "" }: Props) {
-  const radius = shape === "circle" ? "rounded-full" : "rounded-xl";
+// Всегда круглое: и фото людей, и логотипы компаний.
+export function Avatar({ url, name, size = 48, alt = "" }: Props) {
+  const radius = "rounded-full";
   if (url) {
     return (
       <Image

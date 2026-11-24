@@ -35,10 +35,10 @@ export async function ProfileView({ username }: Props) {
     <main className="flex flex-1 flex-col px-5 pb-8 pt-6 md:pt-10">
       <div className="mx-auto flex w-full max-w-lg flex-col gap-6">
         {isMe && isAutoUsername(profile.username) ? (
-          <div className="flex flex-col gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
-            <p className="text-base font-medium text-amber-900">{t.profile.chooseUsernameTitle}</p>
-            <p className="text-sm text-amber-900">{t.profile.chooseUsernameText}</p>
-            <Link href="/profile/edit" className="text-sm font-medium text-amber-900 underline underline-offset-4">
+          <div className="flex flex-col gap-2 rounded-2xl border border-neutral-200 bg-white px-4 py-3">
+            <p className="text-base font-medium text-ink">{t.profile.chooseUsernameTitle}</p>
+            <p className="text-sm text-ink">{t.profile.chooseUsernameText}</p>
+            <Link href="/profile/edit" className="text-sm font-medium text-ink underline underline-offset-4">
               {t.profile.chooseUsernameCta}
             </Link>
           </div>
@@ -47,7 +47,7 @@ export async function ProfileView({ username }: Props) {
         <div className="flex flex-col items-center gap-3 text-center">
           <Avatar url={profile.avatar_url} name={fullName} size={96} alt={t.profile.avatarAlt} />
           <div className="flex flex-col gap-0.5">
-            <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">{fullName}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-ink">{fullName}</h1>
             <p className="text-base text-neutral-500">@{profile.username}</p>
             {profile.city ? <p className="text-base text-neutral-600">{profile.city}</p> : null}
           </div>
@@ -67,9 +67,9 @@ export async function ProfileView({ username }: Props) {
                   href={`/c/${job.organizations.slug}`}
                   className="flex items-center gap-3 rounded-2xl border border-neutral-200 px-4 py-3 hover:bg-neutral-50"
                 >
-                  <Avatar url={job.organizations.logo_url} name={job.organizations.name} size={44} shape="rounded" />
+                  <Avatar url={job.organizations.logo_url} name={job.organizations.name} size={44} />
                   <div className="min-w-0">
-                    <p className="truncate text-base font-medium text-neutral-900">{job.organizations.name}</p>
+                    <p className="truncate text-base font-medium text-ink">{job.organizations.name}</p>
                     {job.position ? <p className="truncate text-sm text-neutral-600">{job.position}</p> : null}
                   </div>
                 </Link>
@@ -82,7 +82,7 @@ export async function ProfileView({ username }: Props) {
           <div className="flex flex-col gap-3">
             <Link
               href="/profile/edit"
-              className="inline-flex h-12 items-center justify-center rounded-xl bg-neutral-900 px-4 text-base font-medium text-white hover:bg-neutral-800"
+              className="inline-flex h-12 items-center justify-center rounded-xl bg-accent px-4 text-base font-medium text-white hover:bg-accent-hover"
             >
               {t.profile.edit}
             </Link>

@@ -31,18 +31,18 @@ export function PeopleList({ members, unassignedIds }: Props) {
         onChange={(e) => setQuery(e.target.value)}
         placeholder={c.peopleSearch}
         aria-label={c.peopleSearch}
-        className="h-12 w-full rounded-xl border border-neutral-300 bg-white px-4 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none"
+        className="h-12 w-full rounded-xl border border-neutral-300 bg-white px-4 text-base text-ink placeholder:text-neutral-400 focus:border-accent focus:outline-none"
       />
 
       {found.length === 0 ? <p className="text-base text-neutral-600">{c.peopleEmpty}</p> : null}
 
       {free.length > 0 ? (
-        <section className="flex flex-col rounded-2xl border border-amber-200 bg-amber-50 px-4 pt-3">
-          <h2 className="text-base font-medium text-amber-900">
+        <section className="flex flex-col rounded-2xl border border-neutral-200 bg-white px-4 pt-3">
+          <h2 className="text-base font-medium text-ink">
             {c.unassigned} · {free.length}
           </h2>
-          <p className="text-sm text-amber-900">{c.unassignedHint}</p>
-          <ul className="divide-y divide-amber-100">
+          <p className="text-sm text-ink">{c.unassignedHint}</p>
+          <ul className="divide-y divide-neutral-100">
             {free.map((m) => (
               <MemberRow key={m.user_id} m={m} toCard />
             ))}

@@ -14,8 +14,8 @@ import { FormMessage } from "@/components/ui/FormMessage";
 //  logo:   бакет logos/<organization_id>/...,  адрес → organizations.logo_url (Owner/Admin)
 // Права проверяют политики хранилища и RLS таблиц.
 const KINDS = {
-  avatar: { bucket: "avatars", prefix: "avatar", shape: "circle" },
-  logo: { bucket: "logos", prefix: "logo", shape: "rounded" },
+  avatar: { bucket: "avatars", prefix: "avatar" },
+  logo: { bucket: "logos", prefix: "logo" },
 } as const;
 
 type Labels = { alt: string; upload: string; change: string; remove: string; uploading: string; failed: ErrorKey };
@@ -100,7 +100,7 @@ export function ImageUploader({ kind, ownerId, name, initialUrl, labels }: Props
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <Avatar url={url} name={name} size={96} shape={cfg.shape} alt={labels.alt} />
+      <Avatar url={url} name={name} size={96} alt={labels.alt} />
       <input
         ref={inputRef}
         type="file"
@@ -113,7 +113,7 @@ export function ImageUploader({ kind, ownerId, name, initialUrl, labels }: Props
       <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
         <label
           htmlFor={inputId}
-          className={`cursor-pointer text-base font-medium text-neutral-900 underline underline-offset-4 ${busy ? "pointer-events-none opacity-60" : ""}`}
+          className={`cursor-pointer text-base font-medium text-accent underline underline-offset-4 ${busy ? "pointer-events-none opacity-60" : ""}`}
         >
           {busy ? labels.uploading : url ? labels.change : labels.upload}
         </label>

@@ -1,20 +1,28 @@
 @import "tailwindcss";
 
-/* Только светлая тема (тёмной в MVP нет). */
+/* Только светлая тема (тёмной в MVP нет). Фирменная палитра Tandem — только через эти токены. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --tandem-accent: #bf4a31; /* кнопки, активные элементы, ссылки */
+  --tandem-accent-hover: #ae3926; /* наведение */
+  --tandem-accent-soft: #d86750; /* светлый акцент — редко */
+  --tandem-ink: #1e1e1e; /* основной текст */
+  --tandem-canvas: #f8f6f4; /* фон страниц */
   color-scheme: light;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-accent: var(--tandem-accent);
+  --color-accent-hover: var(--tandem-accent-hover);
+  --color-accent-soft: var(--tandem-accent-soft);
+  --color-ink: var(--tandem-ink);
+  --color-canvas: var(--tandem-canvas);
+  --color-background: var(--tandem-canvas);
+  --color-foreground: var(--tandem-ink);
   --font-sans: var(--font-geist-sans);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--tandem-canvas);
+  color: var(--tandem-ink);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }

@@ -29,7 +29,7 @@ export function CheckEmail() {
           {email ? (
             <>
               {" "}
-              <span className="break-all font-medium text-neutral-900">{email}</span>
+              <span className="break-all font-medium text-ink">{email}</span>
             </>
           ) : null}
         </p>
@@ -51,7 +51,7 @@ export function CheckEmail() {
       ) : null}
 
       <p className="text-center">
-        <Link href="/login" className="text-base font-medium text-neutral-900 underline underline-offset-4">
+        <Link href="/login" className="text-base font-medium text-accent underline underline-offset-4">
           {c.backToLogin}
         </Link>
       </p>

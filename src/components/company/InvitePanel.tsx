@@ -29,7 +29,7 @@ export function InvitePanel({ organizationId, organizationName, invites, seats }
   return (
     <section className="flex flex-col gap-3 rounded-2xl border border-neutral-200 p-4">
       <div className="flex flex-col gap-1">
-        <h2 className="text-base font-medium text-neutral-900">{c.inviteTitle}</h2>
+        <h2 className="text-base font-medium text-ink">{c.inviteTitle}</h2>
         <p className="text-sm text-neutral-600">{c.inviteHint}</p>
         {seats ? (
           <p className="text-sm text-neutral-600">{format(c.seats, { used: seats.used, seats: seats.total })}</p>
@@ -90,7 +90,7 @@ function InviteLink({ invite, organizationName }: { invite: InviteRow; organizat
 
   return (
     <div className="flex flex-col gap-2 rounded-xl bg-neutral-50 p-3">
-      <p className="select-all break-all text-sm font-medium text-neutral-900">{url}</p>
+      <p className="select-all break-all text-sm font-medium text-ink">{url}</p>
       <p className="text-xs text-neutral-500" suppressHydrationWarning>
         {format(c.inviteValidUntil, { date: until })}
       </p>

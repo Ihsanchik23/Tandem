@@ -125,7 +125,7 @@ export function ProfileEditForm({ initial, cancelHref }: Props) {
         </Button>
         <Link
           href={cancelHref}
-          className="inline-flex h-12 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-base font-medium text-neutral-900 hover:bg-neutral-50"
+          className="inline-flex h-12 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-base font-medium text-ink hover:bg-neutral-50"
         >
           {e.cancel}
         </Link>

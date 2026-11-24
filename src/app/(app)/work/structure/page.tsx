@@ -17,7 +17,7 @@ export default function StructurePage() {
         <Link href="/work" className="text-base text-neutral-600 underline-offset-4 hover:underline">
           ← {t.work.title}
         </Link>
-        <h1 className="text-lg font-semibold tracking-tight text-neutral-900">{t.canvas.title}</h1>
+        <h1 className="text-lg font-semibold tracking-tight text-ink">{t.canvas.title}</h1>
       </header>
       <div className="relative flex-1">
         <Suspense fallback={<div className="h-full w-full bg-neutral-50" aria-hidden />}>

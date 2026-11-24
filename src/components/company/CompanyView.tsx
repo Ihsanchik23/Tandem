@@ -30,9 +30,9 @@ export async function CompanyView({ slug }: { slug: string }) {
     <main className="flex flex-1 flex-col px-5 pb-8 pt-6 md:pt-10">
       <div className="mx-auto flex w-full max-w-lg flex-col gap-6">
         <div className="flex flex-col items-center gap-3 text-center">
-          <Avatar url={org.logo_url} name={org.name} size={96} shape="rounded" alt={c.logoAlt} />
+          <Avatar url={org.logo_url} name={org.name} size={96} alt={c.logoAlt} />
           <div className="flex flex-col gap-0.5">
-            <h1 className="break-words text-2xl font-semibold tracking-tight text-neutral-900">{org.name}</h1>
+            <h1 className="break-words text-2xl font-semibold tracking-tight text-ink">{org.name}</h1>
             <p className="text-base text-neutral-600">
               {[org.city, `${members.length} ${pluralRu(members.length, c.members)}`].filter(Boolean).join(" · ")}
             </p>
@@ -42,7 +42,7 @@ export async function CompanyView({ slug }: { slug: string }) {
         {canEditCompany(me?.role) ? (
           <Link
             href={`/c/${org.slug}/edit`}
-            className="inline-flex h-12 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-base font-medium text-neutral-900 hover:bg-neutral-50"
+            className="inline-flex h-12 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-base font-medium text-ink hover:bg-neutral-50"
           >
             {c.edit}
           </Link>
@@ -55,7 +55,7 @@ export async function CompanyView({ slug }: { slug: string }) {
         {founders.length > 0 ? (
           <section className="flex flex-col gap-1">
             <h2 className="text-sm font-medium text-neutral-500">{c.founders}</h2>
-            <p className="text-base text-neutral-900">
+            <p className="text-base text-ink">
               {founders.map((f, i) => (
                 <span key={f.username}>
                   {i > 0 ? ", " : null}

@@ -13,7 +13,7 @@ export function MemberRow({ m, toCard = false }: { m: Member; toCard?: boolean }
       <Link href={toCard ? `/work/people/${m.user_id}` : `/@${m.username}`} className="flex items-center gap-3 py-3">
         <Avatar url={m.avatar_url} name={name} size={44} />
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-base font-medium text-neutral-900">{name}</span>
+          <span className="block truncate text-base font-medium text-ink">{name}</span>
           <span className="block truncate text-sm text-neutral-600">{meta}</span>
         </span>
       </Link>

@@ -23,7 +23,7 @@ type Props = {
 };
 
 const selectCls =
-  "h-12 w-full rounded-xl border border-neutral-300 bg-white px-3 text-base text-neutral-900 focus:border-neutral-900 focus:outline-none";
+  "h-12 w-full rounded-xl border border-neutral-300 bg-white px-3 text-base text-ink focus:border-accent focus:outline-none";
 
 function personName(m: Member): string {
   return `${m.first_name} ${m.last_name}`.trim();
@@ -108,7 +108,7 @@ export function UnitPanel({ unit, tree, people, organizationId, canEdit }: Props
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="flex flex-col gap-3 border-t border-neutral-100 pt-5">
-      <h3 className="text-base font-medium text-neutral-900">{title}</h3>
+      <h3 className="text-base font-medium text-ink">{title}</h3>
       {children}
     </section>
   );
@@ -120,7 +120,7 @@ function PersonLine({ m }: { m: Member }) {
     <Link href={`/work/people/${m.user_id}`} className="flex items-center gap-3 py-1">
       <Avatar url={m.avatar_url} name={name} size={36} />
       <span className="min-w-0">
-        <span className="block truncate text-base text-neutral-900">{name}</span>
+        <span className="block truncate text-base text-ink">{name}</span>
         {m.position ? <span className="block truncate text-sm text-neutral-500">{m.position}</span> : null}
       </span>
     </Link>

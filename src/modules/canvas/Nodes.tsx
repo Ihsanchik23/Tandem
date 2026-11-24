@@ -73,7 +73,7 @@ export function RootNode({ data }: NodeProps<RootNodeType>) {
       style={{ width: CARD_W }}
     >
       <Avatar url={data.logoUrl} name={data.name} size={48} />
-      <p className="line-clamp-2 break-words text-base font-semibold text-neutral-900">{data.name}</p>
+      <p className="line-clamp-2 break-words text-base font-semibold text-ink">{data.name}</p>
       <p className="text-xs leading-5 text-neutral-500">{stats.join(" · ")}</p>
       {data.canEdit ? <PlusButton onClick={data.onAdd} label={c.add} /> : null}
       <Handles />
@@ -89,7 +89,7 @@ export function UnitNode({ data }: NodeProps<UnitNodeType>) {
     <div className="relative rounded-2xl border border-neutral-300 bg-white pb-5 shadow-sm" style={{ width: CARD_W }}>
       {/* Нажатие на название — панель подразделения. */}
       <button type="button" onClick={data.onOpen} className="flex w-full flex-col gap-2 px-4 pb-1 pt-3 text-left">
-        <span className="line-clamp-2 break-words text-base font-semibold text-neutral-900">{data.name}</span>
+        <span className="line-clamp-2 break-words text-base font-semibold text-ink">{data.name}</span>
         {data.head ? (
           <span className="flex items-center gap-2">
             <Avatar url={data.head.avatar_url} name={headName ?? ""} size={24} />
@@ -105,7 +105,7 @@ export function UnitNode({ data }: NodeProps<UnitNodeType>) {
             type="button"
             onClick={data.onToggle}
             aria-expanded={data.expanded}
-            className="nodrag flex items-center gap-1 py-1 text-sm text-neutral-700 hover:text-neutral-900"
+            className="nodrag flex items-center gap-1 py-1 text-sm text-neutral-700 hover:text-ink"
           >
             {count}
             <svg

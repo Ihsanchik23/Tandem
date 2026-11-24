@@ -6,9 +6,9 @@ import { Avatar } from "@/components/profile/Avatar";
 import { ConfirmAction } from "@/components/ui/ConfirmAction";
 
 const btnPrimary =
-  "inline-flex h-12 items-center justify-center rounded-xl bg-neutral-900 px-4 text-base font-medium text-white hover:bg-neutral-800";
+  "inline-flex h-12 items-center justify-center rounded-xl bg-accent px-4 text-base font-medium text-white hover:bg-accent-hover";
 const btnSecondary =
-  "inline-flex h-12 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-base font-medium text-neutral-900 hover:bg-neutral-50";
+  "inline-flex h-12 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-base font-medium text-ink hover:bg-neutral-50";
 
 // «Работа», если компании нет (ТЗ, раздел 15).
 export function NoCompany({ canCreate }: { canCreate: boolean }) {
@@ -16,7 +16,7 @@ export function NoCompany({ canCreate }: { canCreate: boolean }) {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-2">
-        <p className="text-lg font-medium text-neutral-900">{w.noCompanyTitle}</p>
+        <p className="text-lg font-medium text-ink">{w.noCompanyTitle}</p>
         <p className="text-base text-neutral-600">{w.noCompanyText}</p>
       </div>
       <div className="flex flex-col gap-3">
@@ -49,8 +49,8 @@ export function WorkHome({ company }: { company: MyCompany }) {
       <div className="flex items-center gap-3">
         <CompanyMenu slug={org.slug} isOwner={company.role === "owner"} />
         <Link href={`/c/${org.slug}`} className="flex min-w-0 items-center gap-3">
-          <Avatar url={org.logo_url} name={org.name} size={40} shape="rounded" />
-          <span className="truncate text-xl font-semibold tracking-tight text-neutral-900">{org.name}</span>
+          <Avatar url={org.logo_url} name={org.name} size={40} />
+          <span className="truncate text-xl font-semibold tracking-tight text-ink">{org.name}</span>
         </Link>
       </div>
 
@@ -69,7 +69,7 @@ export function WorkHome({ company }: { company: MyCompany }) {
 // Меню компании. На телефоне — кнопка-бургер; работает без JavaScript (details/summary).
 function CompanyMenu({ slug, isOwner }: { slug: string; isOwner: boolean }) {
   const w = t.work;
-  const item = "block rounded-lg px-3 py-2.5 text-base text-neutral-900 hover:bg-neutral-100";
+  const item = "block rounded-lg px-3 py-2.5 text-base text-ink hover:bg-neutral-100";
   return (
     <details className="group relative">
       <summary
@@ -119,7 +119,7 @@ function CompanyMenu({ slug, isOwner }: { slug: string; isOwner: boolean }) {
 function QuickStart() {
   const w = t.work;
   const ready =
-    "flex items-center justify-between rounded-xl border border-neutral-300 px-4 py-3 text-base font-medium text-neutral-900 hover:bg-neutral-50";
+    "flex items-center justify-between rounded-xl border border-neutral-300 px-4 py-3 text-base font-medium text-ink hover:bg-neutral-50";
   const soon = "flex items-center justify-between rounded-xl border border-neutral-200 px-4 py-3 text-base text-neutral-400";
   return (
     <section className="flex flex-col gap-2">

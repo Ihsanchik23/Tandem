@@ -95,7 +95,7 @@ export function Catalog() {
             aria-selected={tab === value}
             onClick={() => setTab(value)}
             className={`h-10 rounded-lg text-base font-medium transition-colors ${
-              tab === value ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-600"
+              tab === value ? "bg-white text-ink shadow-sm" : "text-neutral-600"
             }`}
           >
             {value === "people" ? c.people : c.companies}
@@ -115,7 +115,7 @@ export function Catalog() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={tab === "people" ? c.peoplePlaceholder : c.companiesPlaceholder}
-            className="h-12 w-full rounded-xl border border-neutral-300 bg-white pl-11 pr-4 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+            className="h-12 w-full rounded-xl border border-neutral-300 bg-white pl-11 pr-4 text-base text-ink placeholder:text-neutral-400 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
         </label>
         <label className="flex items-center gap-2">
@@ -126,7 +126,7 @@ export function Catalog() {
             value={city}
             onChange={(e) => setCity(e.target.value)}
             placeholder={c.cityPlaceholder}
-            className="h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+            className="h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-base text-ink placeholder:text-neutral-400 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
         </label>
       </div>
@@ -164,7 +164,7 @@ function PersonItem({ p }: { p: PersonRow }) {
       <Link href={`/@${p.username}`} className="flex items-center gap-3 py-3 hover:bg-neutral-50">
         <Avatar url={p.avatar_url} name={name} size={48} />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-base font-medium text-neutral-900">{name || `@${p.username}`}</p>
+          <p className="truncate text-base font-medium text-ink">{name || `@${p.username}`}</p>
           <p className="truncate text-sm text-neutral-500">@{p.username}</p>
           {work ? <p className="truncate text-sm text-neutral-600">{work}</p> : null}
         </div>
@@ -180,9 +180,9 @@ function CompanyItem({ o }: { o: CompanyRow }) {
   return (
     <li>
       <Link href={`/c/${o.slug}`} className="flex items-center gap-3 py-3">
-        <Avatar url={o.logo_url} name={o.name} size={48} shape="rounded" />
+        <Avatar url={o.logo_url} name={o.name} size={48} />
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-base font-medium text-neutral-900">{o.name}</span>
+          <span className="block truncate text-base font-medium text-ink">{o.name}</span>
           <span className="block truncate text-sm text-neutral-600">{meta}</span>
         </span>
       </Link>
