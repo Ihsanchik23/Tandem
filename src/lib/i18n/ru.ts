@@ -224,6 +224,7 @@ export const ru = {
     zoomIn: "Приблизить",
     zoomOut: "Отдалить",
     fit: "Показать всё",
+    resetLayout: "Вернуть карточки на места",
   },
 
   invite: {

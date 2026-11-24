@@ -47,7 +47,7 @@ function PlusButton({ onClick, label }: { onClick: () => void; label: string }) 
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="absolute -bottom-4 left-1/2 flex h-8 w-8 -translate-x-1/2 items-center justify-center rounded-full border border-neutral-300 bg-white text-lg leading-none text-neutral-700 shadow-sm hover:bg-neutral-50"
+      className="nodrag absolute -bottom-4 left-1/2 flex h-8 w-8 -translate-x-1/2 items-center justify-center rounded-full border border-neutral-300 bg-white text-lg leading-none text-neutral-700 shadow-sm hover:bg-neutral-50"
     >
       +
     </button>
@@ -97,7 +97,7 @@ export function UnitNode({ data }: NodeProps<UnitNodeType>) {
             type="button"
             onClick={data.onToggle}
             aria-expanded={data.expanded}
-            className="py-1 text-sm font-medium text-neutral-700 underline underline-offset-4"
+            className="nodrag py-1 text-sm font-medium text-neutral-700 underline underline-offset-4"
           >
             {data.expanded ? c.hidePeople : c.showPeople}
           </button>

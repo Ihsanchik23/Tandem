@@ -2,7 +2,16 @@
 
 import "@xyflow/react/dist/style.css";
 import { useCallback, useMemo, useState } from "react";
-import { Background, Panel, ReactFlow, useReactFlow, type Edge, type ReactFlowInstance } from "@xyflow/react";
+import {
+  Background,
+  Panel,
+  ReactFlow,
+  useReactFlow,
+  type Edge,
+  type OnNodesChange,
+  type ReactFlowInstance,
+  type XYPosition,
+} from "@xyflow/react";
 import type { Member } from "@/lib/company/queries";
 import { format, t } from "@/lib/i18n";
 import { Button } from "@/components/ui/Button";
@@ -47,6 +56,17 @@ const GAP_Y = 64;
 export function CanvasView({ organization, units, unitMembers, people, canEdit }: Props) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [sheet, setSheet] = useState<OpenSheet>(null);
+  // Карточки, которые передвинули руками. Не сохраняются: после обновления страницы — автораскладка.
+  const [moved, setMoved] = useState<Map<string, XYPosition>>(new Map());
+  const onNodesChange: OnNodesChange<CanvasNode> = useCallback((changes) => {
+    const drags = changes.getByType("position").filter((ch) => ch.position);
+    if (drags.length === 0) return;
+    setMoved((m) => {
+      const next = new Map(m);
+      for (const ch of drags) next.set(ch.id, ch.position!);
+      return next;
+    });
+  }, []);
   const closeSheet = useCallback(() => setSheet(null), []);
   const c = t.canvas;
 
@@ -113,11 +133,12 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit }
       id: `e-${u.id}`,
       source: u.parent_id && tree.byId.has(u.parent_id) ? u.parent_id : ROOT_ID,
       target: u.id,
-      type: "smoothstep",
+      type: "default", // плавная кривая, как связи в Figma
       style: { stroke: "#a3a3a3", strokeWidth: 1.5 },
     }));
-    return { nodes: [rootNode, unassignedNode, ...unitNodes], edges: edgeList };
-  }, [tree, units, peopleById, expanded, canEdit, organization, freeCount]);
+    const all: CanvasNode[] = [rootNode, unassignedNode, ...unitNodes];
+    return { nodes: all.map((n) => (moved.has(n.id) ? { ...n, position: moved.get(n.id)! } : n)), edges: edgeList };
+  }, [tree, units, peopleById, expanded, canEdit, organization, freeCount, moved]);
 
   // При первом открытии компания — по центру экрана по горизонтали, дерево ниже.
   const onInit = useCallback((rf: ReactFlowInstance<CanvasNode, Edge>) => {
@@ -134,7 +155,10 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit }
         edges={edges}
         nodeTypes={nodeTypes}
         onInit={onInit}
-        nodesDraggable={false}
+        onNodesChange={onNodesChange}
+        // Перетаскивать карточки можно; короткое касание — это нажатие, а не перетаскивание.
+        nodesDraggable
+        nodeDragThreshold={8}
         nodesConnectable={false}
         elementsSelectable={false}
         minZoom={0.2}
@@ -143,7 +167,7 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit }
         forceColorMode="light"
       >
         <Background gap={24} color="#e5e5e5" />
-        <ZoomButtons />
+        <ZoomButtons canReset={moved.size > 0} onReset={() => setMoved(new Map())} />
         {units.length === 0 ? (
           <Panel position="bottom-center" className="mb-6! w-[calc(100%-2rem)] max-w-sm">
             <div className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-4 text-center shadow-sm">
@@ -201,13 +225,13 @@ export function CanvasView({ organization, units, unitMembers, people, canEdit }
 }
 
 // Кнопки масштаба (подписи на русском), внутри ReactFlow — у них есть доступ к холсту.
-function ZoomButtons() {
+function ZoomButtons({ canReset, onReset }: { canReset: boolean; onReset: () => void }) {
   const rf = useReactFlow();
   const c = t.canvas;
   const btn =
     "flex h-10 w-10 items-center justify-center bg-white text-lg text-neutral-800 hover:bg-neutral-50 border-neutral-200";
   return (
-    <Panel position="top-right" className="flex flex-col overflow-hidden rounded-xl border border-neutral-200 shadow-sm">
+    <Panel position="bottom-left" className="flex flex-col overflow-hidden rounded-xl border border-neutral-200 shadow-sm">
       <button type="button" aria-label={c.zoomIn} onClick={() => void rf.zoomIn()} className={`${btn} border-b`}>
         +
       </button>
@@ -219,6 +243,13 @@ function ZoomButtons() {
           <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
+      {canReset ? (
+        <button type="button" aria-label={c.resetLayout} title={c.resetLayout} onClick={onReset} className={`${btn} border-t`}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+            <path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      ) : null}
     </Panel>
   );
 }
