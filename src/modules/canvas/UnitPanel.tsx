@@ -7,9 +7,9 @@ import { format, t } from "@/lib/i18n";
 import type { ErrorKey } from "@/lib/i18n/ru";
 import { Avatar } from "@/components/profile/Avatar";
 import { Button } from "@/components/ui/Button";
-import { ConfirmAction } from "@/components/ui/ConfirmAction";
 import { FormMessage } from "@/components/ui/FormMessage";
-import { addUnitMembers, deleteUnit, moveUnit, removeUnitMember, setUnitHead, updateUnit, type UnitResult } from "./actions";
+import { addUnitMembers, moveUnit, removeUnitMember, setUnitHead, updateUnit, type UnitResult } from "./actions";
+import { DeleteBranch } from "./DeleteBranch";
 import { PeoplePicker } from "./PeoplePicker";
 import { moveTargets, unitPath, type Tree, type UnitRow } from "./tree";
 import { UnitForm } from "./UnitForm";
@@ -91,14 +91,7 @@ export function UnitPanel({ unit, tree, people, organizationId, canEdit }: Props
             <MoveSelect unit={unit} tree={tree} />
           </Section>
 
-          <ConfirmAction
-            action={deleteUnit}
-            fields={{ unit_id: unit.id }}
-            label={c.remove}
-            confirmText={format(c.removeConfirm, { name: unit.name })}
-            yesLabel={c.removeYes}
-            pendingLabel={c.removing}
-          />
+          <DeleteBranch key={unit.id} unitId={unit.id} unitName={unit.name} />
         </>
       ) : null}
     </div>

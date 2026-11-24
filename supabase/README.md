@@ -4,7 +4,7 @@
 Новые изменения схемы — только новыми файлами в `migrations/`, старые не редактировать.
 
 ## Тесты прав
-`tests/rls_test.sql` (ядро, 62), `tests/modules_test.sql` (модули, 57), `tests/rate_limit_test.sql` (лимиты, 6), `tests/column_grants_test.sql` (права на столбцы, 11), `tests/unit_branch_test.sql` (удаление ветки, 18). Всего 154 проверки.
+`tests/rls_test.sql` (ядро, 62), `tests/modules_test.sql` (модули, 57), `tests/rate_limit_test.sql` (лимиты, 6), `tests/column_grants_test.sql` (права на столбцы, 11), `tests/unit_branch_test.sql` (удаление ветки, 19). Всего 155 проверок.
 На общей базе тесты можно прогнать так: `supabase db query --linked -f supabase/tests/<файл>.sql` (всё откатывается).
 Запускаются на локальной базе (`supabase start`) через psql; всё в транзакции с откатом.
 

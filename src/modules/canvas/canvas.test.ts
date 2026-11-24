@@ -76,3 +76,20 @@ test("ошибки структуры переводятся в тексты", (
   assert.equal(validateUnit("Склад", "x".repeat(201)), "unitAddressTooLong");
   assert.equal(validateUnit("Склад", ""), null);
 });
+
+import { confirmLines, isEmptyBranch } from "./branch.ts";
+
+test("удаление ветки: без людей и страниц — сразу, иначе только ненулевые строки", () => {
+  assert.equal(isEmptyBranch({ units: 3, members: 0, unassigned: 0, pages: 0, toArchive: 0 }), true);
+  assert.equal(isEmptyBranch({ units: 1, members: 1, unassigned: 0, pages: 0, toArchive: 0 }), false);
+  assert.equal(isEmptyBranch({ units: 1, members: 0, unassigned: 0, pages: 1, toArchive: 0 }), false);
+  assert.deepEqual(confirmLines({ units: 4, members: 7, unassigned: 7, pages: 2, toArchive: 2 }), [
+    "В ветке 4 подразделения.",
+    "7 сотрудников попадут в «Нераспределённые».",
+    "2 страницы уйдут в архив.",
+  ]);
+  assert.deepEqual(confirmLines({ units: 1, members: 2, unassigned: 1, pages: 1, toArchive: 0 }), [
+    "1 сотрудник попадёт в «Нераспределённые».",
+  ]);
+  assert.deepEqual(confirmLines({ units: 5, members: 1, unassigned: 0, pages: 0, toArchive: 0 }), ["В ветке 5 подразделений."]);
+});

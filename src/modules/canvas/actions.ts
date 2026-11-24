@@ -6,6 +6,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { ErrorKey } from "@/lib/i18n/ru";
+import type { BranchSummary } from "./branch";
 import { unitDbError, validateUnit } from "./errors";
 
 export type UnitResult = { error?: ErrorKey };
@@ -62,13 +63,30 @@ export async function moveUnit(unitId: string, parentId: string | null): Promise
   return updateUnitRow(unitId, { parent_id: parentId });
 }
 
-// Для кнопки с подтверждением (ConfirmAction): данные приходят из формы.
-export async function deleteUnit(_prev: UnitResult, formData: FormData): Promise<UnitResult> {
-  const unitId = String(formData.get("unit_id") ?? "");
+
+// Что произойдёт при удалении ветки (функция базы get_unit_branch_summary).
+export async function getBranchSummary(unitId: string): Promise<{ error?: ErrorKey; summary?: BranchSummary }> {
   const supabase = await createClient();
-  const { data, error } = await supabase.from("units").delete().eq("id", unitId).select("id");
+  const { data, error } = await supabase.rpc("get_unit_branch_summary", { p_unit: unitId });
+  const row = data?.[0];
+  if (error || !row) return { error: error ? unitDbError(error) : "notFound" };
+  return {
+    summary: {
+      units: row.units_count,
+      members: row.members_count,
+      unassigned: row.will_be_unassigned,
+      pages: row.pages_count,
+      toArchive: row.pages_to_archive,
+    },
+  };
+}
+
+// Удаление подразделения со всеми вложенными (delete_unit_branch): права, подписка,
+// архив страниц и порядок удаления проверяет и выполняет база в одной транзакции.
+export async function deleteBranch(unitId: string): Promise<UnitResult> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("delete_unit_branch", { p_unit: unitId });
   if (error) return { error: unitDbError(error) };
-  if (!data || data.length === 0) return { error: "forbidden" };
   return done();
 }
 
