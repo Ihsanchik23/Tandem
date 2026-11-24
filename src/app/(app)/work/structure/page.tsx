@@ -14,7 +14,7 @@ export default function StructurePage() {
     // Телефон: экран минус шапка (3.5rem) и нижняя панель (4rem). Компьютер: весь экран.
     <main className="flex h-[calc(100dvh-7.5rem-env(safe-area-inset-bottom)-env(safe-area-inset-top))] flex-col md:h-dvh">
       {/* На телефоне заголовок — в общей шапке. */}
-      <header className="hidden items-center gap-3 border-b border-neutral-200 bg-white px-5 py-3 md:flex">
+      <header className="hidden items-center gap-3 bg-white px-5 py-3 md:flex">
         <Link href="/work" className="text-base text-ink underline-offset-4 hover:underline">
           ← {t.work.title}
         </Link>

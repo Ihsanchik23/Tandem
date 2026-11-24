@@ -25,7 +25,7 @@ export function WorkPanel({ data }: { data: ShellData }) {
 
   if (collapsed) {
     return (
-      <div className="sticky top-0 hidden h-dvh shrink-0 border-r border-neutral-200 bg-white p-2 md:block">
+      <div className="sticky top-0 hidden h-dvh shrink-0 bg-white p-2 md:block">
         <button
           type="button"
           onClick={() => setCollapsed(false)}
@@ -40,7 +40,7 @@ export function WorkPanel({ data }: { data: ShellData }) {
   }
 
   return (
-    <aside className="sticky top-0 hidden h-dvh w-72 shrink-0 flex-col border-r border-neutral-200 bg-white md:flex">
+    <aside className="sticky top-0 hidden h-dvh w-72 shrink-0 flex-col bg-white md:flex">
       <button
         type="button"
         onClick={() => setCollapsed(true)}

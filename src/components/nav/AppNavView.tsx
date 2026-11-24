@@ -13,7 +13,7 @@ export function AppNavView({ pathname, myUsername }: Props) {
       <IconGradientDefs />
       <nav
         aria-label={t.nav.label}
-        className="fixed inset-x-0 bottom-0 z-20 border-t border-neutral-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+        className="fixed inset-x-0 bottom-0 z-20 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-6px_20px_-8px_rgba(0,0,0,0.15)] backdrop-blur md:hidden"
       >
         <ul className="mx-auto flex max-w-lg">
           {NAV_ITEMS.map(({ href, label, Icon, match }) => {
@@ -37,7 +37,7 @@ export function AppNavView({ pathname, myUsername }: Props) {
       {/* Компьютер: меню свёрнуто до иконок, при наведении раскрывается с подписями поверх страницы. */}
       <nav
         aria-label={t.nav.label}
-        className="group/nav fixed inset-y-0 left-0 z-40 hidden w-[72px] flex-col gap-8 overflow-hidden border-r border-neutral-200 bg-white px-3 py-6 transition-[width,box-shadow] duration-200 ease-out hover:w-60 hover:shadow-xl focus-within:w-60 md:flex"
+        className="group/nav fixed inset-y-0 left-0 z-40 hidden w-[72px] flex-col gap-8 overflow-hidden bg-white px-3 py-6 transition-[width,box-shadow] duration-200 ease-out hover:w-60 hover:shadow-xl focus-within:w-60 md:flex"
       >
         <Link href="/" className="flex h-10 items-center gap-4 px-2 text-xl font-semibold tracking-tight text-ink">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand text-base text-white">T</span>

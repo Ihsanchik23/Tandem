@@ -49,7 +49,7 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
       <Link
         href={`/c/${company.slug}`}
         onClick={onNavigate}
-        className="flex items-center gap-3 border-b border-neutral-200 py-5 pl-5 pr-14"
+        className="flex items-center gap-3 py-5 pl-5 pr-14"
       >
         <Avatar url={company.logoUrl} name={company.name} size={40} />
         <span className="min-w-0 truncate text-lg font-semibold text-ink">{company.name}</span>
@@ -83,7 +83,7 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
         </section>
       </nav>
 
-      <div className="border-t border-neutral-200 p-4">
+      <div className="p-4">
         {company.role === "owner" ? (
           <p className="px-1 text-sm text-ink">{w.ownerCannotLeaveHint}</p>
         ) : (

@@ -34,7 +34,7 @@ export function MobileHeader({ data }: { data: ShellData | null }) {
 
   return (
     <>
-      <header className="sticky top-0 z-30 grid h-14 grid-cols-[3rem_1fr_3rem] items-center border-b border-neutral-200 bg-white/95 px-2 pt-[env(safe-area-inset-top)] backdrop-blur md:hidden">
+      <header className="sticky top-0 z-30 grid h-14 grid-cols-[3rem_1fr_3rem] items-center bg-white/95 px-2 pt-[env(safe-area-inset-top)] backdrop-blur md:hidden">
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -67,8 +67,8 @@ export function MobileHeader({ data }: { data: ShellData | null }) {
           className={`absolute inset-0 bg-black/30 transition-opacity ${open ? "opacity-100" : "opacity-0"}`}
         />
         <aside
-          className={`absolute inset-y-0 left-0 flex w-[min(20rem,85vw)] flex-col bg-white pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] shadow-xl transition-transform ${
-            open ? "translate-x-0" : "-translate-x-full"
+          className={`absolute inset-y-0 left-0 flex w-[min(20rem,85vw)] flex-col bg-white pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] transition-transform ${
+            open ? "translate-x-0 shadow-xl" : "-translate-x-full"
           }`}
         >
           {data && open ? <CompanyPanel data={data} onNavigate={() => setOpen(false)} /> : null}
