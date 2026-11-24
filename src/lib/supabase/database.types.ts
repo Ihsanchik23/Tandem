@@ -1047,6 +1047,13 @@ export type Database = {
       }
       delete_message: { Args: { p_message: string }; Returns: undefined }
       delete_task_comment: { Args: { p_comment: string }; Returns: undefined }
+      delete_unit_branch: {
+        Args: { p_unit: string }
+        Returns: {
+          pages_archived: number
+          units_deleted: number
+        }[]
+      }
       distance_m: {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number
@@ -1077,6 +1084,16 @@ export type Database = {
           page_id: string
           status: Database["public"]["Enums"]["page_status"]
           unread_count: number
+        }[]
+      }
+      get_unit_branch_summary: {
+        Args: { p_unit: string }
+        Returns: {
+          members_count: number
+          pages_count: number
+          pages_to_archive: number
+          units_count: number
+          will_be_unassigned: number
         }[]
       }
       has_role: {
@@ -1199,6 +1216,7 @@ export type Database = {
         Returns: number
       }
       task_page_writable: { Args: { p_page: string }; Returns: boolean }
+      unit_branch_ids: { Args: { p_unit: string }; Returns: string[] }
       update_page: {
         Args: {
           p_description?: string

@@ -70,6 +70,11 @@ description: Как фронтенд Tandem работает с готовой �
   `p_scopes` = `[{"kind":"organization"}]` или `[{"kind":"unit","unit_id":"..."}]` или `[{"kind":"user","user_id":"..."}]`.
 - Изменить: `update_page`, `update_page_scope`, архив: `set_page_archived(p_page, true|false)`.
 
+## Удаление подразделения
+- Не удаляй `units` напрямую, если внутри есть вложенные, люди или страницы: используй
+  `get_unit_branch_summary(p_unit)` (что произойдёт) и `delete_unit_branch(p_unit)` (удаляет всю ветку).
+- В подтверждении показывай только ненулевое: подразделения в ветке, `will_be_unassigned`, `pages_to_archive`.
+
 ## Задачи
 - Список: `tasks` где `page_id = ...` и `archived_at is null`. Архив: `archived_at is not null`.
 - Создать: `create_task(p_page, p_title, p_description, p_due_at, p_priority, p_assignee, p_coassignees)`.
