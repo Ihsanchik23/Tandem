@@ -70,6 +70,11 @@ description: Как фронтенд Tandem работает с готовой �
   `p_scopes` = `[{"kind":"organization"}]` или `[{"kind":"unit","unit_id":"..."}]` или `[{"kind":"user","user_id":"..."}]`.
 - Изменить: `update_page`, `update_page_scope`, архив: `set_page_archived(p_page, true|false)`.
 
+## Личная расстановка на холсте
+- Читать: `canvas_prefs` где `organization_id = ...` (RLS отдаёт только свою строку) → `positions` `{"<id карточки>": [x, y]}`.
+- Сохранить: `rpc('save_canvas_positions', { p_org, p_positions })` целиком, с задержкой после перетаскивания; `{}` — «вернуть на места».
+- Ошибка `invalid_positions` — неверные данные (не объект, не пара чисел, больше 2000 карточек).
+
 ## Удаление подразделения
 - Не удаляй `units` напрямую, если внутри есть вложенные, люди или страницы: используй
   `get_unit_branch_summary(p_unit)` (что произойдёт) и `delete_unit_branch(p_unit)` (удаляет всю ветку).

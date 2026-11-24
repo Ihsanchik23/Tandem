@@ -126,6 +126,35 @@ export type Database = {
           },
         ]
       }
+      canvas_prefs: {
+        Row: {
+          organization_id: string
+          positions: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          organization_id: string
+          positions?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          organization_id?: string
+          positions?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "canvas_prefs_organization_id_user_id_fkey"
+            columns: ["organization_id", "user_id"]
+            isOneToOne: true
+            referencedRelation: "memberships"
+            referencedColumns: ["organization_id", "user_id"]
+          },
+        ]
+      }
       chat_reads: {
         Row: {
           last_read_at: string
@@ -1145,6 +1174,10 @@ export type Database = {
       }
       require_uid: { Args: never; Returns: string }
       revoke_invite: { Args: { p_invite: string }; Returns: undefined }
+      save_canvas_positions: {
+        Args: { p_org: string; p_positions: Json }
+        Returns: undefined
+      }
       search_organizations: {
         Args: {
           p_city?: string
