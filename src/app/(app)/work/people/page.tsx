@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { StubPage } from "@/components/layout/StubPage";
-import { FormFallback } from "@/components/auth/FormFallback";
+import { RowsSkeleton } from "@/components/ui/Skeletons";
 import { InvitePanel } from "@/components/company/InvitePanel";
 import { PeopleList } from "@/components/company/PeopleList";
 import { getUserId } from "@/lib/auth/session";
@@ -13,7 +13,7 @@ import { t } from "@/lib/i18n";
 export default function PeoplePage() {
   return (
     <StubPage title={t.company.peopleTitle}>
-      <Suspense fallback={<FormFallback />}>
+      <Suspense fallback={<RowsSkeleton rows={6} />}>
         <PeopleContent />
       </Suspense>
     </StubPage>

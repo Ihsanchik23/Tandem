@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { safeNext, isGuestPath, isPublicPath, withNext } from "./redirect.ts";
+import { safeNext, guestRewritePath, isGuestPath, isPublicPath, sectionPathOfGuestPage, withNext } from "./redirect.ts";
 import { authErrorKey } from "./errors.ts";
 import { isAlreadyRegistered, prefillUrl } from "./signup.ts";
 
@@ -38,6 +38,17 @@ test("гость видит только пять разделов, без вл�
   assert.equal(isGuestPath("/search", "?q=anna"), false);
   assert.equal(isGuestPath("/search", "?person=anna"), false);
   assert.equal(isGuestPath("/work", "?notice=left"), false);
+});
+
+test("гостевые экраны: подмена адреса и обратно", () => {
+  assert.equal(guestRewritePath("/"), "/guest/home");
+  assert.equal(guestRewritePath("/search"), "/guest/search");
+  assert.equal(guestRewritePath("/profile"), "/guest/profile");
+  assert.equal(guestRewritePath("/work/people"), null);
+  assert.equal(sectionPathOfGuestPage("/guest/home"), "/");
+  assert.equal(sectionPathOfGuestPage("/guest/work"), "/work");
+  assert.equal(sectionPathOfGuestPage("/guest/other"), null);
+  assert.equal(sectionPathOfGuestPage("/guestbook"), null);
 });
 
 test("withNext кодирует адрес возврата", () => {

@@ -1,9 +1,10 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { StubPage } from "@/components/layout/StubPage";
 import { FormFallback } from "@/components/auth/FormFallback";
 import { NoCompany, WorkHome } from "@/components/company/WorkHome";
-import { GuestScreen } from "@/components/guest/GuestScreen";
 import { FormMessage } from "@/components/ui/FormMessage";
+import { PHOTOS } from "@/components/guest/photos";
 import { HeroPanel } from "@/components/ui/HeroPanel";
 import { getUserId } from "@/lib/auth/session";
 import { getMyCompany, hasFreeSubscription } from "@/lib/company/queries";
@@ -33,8 +34,8 @@ export default function WorkPage({ searchParams }: PageProps<"/work">) {
 
 async function WorkContent({ searchParams }: { searchParams: SearchParams }) {
   const userId = await getUserId();
-  // Без входа — гостевой экран, данные компании не запрашиваем.
-  if (!userId) return <GuestScreen section="work" />;
+  // Гостей сюда не пускает proxy.ts (им показывается /guest/work).
+  if (!userId) redirect("/login");
   const notice = <Notice searchParams={searchParams} />;
   const company = await getMyCompany(userId);
   if (company) {
@@ -61,14 +62,11 @@ async function WorkContent({ searchParams }: { searchParams: SearchParams }) {
       </div>
       <main className="hidden min-h-dvh flex-1 md:flex">
         <HeroPanel
-          src="/images/work/work-hero.jpg"
-          width={2352}
-          height={1760}
+          photo={PHOTOS.work}
           alt={t.work.heroAlt}
           title={t.work.heroTitle}
           // Область = экран минус меню слева (64px) и панель компании (288px).
           sizes="calc(100vw - 352px)"
-          objectPosition="50% 35%"
           headingLevel={1}
           notice={notice}
         />

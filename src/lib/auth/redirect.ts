@@ -37,6 +37,25 @@ export function isGuestPath(pathname: string, search: string): boolean {
   return (GUEST_PATHS as readonly string[]).includes(pathname) && (search === "" || search === "?");
 }
 
+// Гостевые экраны живут на статичных страницах /guest/<раздел>. proxy.ts незаметно для адреса
+// подменяет на них пять разделов, когда входа нет: адрес в браузере остаётся /search и т. п.
+// Так обычные страницы разделов не проверяют вход сами и их каркас готов заранее.
+export const GUEST_SECTIONS = { "/": "home", "/search": "search", "/work": "work", "/messages": "messages", "/profile": "profile" } as const;
+export type GuestSection = (typeof GUEST_SECTIONS)[keyof typeof GUEST_SECTIONS];
+
+/** Куда подменить адрес гостя: "/search" → "/guest/search". */
+export function guestRewritePath(pathname: string): string | null {
+  const section = (GUEST_SECTIONS as Record<string, GuestSection>)[pathname];
+  return section ? `/guest/${section}` : null;
+}
+
+/** Обратно: прямой заход на /guest/search → настоящий адрес раздела "/search". */
+export function sectionPathOfGuestPage(pathname: string): string | null {
+  const section = pathname.match(/^\/guest\/([a-z]+)\/?$/)?.[1];
+  const entry = Object.entries(GUEST_SECTIONS).find(([, s]) => s === section);
+  return entry ? entry[0] : null;
+}
+
 // Куда вести после входа и после регистрации (решение 2026-11-24, ТЗ разделы 7 и 15).
 export const AFTER_LOGIN_PATH = "/work";
 export const AFTER_SIGNUP_PATH = "/";

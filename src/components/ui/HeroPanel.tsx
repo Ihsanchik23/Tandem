@@ -1,38 +1,35 @@
 import { getImageProps } from "next/image";
 import type { ReactNode } from "react";
+import { EMPTY_PIXEL, type SectionPhoto } from "@/components/guest/photos";
 
 // Фото на всю правую область (компьютер), ровное затемнение и крупный белый заголовок вверху слева.
-// Используется в пустых состояниях: «Поиск» (ничего не выбрано) и «Работа» (нет компании).
+// Используется в пустых состояниях: «Поиск» (ничего не выбрано), «Работа» (нет компании), «Сообщения».
 //
 // На телефоне этих панелей нет, и фото не должно даже скачиваться. Поэтому ссылка на фото есть
 // только у <source> для ширины от 768px, а у запасного <img> — пустая прозрачная картинка
 // прямо внутри страницы: без подходящего <source> браузер никуда не ходит.
-const EMPTY_PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+// Пока фото грузится, видны средний цвет фото и его размытая копия — без белого пятна.
 
 type Props = {
-  src: string;
-  width: number;
-  height: number;
+  photo: SectionPhoto;
   alt: string;
   title: string;
   /** Ширина фото на экране — для выбора размера картинки (атрибут sizes). */
   sizes: string;
   /** Какой уровень у заголовка: h1, если это главный заголовок страницы. */
   headingLevel?: 1 | 2;
-  /** Кадрирование фото (CSS object-position), чтобы лица оставались в кадре. */
-  objectPosition?: string;
   /** Короткое сообщение поверх фото, вверху (например, «Вы вышли из компании»). */
   notice?: ReactNode;
 };
 
-export function HeroPanel({ src, width, height, alt, title, sizes, headingLevel = 2, objectPosition = "50% 30%", notice }: Props) {
+export function HeroPanel({ photo, alt, title, sizes, headingLevel = 2, notice }: Props) {
   const {
-    props: { srcSet, sizes: imgSizes, ...rest },
-  } = getImageProps({ src, width, height, alt, sizes });
+    props: { srcSet, sizes: imgSizes, style, ...rest },
+  } = getImageProps({ src: photo.image, alt, sizes, placeholder: "blur" });
   const Heading = headingLevel === 1 ? "h1" : "h2";
 
   return (
-    <div className="hero-panel relative isolate flex w-full flex-1 flex-col overflow-hidden">
+    <div className="hero-panel relative isolate flex w-full flex-1 flex-col overflow-hidden" style={{ backgroundColor: photo.color }}>
       <picture>
         <source media="(min-width: 768px)" srcSet={srcSet} sizes={imgSizes} />
         <img
@@ -41,7 +38,7 @@ export function HeroPanel({ src, width, height, alt, title, sizes, headingLevel 
           alt={alt}
           loading="eager"
           fetchPriority="high"
-          style={{ objectPosition }}
+          style={{ ...style, objectPosition: photo.position }}
           className="hero-panel-photo absolute inset-0 -z-10 h-full w-full object-cover"
         />
       </picture>

@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { MobileHeader } from "@/components/nav/MobileHeader";
 import { WorkPanel } from "@/components/nav/WorkPanel";
+import { MobileHeaderSkeleton, WorkPanelSkeleton } from "@/components/nav/WorkSkeletons";
 import { getShellData } from "@/lib/nav/shell";
 
 // Раздел «Работа».
@@ -10,12 +11,12 @@ import { getShellData } from "@/lib/nav/shell";
 export default function WorkLayout({ children }: LayoutProps<"/work">) {
   return (
     <div className="flex flex-1">
-      <Suspense fallback={<div className="hidden w-72 shrink-0 border-r-[0.5px] border-neutral-300 bg-white md:block" />}>
+      <Suspense fallback={<WorkPanelSkeleton />}>
         <PanelWithData />
       </Suspense>
       {/* Заголовок страницы на телефоне показывает шапка — дублирующий скрываем. */}
       <div className="flex min-w-0 flex-1 flex-col max-md:[&_[data-page-title]]:hidden">
-        <Suspense fallback={<div className="h-14 md:hidden" aria-hidden />}>
+        <Suspense fallback={<MobileHeaderSkeleton />}>
           <HeaderWithData />
         </Suspense>
         {children}
@@ -24,13 +25,10 @@ export default function WorkLayout({ children }: LayoutProps<"/work">) {
   );
 }
 
-// Гостю (без входа) панель компании и шапка не нужны — он видит гостевой экран.
 async function PanelWithData() {
-  const data = await getShellData();
-  return data.userId ? <WorkPanel data={data} /> : null;
+  return <WorkPanel data={await getShellData()} />;
 }
 
 async function HeaderWithData() {
-  const data = await getShellData();
-  return data.userId ? <MobileHeader data={data} /> : null;
+  return <MobileHeader data={await getShellData()} />;
 }

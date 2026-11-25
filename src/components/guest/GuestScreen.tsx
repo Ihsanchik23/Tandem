@@ -1,7 +1,7 @@
 import { getImageProps } from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
-import { withNext } from "@/lib/auth/redirect";
+import { withNext, type GuestSection } from "@/lib/auth/redirect";
 import { t } from "@/lib/i18n";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { FormFallback } from "@/components/auth/FormFallback";
@@ -9,7 +9,6 @@ import { LoginForm } from "@/components/auth/LoginForm";
 import { BrandMark } from "@/components/ui/BrandMark";
 import { EMPTY_PIXEL, PHOTOS } from "./photos";
 
-export type GuestSection = "home" | "search" | "work" | "messages" | "profile";
 
 const PATHS: Record<GuestSection, string> = {
   home: "/",
@@ -49,7 +48,11 @@ export function GuestScreen({ section }: { section: GuestSection }) {
           <GuestButtons next={next} light />
         </main>
       ) : (
-        <main className="guest-screen relative isolate flex flex-1 flex-col justify-end overflow-hidden px-5 pb-6 lg:hidden">
+        <main
+          className="guest-screen relative isolate flex flex-1 flex-col justify-end overflow-hidden px-5 pb-6 lg:hidden"
+          // Средний цвет фото — пока оно грузится, вместо пустого фона.
+          style={{ backgroundColor: PHOTOS[section].color }}
+        >
           <GuestPhoto section={section} />
           <div aria-hidden className="guest-screen-shade absolute inset-0 -z-10" />
           <div className="mb-6">
@@ -75,8 +78,8 @@ export function GuestScreen({ section }: { section: GuestSection }) {
 function GuestPhoto({ section }: { section: Exclude<GuestSection, "home"> }) {
   const photo = PHOTOS[section];
   const {
-    props: { srcSet, sizes, ...rest },
-  } = getImageProps({ src: photo.src, width: photo.width, height: photo.height, alt: ALTS[section], sizes: "100vw" });
+    props: { srcSet, sizes, style, ...rest },
+  } = getImageProps({ src: photo.image, alt: ALTS[section], sizes: "100vw", placeholder: "blur" });
   return (
     <picture>
       <source media="(max-width: 1023.98px)" srcSet={srcSet} sizes={sizes} />
@@ -86,7 +89,7 @@ function GuestPhoto({ section }: { section: Exclude<GuestSection, "home"> }) {
         alt={ALTS[section]}
         loading="eager"
         fetchPriority="high"
-        style={{ objectPosition: photo.position }}
+        style={{ ...style, objectPosition: photo.position }}
         className="absolute inset-0 -z-20 h-full w-full object-cover"
       />
     </picture>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
-import { FormFallback } from "@/components/auth/FormFallback";
+import { WorkPageSkeleton } from "@/components/ui/Skeletons";
 import { StubPage } from "@/components/layout/StubPage";
 import { getUserId } from "@/lib/auth/session";
 import { getMyCompany } from "@/lib/company/queries";
@@ -15,7 +15,7 @@ import { TasksSection } from "@/modules/tasks/TasksSection";
 // Содержимое модуля («Задачи», «Чат») защищает RLS, здесь только показ.
 export default function WorkPage({ params }: PageProps<"/work/p/[id]">) {
   return (
-    <Suspense fallback={<main className="px-5 pt-10"><FormFallback /></main>}>
+    <Suspense fallback={<WorkPageSkeleton />}>
       <Content params={params} />
     </Suspense>
   );

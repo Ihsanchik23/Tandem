@@ -316,10 +316,28 @@ function CompanyItem({ company, selected, onOpen }: { company: CompanyRow; selec
   );
 }
 
-function ListSkeleton() {
+// Заготовка всего каталога, пока он загружается: вкладки, поиск и строки списка —
+// того же размера, что настоящие (страница «Поиск» не прыгает).
+export function CatalogSkeleton() {
+  return (
+    <div aria-hidden className="flex min-w-0 flex-col">
+      <div className="mb-5 grid h-11 grid-cols-2 border-b border-neutral-200">
+        <span className="m-auto h-4 w-20 rounded bg-neutral-100" />
+        <span className="m-auto h-4 w-14 rounded bg-neutral-100" />
+      </div>
+      <div className="mb-5 flex items-center gap-2">
+        <span className="h-11 flex-1 rounded-full bg-neutral-100" />
+        <span className="h-11 w-11 rounded-full bg-neutral-100" />
+      </div>
+      <ListSkeleton rows={6} />
+    </div>
+  );
+}
+
+function ListSkeleton({ rows = 4 }: { rows?: number }) {
   return (
     <ul aria-hidden className="flex flex-col gap-3 py-2">
-      {[0, 1, 2, 3].map((index) => (
+      {Array.from({ length: rows }, (_, index) => index).map((index) => (
         <li key={index} className="flex items-center gap-3">
           <span className="h-[52px] w-[52px] rounded-full bg-neutral-100" />
           <span className="flex flex-1 flex-col gap-2">

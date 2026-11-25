@@ -38,14 +38,16 @@ export function AuthSlideshow() {
       aria-label={t.auth.slideshowLabel}
       aria-roledescription="carousel"
       className="auth-slides relative isolate flex h-full w-full flex-col justify-end overflow-hidden rounded-3xl"
+      // Средний цвет первого фото — пока оно грузится, вместо белого пятна.
+      style={{ backgroundColor: SLIDES[0].photo.color }}
     >
       {SLIDES.map(({ photo, alt }, i) => {
         const {
-          props: { srcSet, sizes, ...rest },
-        } = getImageProps({ src: photo.src, width: photo.width, height: photo.height, alt, sizes: "50vw" });
+          props: { srcSet, sizes, style, ...rest },
+        } = getImageProps({ src: photo.image, alt, sizes: "50vw", placeholder: "blur" });
         const active = i === index;
         return (
-          <picture key={photo.src}>
+          <picture key={photo.image.src}>
             <source media={DESKTOP} srcSet={srcSet} sizes={sizes} />
             <img
               {...rest}
@@ -55,7 +57,7 @@ export function AuthSlideshow() {
               loading={i === 0 ? "eager" : "lazy"}
               fetchPriority={i === 0 ? "high" : "low"}
               data-active={active}
-              style={{ objectPosition: photo.position }}
+              style={{ ...style, objectPosition: photo.position }}
               className="auth-slide-photo absolute inset-0 -z-10 h-full w-full object-cover"
             />
           </picture>
@@ -75,7 +77,7 @@ export function AuthSlideshow() {
           const state = i < index || (i === index && reducedMotion) ? "done" : i === index ? "running" : "empty";
           return (
             <button
-              key={photo.src}
+              key={photo.image.src}
               type="button"
               onClick={() => setIndex(i)}
               aria-label={format(t.auth.slideLabel, { n: i + 1, total: SLIDES.length })}

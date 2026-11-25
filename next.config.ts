@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
     return [{ source: "/@:username", destination: "/u/:username" }];
   },
   cacheComponents: true,
+  images: {
+    // Сначала AVIF (меньше), иначе WebP — браузер получает лучший формат, который понимает.
+    formats: ["image/avif", "image/webp"],
+  },
   experimental: {
     // Уже открытые страницы 5 минут показываются из памяти браузера мгновенно.
     // Свои изменения видны сразу: действия сбрасывают кэш (lib/cache/revalidate.ts),
