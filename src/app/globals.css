@@ -170,12 +170,13 @@ body {
 .search-hero-photo {
   object-position: 50% 30%;
 }
-/* Мягкое затемнение снизу, чтобы белый текст читался; без резкой границы. */
+/* Ровное затемнение всего фото, чтобы белый текст читался. */
 .search-hero-shade {
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.3) 45%, rgba(0, 0, 0, 0.1) 75%, rgba(0, 0, 0, 0) 100%);
+  background: rgba(0, 0, 0, 0.35);
 }
+/* Заголовок — вверху слева. */
 .search-hero-title {
-  margin: 0 48px 48px;
+  margin: 48px 48px 0;
   max-width: 12em;
   font-family: var(--tandem-font-display);
   font-size: clamp(32px, 3.2vw, 56px);

@@ -20,7 +20,7 @@ export function SearchHero() {
   });
 
   return (
-    <div className="search-hero relative isolate flex w-full flex-1 items-end overflow-hidden">
+    <div className="search-hero relative isolate flex w-full flex-1 items-start overflow-hidden">
       <picture>
         <source media="(min-width: 768px)" srcSet={srcSet} sizes={sizes} />
         <img
@@ -32,7 +32,7 @@ export function SearchHero() {
           className="search-hero-photo absolute inset-0 -z-10 h-full w-full object-cover"
         />
       </picture>
-      <div aria-hidden className="search-hero-shade absolute inset-x-0 bottom-0 -z-10 h-[40%]" />
+      <div aria-hidden className="search-hero-shade absolute inset-0 -z-10" />
       <h2 className="search-hero-title">{t.catalog.emptyPreviewTitle}</h2>
     </div>
   );
