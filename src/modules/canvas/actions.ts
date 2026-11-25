@@ -4,6 +4,7 @@
 // права (роль и активная подписка) проверяет RLS. Если RLS не пустил, update/delete
 // не меняют ни одной строки — это тоже отказ.
 import { revalidatePath } from "next/cache";
+import { revalidateWork } from "@/lib/cache/revalidate";
 import { createClient } from "@/lib/supabase/server";
 import type { ErrorKey } from "@/lib/i18n/ru";
 import type { BranchSummary } from "./branch";
@@ -13,9 +14,10 @@ export type UnitResult = { error?: ErrorKey };
 
 const PATH = "/work/structure";
 
+// Подразделения и их состав меняют, кто какие страницы видит (page_access пересчитывает база),
+// поэтому обновляем весь раздел «Работа», включая список страниц в панели.
 function done(): UnitResult {
-  revalidatePath(PATH);
-  revalidatePath("/work/people");
+  revalidateWork();
   return {};
 }
 

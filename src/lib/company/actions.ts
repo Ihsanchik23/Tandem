@@ -3,8 +3,8 @@
 // Создание и изменение компании. Права проверяет база:
 // - создание — функция create_organization (подписка, «одна компания», создатель = Owner);
 // - изменение — RLS organizations_update (только Owner/Admin при активной подписке).
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { revalidateCompanies, revalidateInvites, revalidateMembership, revalidateSearch, revalidateWork } from "@/lib/cache/revalidate";
 import { createClient } from "@/lib/supabase/server";
 import type { ErrorKey } from "@/lib/i18n/ru";
 import {
@@ -52,7 +52,7 @@ export async function createCompany(_prev: CompanyFormState, formData: FormData)
   });
   if (error) return dbFailure(error, values);
 
-  revalidatePath("/", "layout");
+  revalidateMembership();
   redirect("/work");
 }
 
@@ -74,7 +74,9 @@ export async function updateCompany(_prev: CompanyFormState, formData: FormData)
   // RLS не пустил: не Owner/Admin или подписка истекла — строка не изменилась.
   if (!data || data.length === 0) return { error: "forbidden", values };
 
-  revalidatePath("/", "layout");
+  revalidateWork();
+  revalidateCompanies();
+  revalidateSearch();
   redirect(`/c/${data[0]!.slug}`);
 }
 
@@ -104,7 +106,7 @@ export async function setMemberRole(prev: ActionState, formData: FormData): Prom
     p_role: role as (typeof ROLES)[number],
   });
   if (error) return failed(error);
-  revalidatePath("/", "layout");
+  revalidateWork();
   return { done: (prev.done ?? 0) + 1 };
 }
 
@@ -118,7 +120,7 @@ export async function setMemberPosition(prev: ActionState, formData: FormData): 
     p_position: position,
   });
   if (error) return failed(error);
-  revalidatePath("/", "layout");
+  revalidateMembership();
   return { done: (prev.done ?? 0) + 1 };
 }
 
@@ -129,7 +131,7 @@ export async function removeMember(_prev: ActionState, formData: FormData): Prom
     p_user: str(formData, "user_id"),
   });
   if (error) return failed(error);
-  revalidatePath("/", "layout");
+  revalidateMembership();
   redirect("/work/people");
 }
 
@@ -137,7 +139,7 @@ export async function leaveCompany(): Promise<ActionState> {
   const supabase = await createClient();
   const { error } = await supabase.rpc("leave_organization");
   if (error) return failed(error);
-  revalidatePath("/", "layout");
+  revalidateMembership();
   redirect("/work?notice=left");
 }
 
@@ -162,7 +164,8 @@ export async function createInvite(prev: ActionState, formData: FormData): Promi
     if (revErr) revokeFailed = true;
   }
 
-  revalidatePath("/", "layout");
+  revalidateWork();
+  revalidateInvites();
   // Новая ссылка создана в любом случае; если старую отозвать не вышло — говорим об этом.
   return revokeFailed ? { error: "inviteOldNotRevoked", done: (prev.done ?? 0) + 1 } : { done: (prev.done ?? 0) + 1 };
 }
@@ -171,7 +174,8 @@ export async function revokeInvite(prev: ActionState, formData: FormData): Promi
   const supabase = await createClient();
   const { error } = await supabase.rpc("revoke_invite", { p_invite: str(formData, "invite_id") });
   if (error) return failed(error);
-  revalidatePath("/", "layout");
+  revalidateWork();
+  revalidateInvites();
   return { done: (prev.done ?? 0) + 1 };
 }
 
@@ -180,6 +184,6 @@ export async function acceptInvite(_prev: ActionState, formData: FormData): Prom
   const { error } = await supabase.rpc("accept_invite", { p_token: str(formData, "token") });
   if (error?.message === "already_member_here") redirect("/work");
   if (error) return failed(error);
-  revalidatePath("/", "layout");
+  revalidateMembership();
   redirect("/work?notice=joined");
 }

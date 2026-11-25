@@ -1,16 +1,17 @@
 "use server";
 
 // Создание и настройка рабочих страниц. Права (роль, Scope менеджера, подписка) проверяют функции базы.
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { revalidateWork } from "@/lib/cache/revalidate";
 import { createClient } from "@/lib/supabase/server";
 import type { ErrorKey } from "@/lib/i18n/ru";
 import { pageDbError, toScopes, validatePage, type ModuleKey, type PageFieldErrors, type ScopeSelection } from "./logic";
 
 export type PageResult = { error?: ErrorKey; fieldErrors?: PageFieldErrors };
 
+// Рабочие страницы видны только в «Работе» (панель и сами страницы).
 function refresh() {
-  revalidatePath("/", "layout");
+  revalidateWork();
 }
 
 export async function createPage(input: {

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { revalidateAfterImageChange } from "@/lib/cache/actions";
 import { t } from "@/lib/i18n";
 import type { ErrorKey } from "@/lib/i18n/ru";
 import { AVATAR_MAX_SOURCE_BYTES, AVATAR_TYPES, compressAvatar } from "@/lib/profile/image";
@@ -74,6 +75,8 @@ export function ImageUploader({ kind, ownerId, name, initialUrl, labels }: Props
       await saveUrl(publicUrl);
       setUrl(publicUrl);
       await removeOldFiles(path);
+      // Сбросить кэш страниц, где видна картинка (панель, списки, профили), и обновить текущую.
+      await revalidateAfterImageChange();
       router.refresh();
     } catch {
       setError(labels.failed);
@@ -90,6 +93,8 @@ export function ImageUploader({ kind, ownerId, name, initialUrl, labels }: Props
       await saveUrl(null);
       setUrl(null);
       await removeOldFiles();
+      // Сбросить кэш страниц, где видна картинка (панель, списки, профили), и обновить текущую.
+      await revalidateAfterImageChange();
       router.refresh();
     } catch {
       setError(labels.failed);

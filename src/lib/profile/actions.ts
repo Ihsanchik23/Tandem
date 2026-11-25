@@ -3,6 +3,7 @@
 // Сохранение своего профиля. Обычный update таблицы profiles:
 // RLS (profiles_update_own) разрешает менять только свою строку.
 import { revalidatePath } from "next/cache";
+import { revalidateCompanies, revalidateProfiles, revalidateSearch, revalidateWork } from "@/lib/cache/revalidate";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { ErrorKey } from "@/lib/i18n/ru";
@@ -40,6 +41,7 @@ export async function updateProfile(
   const userId = claims?.claims?.sub;
   if (!userId) redirect("/login");
 
+  const { data: before } = await supabase.from("profiles").select("username").eq("id", userId).maybeSingle();
   const { error } = await supabase
     .from("profiles")
     .update({
@@ -58,7 +60,12 @@ export async function updateProfile(
       : { error: mapped.key, values };
   }
 
-  // Обновить навигацию (она знает имя пользователя) и профиль.
-  revalidatePath("/", "layout");
+  // Имя и фамилия видны в профилях, «Работе» (сотрудники, структура), компаниях (основатели) и поиске.
+  revalidateProfiles();
+  revalidateWork();
+  revalidateCompanies();
+  revalidateSearch();
+  // Сменилось имя пользователя — меню во всех разделах знает его (подсветка «Профиля»).
+  if (before?.username !== values.username) revalidatePath("/", "layout");
   redirect(`/@${values.username}`);
 }
