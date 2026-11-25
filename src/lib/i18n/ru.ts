@@ -422,7 +422,6 @@ export const ru = {
     statusShort: { todo: "Сделать", in_progress: "В работе", done: "Готово" },
     commentsCount: "Комментариев: {n}",
     peopleMore: "и ещё {n}",
-    accessTitle: "У кого есть доступ к странице",
     addTask: "Добавить задачу",
     columns: "Колонки задач",
   },

@@ -6,7 +6,7 @@ import type { PageRow } from "./queries";
 
 // Экран рабочей страницы. Порядок сверху вниз: о странице (название, описание, у кого доступ),
 // потом содержимое модуля (вид просмотра, поиск и фильтры — внутри модуля).
-// aside — справа в шапке (например, аватары тех, у кого есть доступ). wide — для доски задач.
+// aside — справа в шапке (на компьютере). wide — для доски задач.
 export function PageScreen({
   page,
   canManage,
@@ -22,10 +22,11 @@ export function PageScreen({
 }) {
   const p = t.pages;
   return (
-    <main className="flex flex-1 flex-col px-5 pb-8 pt-5 md:pt-9">
+    <main className="flex flex-1 flex-col px-5 pb-8 pt-3 md:pt-9">
       <MarkSeen pageId={page.id} />
       <div className={`mx-auto flex w-full flex-col gap-5 ${wide ? "max-w-6xl" : "max-w-3xl"}`}>
-        <header className="flex flex-col gap-3 md:flex-row md:items-center md:gap-6">
+        {/* На телефоне название уже в верхней шапке, а «Настройки» — шестерёнкой там же: блок не нужен. */}
+        <header className="hidden md:flex md:items-center md:gap-6">
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-surface text-ink">
               <ModuleIcon moduleKey={page.moduleKey} className="h-[22px] w-[22px]" />
