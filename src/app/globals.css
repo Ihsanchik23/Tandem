@@ -17,6 +17,8 @@
   --tandem-gradient: linear-gradient(135deg, var(--tandem-grad-1) 0%, var(--tandem-grad-2) 50%, var(--tandem-grad-3) 100%);
   --tandem-gradient-hover: linear-gradient(135deg, var(--tandem-grad-2) 0%, var(--tandem-grad-3) 100%);
   color-scheme: light;
+  /* Крупные рекламные заголовки (заглушка ленты, фото в «Поиске»). */
+  --tandem-font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--font-geist-sans), "Inter", "Helvetica Neue", Arial, sans-serif;
 
   /* Цвета направлений на «Структуре»: у каждого филиала верхнего уровня свой.
      bg — карточка, soft — вложенные подразделения, line — линии, strong — кнопки и значки,
@@ -102,7 +104,7 @@ body {
   --feed-hero-bg: #f1f1f2;
   background: var(--feed-hero-bg);
   min-height: calc(100svh - 4rem - env(safe-area-inset-bottom));
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--font-geist-sans), "Inter", "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--tandem-font-display);
 }
 /* Телефон: текст — в пустых верхних ~30% кадра. На коротких экранах фото обрезается снизу,
    чтобы голова не уходила под текст. */
@@ -157,5 +159,34 @@ body {
   from {
     opacity: 0;
     transform: translateY(12px);
+  }
+}
+
+/* ── «Поиск», пустая правая панель (components/catalog/SearchHero.tsx) ──
+   Фото на всю колонку; лица и падающие блоки — в верхней половине кадра. */
+.search-hero {
+  background: #1b1612; /* тёмный тон фото — пока оно грузится */
+}
+.search-hero-photo {
+  object-position: 50% 30%;
+}
+/* Мягкое затемнение снизу, чтобы белый текст читался; без резкой границы. */
+.search-hero-shade {
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.3) 45%, rgba(0, 0, 0, 0.1) 75%, rgba(0, 0, 0, 0) 100%);
+}
+.search-hero-title {
+  margin: 0 48px 48px;
+  max-width: 12em;
+  font-family: var(--tandem-font-display);
+  font-size: clamp(32px, 3.2vw, 56px);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  color: #fff;
+  text-wrap: balance;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .search-hero-photo {
+    animation: feed-hero-fade 500ms ease-out both;
   }
 }

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { Suspense } from "react";
 import { Catalog } from "@/components/catalog/Catalog";
 import { PreviewLinks } from "@/components/catalog/PreviewLinks";
+import { SearchHero } from "@/components/catalog/SearchHero";
 import { CompanyView } from "@/components/company/CompanyView";
 import { ProfileView } from "@/components/profile/ProfileView";
 import { t } from "@/lib/i18n";
@@ -37,10 +37,5 @@ async function SearchPreview({ searchParams }: { searchParams: PageProps<"/searc
   if (typeof person === "string" && person.length > 0 && person.length <= 80) {
     return <ProfileView username={person} embedded />;
   }
-  return (
-    <div className="m-auto flex w-full max-w-xl flex-col items-center gap-5 px-8 py-12 text-center">
-      <Image src="/search-connections.webp" width={1448} height={1086} sizes="(max-width: 1280px) 40vw, 560px" alt="" className="h-auto w-full max-w-[520px]" />
-      <h2 className="text-2xl font-semibold tracking-tight text-ink">{t.catalog.emptyPreviewTitle}</h2>
-    </div>
-  );
+  return <SearchHero />;
 }

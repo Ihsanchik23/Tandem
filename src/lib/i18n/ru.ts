@@ -485,6 +485,7 @@ export const ru = {
     title: "Поиск",
     previewLabel: "Просмотр профиля",
     emptyPreviewTitle: "Расширяйте круг связей",
+    heroAlt: "Молодые люди смеются за игрой в блоки",
     profileUnavailable: "Профиль больше не доступен",
     tabsLabel: "Что искать",
     people: "Люди",
