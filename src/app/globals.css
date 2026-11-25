@@ -94,3 +94,68 @@ body {
   color: var(--tandem-ink);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
+
+/* ── Главная: заглушка ленты (components/feed/FeedComingSoon.tsx) ──
+   Фон блока — под цвет фона самого фото (он не чисто белый), чтобы не было шва.
+   Один экран без прокрутки: на телефоне вычитаем нижнюю панель навигации. */
+.feed-hero {
+  --feed-hero-bg: #f1f1f2;
+  background: var(--feed-hero-bg);
+  min-height: calc(100svh - 4rem - env(safe-area-inset-bottom));
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--font-geist-sans), "Inter", "Helvetica Neue", Arial, sans-serif;
+}
+/* Телефон: текст — в пустых верхних ~30% кадра. На коротких экранах фото обрезается снизу,
+   чтобы голова не уходила под текст. */
+.feed-hero-photo {
+  object-position: 50% 45%;
+}
+.feed-hero-copy {
+  padding: max(24px, 5svh) 24px 0;
+}
+.feed-hero-title {
+  max-width: 20ch;
+  font-size: clamp(40px, 11vw, 44px);
+  font-weight: 600;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  color: var(--tandem-ink);
+  text-wrap: balance;
+}
+/* Компьютер: текст в пустой левой трети, по центру по вертикали. Размер ограничен
+   ещё и высотой экрана: фото масштабируется по высоте, и свободная зона — вместе с ним. */
+@media (min-width: 768px) {
+  .feed-hero {
+    --feed-hero-bg: #f6f6f6;
+    min-height: 100svh;
+    justify-content: center;
+  }
+  .feed-hero-photo {
+    object-position: 0% 40%;
+  }
+  .feed-hero-copy {
+    padding: 0 0 0 6vw;
+  }
+  .feed-hero-title {
+    max-width: 6.2em;
+    font-size: clamp(40px, min(4vw, 7svh), 88px);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .feed-hero-photo {
+    animation: feed-hero-fade 700ms ease-out both;
+  }
+  .feed-hero-title {
+    animation: feed-hero-rise 600ms cubic-bezier(0.22, 1, 0.36, 1) 120ms both;
+  }
+}
+@keyframes feed-hero-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes feed-hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
