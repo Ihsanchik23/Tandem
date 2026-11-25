@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Catalog } from "@/components/catalog/Catalog";
 import { PreviewLinks } from "@/components/catalog/PreviewLinks";
-import { SearchHero } from "@/components/catalog/SearchHero";
+import { HeroPanel } from "@/components/ui/HeroPanel";
 import { CompanyView } from "@/components/company/CompanyView";
 import { ProfileView } from "@/components/profile/ProfileView";
 import { t } from "@/lib/i18n";
@@ -37,5 +37,17 @@ async function SearchPreview({ searchParams }: { searchParams: PageProps<"/searc
   if (typeof person === "string" && person.length > 0 && person.length <= 80) {
     return <ProfileView username={person} embedded />;
   }
-  return <SearchHero />;
+  return (
+    <HeroPanel
+      src="/images/search/search-hero.jpg"
+      width={1760}
+      height={2352}
+      alt={t.catalog.heroAlt}
+      title={t.catalog.emptyPreviewTitle}
+      // Колонка = экран минус меню слева (64px) и список (400px, с 1280px — 460px).
+      sizes="(min-width: 1280px) calc(100vw - 524px), calc(100vw - 464px)"
+      placement="top"
+      objectPosition="50% 30%"
+    />
+  );
 }
