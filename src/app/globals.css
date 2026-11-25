@@ -7,6 +7,9 @@
   --tandem-accent-soft: #f58560; /* светлый акцент — редко */
   --tandem-ink: #1e1e1e; /* основной текст — весь текст чёрный */
   --tandem-canvas: #ffffff; /* фон страниц */
+  --tandem-surface: #f6f4f1; /* тёплый серый фон досок и панелей */
+  --tandem-muted: #5d5852; /* второстепенный текст (контраст 7:1 на белом) */
+  --tandem-line: #e8e4de; /* тонкие линии и рамки */
   /* Градиент бренда: кнопки, логотип, выбранные элементы и иконки. */
   --tandem-grad-1: #f58560;
   --tandem-grad-2: #ea5f35;
@@ -32,6 +35,9 @@
   --color-accent-soft: var(--tandem-accent-soft);
   --color-ink: var(--tandem-ink);
   --color-canvas: var(--tandem-canvas);
+  --color-surface: var(--tandem-surface);
+  --color-muted: var(--tandem-muted);
+  --color-line: var(--tandem-line);
   --color-background: var(--tandem-canvas);
   --color-foreground: var(--tandem-ink);
   --font-sans: var(--font-geist-sans);

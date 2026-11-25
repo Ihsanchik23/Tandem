@@ -23,7 +23,11 @@ export function PageScreen({
       <MarkSeen pageId={page.id} />
       <div className={`mx-auto flex w-full flex-col gap-5 ${wide ? "max-w-6xl" : "max-w-3xl"}`}>
         <div className="flex items-start gap-3">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-ink">
+          <span
+            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${
+              page.moduleKey === "tasks" ? "bg-accent/10 text-accent" : "bg-neutral-100 text-ink"
+            }`}
+          >
             <ModuleIcon moduleKey={page.moduleKey} />
           </span>
           <div className="min-w-0 flex-1">

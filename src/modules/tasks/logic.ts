@@ -23,6 +23,7 @@ export type Task = {
   completedAt: string | null;
   archivedAt: string | null;
   version: number;
+  comments: number; // число неудалённых комментариев — для значка на карточке
 };
 
 export type TaskRole = "owner" | "admin" | "manager" | "employee";

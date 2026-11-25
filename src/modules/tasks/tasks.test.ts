@@ -38,6 +38,7 @@ function task(over: Partial<Task> = {}): Task {
     completedAt: null,
     archivedAt: null,
     version: 1,
+    comments: 0,
     ...over,
   };
 }

@@ -6,9 +6,9 @@ import type { ErrorKey } from "@/lib/i18n/ru";
 import { Button } from "@/components/ui/Button";
 import { FormMessage } from "@/components/ui/FormMessage";
 import { Sheet } from "@/components/ui/Sheet";
-import { createTask } from "./api";
+import { createTask, setStatus } from "./api";
 import type { PagePerson } from "./data";
-import { joinLocalDateTime, splitLocalDateTime, validateTask, type TaskFieldErrors } from "./logic";
+import { joinLocalDateTime, splitLocalDateTime, validateTask, type TaskFieldErrors, type TaskStatus } from "./logic";
 import { TaskForm, type TaskFormValue } from "./TaskForm";
 
 // По умолчанию дедлайн — завтра в 18:00 по времени телефона.
@@ -20,8 +20,10 @@ function emptyForm(): TaskFormValue {
   return { title: "", description: "", dueDate: date, dueTime: time, priority: "normal", assigneeId: null, coassignees: [] };
 }
 
+// status — колонка, где нажали «+»: задача создаётся и сразу встаёт туда.
 export function CreateTask({
   open,
+  status,
   pageId,
   people,
   me,
@@ -29,6 +31,7 @@ export function CreateTask({
   onCreated,
 }: {
   open: boolean;
+  status: TaskStatus;
   pageId: string;
   people: PagePerson[];
   me: string;
@@ -60,6 +63,8 @@ export function CreateTask({
         if (res.error === "selfAssignForbidden" || res.error === "assigneeNoAccess") setErrors({ assignee: res.error });
         return setError(res.error);
       }
+      // База создаёт задачу в «Нужно сделать»; если нажали «+» у другой колонки — переносим туда.
+      if (status !== "todo") await setStatus(res.value, status);
       reset();
       onCreated(res.value);
     });
@@ -68,7 +73,7 @@ export function CreateTask({
   return (
     <Sheet
       open={open}
-      title={s.createTitle}
+      title={status === "todo" ? s.createTitle : `${s.createTitle} · ${s.status[status]}`}
       onClose={() => {
         if (!pending) onClose();
       }}

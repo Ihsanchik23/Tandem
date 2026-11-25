@@ -20,7 +20,7 @@ export function personName(p: { first_name: string | null; last_name: string | n
 }
 
 const TASK_COLUMNS =
-  "id, title, description, status, priority, assignee_id, due_at, created_at, created_by, completed_at, archived_at, version, task_coassignees(user_id)";
+  "id, title, description, status, priority, assignee_id, due_at, created_at, created_by, completed_at, archived_at, version, task_coassignees(user_id), task_comments(id, deleted_at)";
 
 type TaskRow = {
   id: string;
@@ -36,6 +36,7 @@ type TaskRow = {
   archived_at: string | null;
   version: number;
   task_coassignees: { user_id: string }[] | null;
+  task_comments: { id: string; deleted_at: string | null }[] | null;
 };
 
 function toTask(r: TaskRow): Task {
@@ -53,6 +54,7 @@ function toTask(r: TaskRow): Task {
     completedAt: r.completed_at,
     archivedAt: r.archived_at,
     version: r.version,
+    comments: (r.task_comments ?? []).filter((c) => !c.deleted_at).length,
   };
 }
 

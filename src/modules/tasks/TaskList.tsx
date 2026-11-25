@@ -4,7 +4,7 @@ import { useState } from "react";
 import { t } from "@/lib/i18n";
 import type { PagePerson } from "./data";
 import { COLUMN_PAGE, isMine, type Task } from "./logic";
-import { DueLabel, PersonChip, PriorityBadge } from "./bits";
+import { DueShort, Faces, PriorityBadge, STATUS_DOT } from "./bits";
 
 // Список: таблица со столбцами статус, ответственный, дедлайн, приоритет. Также — вкладка «Архив».
 export function TaskList({
@@ -22,19 +22,19 @@ export function TaskList({
 }) {
   const s = t.tasks;
   const [limit, setLimit] = useState(COLUMN_PAGE * 2);
-  const th = "px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-ink";
+  const th = "px-4 py-3 text-left text-xs font-semibold text-muted";
 
   return (
     <div className="flex flex-col gap-3">
       <div className="-mx-5 overflow-x-auto px-5 md:mx-0 md:px-0">
-        <table className="w-full min-w-[640px] border-separate border-spacing-0 text-sm">
+        <table className="w-full min-w-[640px] border-separate border-spacing-0 overflow-hidden rounded-2xl text-sm shadow-[0_0_0_1px_var(--tandem-line)]">
           <thead>
-            <tr className="bg-neutral-100">
-              <th className={`${th} rounded-l-xl`}>{s.title}</th>
+            <tr className="bg-surface">
+              <th className={th}>{s.title}</th>
               <th className={th}>{s.filterStatus}</th>
               <th className={th}>{s.assignee}</th>
               <th className={th}>{s.due}</th>
-              <th className={`${th} rounded-r-xl`}>{s.filterPriority}</th>
+              <th className={th}>{s.filterPriority}</th>
             </tr>
           </thead>
           <tbody>
@@ -44,19 +44,24 @@ export function TaskList({
                 tabIndex={0}
                 onClick={() => onOpen(task)}
                 onKeyDown={(e) => e.key === "Enter" && onOpen(task)}
-                className={`cursor-pointer hover:bg-neutral-50 focus-visible:outline-2 focus-visible:outline-accent ${isMine(task, me) ? "bg-accent/5" : ""}`}
+                className={`cursor-pointer bg-white hover:bg-surface/60 focus-visible:outline-2 focus-visible:outline-accent ${isMine(task, me) ? "bg-accent/5!" : ""}`}
               >
-                <td className="max-w-64 border-b border-neutral-200 px-3 py-3 font-medium text-ink">
+                <td className="max-w-72 border-t border-line px-4 py-3 font-medium text-ink">
                   <span className="line-clamp-2 break-words">{task.title}</span>
                 </td>
-                <td className="whitespace-nowrap border-b border-neutral-200 px-3 py-3 text-ink">{s.status[task.status]}</td>
-                <td className="max-w-48 border-b border-neutral-200 px-3 py-3">
-                  <PersonChip person={task.assigneeId ? people.get(task.assigneeId) : undefined} size={22} />
+                <td className="whitespace-nowrap border-t border-line px-4 py-3 text-ink">
+                  <span className="inline-flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full" style={{ background: STATUS_DOT[task.status] }} aria-hidden />
+                    {s.status[task.status]}
+                  </span>
                 </td>
-                <td className="whitespace-nowrap border-b border-neutral-200 px-3 py-3">
-                  <DueLabel task={task} now={now} />
+                <td className="border-t border-line px-4 py-3">
+                  <Faces ids={[...(task.assigneeId ? [task.assigneeId] : []), ...task.coassignees]} people={people} size={24} />
                 </td>
-                <td className="border-b border-neutral-200 px-3 py-3">
+                <td className="whitespace-nowrap border-t border-line px-4 py-3">
+                  <DueShort task={task} now={now} />
+                </td>
+                <td className="border-t border-line px-4 py-3">
                   <PriorityBadge priority={task.priority} />
                 </td>
               </tr>
@@ -68,7 +73,7 @@ export function TaskList({
         <button
           type="button"
           onClick={() => setLimit((l) => l + COLUMN_PAGE * 2)}
-          className="h-11 rounded-xl border border-neutral-300 bg-white text-sm font-medium text-ink hover:bg-neutral-50"
+          className="h-11 rounded-xl text-sm font-medium text-muted hover:bg-surface"
         >
           {s.showMore} ({tasks.length - limit})
         </button>
