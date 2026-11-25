@@ -85,8 +85,7 @@ export const ru = {
 
   home: {
     title: "Главная",
-    greeting: "Здравствуйте",
-    placeholder: "Здесь скоро появится главная страница Tandem.",
+    placeholder: "Здесь скоро будет лента",
   },
 
   work: {

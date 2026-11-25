@@ -1,35 +1,27 @@
-import { Suspense } from "react";
-import { StubPage } from "@/components/layout/StubPage";
+import Image from "next/image";
 import { t } from "@/lib/i18n";
-import { createClient } from "@/lib/supabase/server";
 
-// «Главная» — пока заглушка (ТЗ, раздел 15). Сюда попадают после регистрации.
+// Лента появится позже; пока главная встречает коротким пустым состоянием.
 export default function HomePage() {
   return (
-    <StubPage title={t.home.title}>
-      <Suspense fallback={<div className="h-7 w-48 rounded-lg bg-neutral-100" />}>
-        <Greeting />
-      </Suspense>
-      <p className="text-base text-ink">{t.home.placeholder}</p>
-    </StubPage>
-  );
-}
-
-async function Greeting() {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  const userId = data?.claims?.sub;
-  if (!userId) return null;
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("first_name")
-    .eq("id", userId)
-    .maybeSingle();
-  const name = profile?.first_name?.trim();
-  return (
-    <p className="text-xl text-ink">
-      {t.home.greeting}
-      {name ? `, ${name}` : ""}!
-    </p>
+    <main className="flex min-h-0 flex-1 flex-col px-5 pb-8 pt-5 md:pt-10">
+      <h1 data-page-title className="text-2xl font-semibold tracking-tight text-ink">
+        {t.home.title}
+      </h1>
+      <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center gap-4 pb-6 pt-8 md:gap-6 md:pb-12">
+        <Image
+          src="/home-feed.webp"
+          width={1448}
+          height={1086}
+          sizes="(max-width: 767px) calc(100vw - 40px), 580px"
+          alt=""
+          loading="eager"
+          className="h-auto w-full max-w-[580px] object-contain"
+        />
+        <h2 className="max-w-xs text-center text-3xl font-semibold leading-tight tracking-tight text-ink md:max-w-none md:text-4xl">
+          {t.home.placeholder}
+        </h2>
+      </div>
+    </main>
   );
 }
