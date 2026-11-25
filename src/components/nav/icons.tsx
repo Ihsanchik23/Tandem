@@ -231,6 +231,16 @@ export function PeopleIcon({ className }: IconProps) {
   );
 }
 
+export function FilterIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M4 7h16M4 17h16" {...line} />
+      <circle cx="9" cy="7" r="2" fill="white" stroke="currentColor" strokeWidth="2" />
+      <circle cx="16" cy="17" r="2" fill="white" stroke="currentColor" strokeWidth="2" />
+    </Svg>
+  );
+}
+
 export function LockIcon({ className }: IconProps) {
   return (
     <Svg className={className}>

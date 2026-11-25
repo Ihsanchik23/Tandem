@@ -7,10 +7,10 @@ import { isAutoUsername } from "@/lib/profile/validation";
 import { createClient } from "@/lib/supabase/server";
 import { Avatar } from "./Avatar";
 
-type Props = { username: string };
+type Props = { username: string; embedded?: boolean };
 
 // Профиль человека (ТЗ, раздел 7). Видят все вошедшие пользователи (RLS: profiles_select).
-export async function ProfileView({ username }: Props) {
+export async function ProfileView({ username, embedded = false }: Props) {
   const supabase = await createClient();
   const [{ data: profile }, myId] = await Promise.all([
     supabase
@@ -20,7 +20,10 @@ export async function ProfileView({ username }: Props) {
       .maybeSingle(),
     getUserId(),
   ]);
-  if (!profile) notFound();
+  if (!profile) {
+    if (embedded) return <p className="m-auto px-6 text-center text-base text-ink">{t.catalog.profileUnavailable}</p>;
+    notFound();
+  }
 
   // Места работы. В пилоте одно, но код не завязан на это правило.
   const { data: jobs } = await supabase
@@ -30,9 +33,10 @@ export async function ProfileView({ username }: Props) {
 
   const isMe = myId === profile.id;
   const fullName = `${profile.first_name} ${profile.last_name}`.trim();
+  const Container = embedded ? "div" : "main";
 
   return (
-    <main className="flex flex-1 flex-col px-5 pb-8 pt-6 md:pt-10">
+    <Container className="flex flex-1 flex-col px-5 pb-8 pt-6 md:pt-10">
       <div className="mx-auto flex w-full max-w-lg flex-col gap-6">
         {isMe && isAutoUsername(profile.username) ? (
           <div className="flex flex-col gap-2 rounded-2xl border border-neutral-200 bg-white px-4 py-3">
@@ -90,6 +94,6 @@ export async function ProfileView({ username }: Props) {
           </div>
         ) : null}
       </div>
-    </main>
+    </Container>
   );
 }

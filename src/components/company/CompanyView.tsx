@@ -9,7 +9,7 @@ import { MemberRow } from "./MemberRow";
 
 // Публичный профиль компании (ТЗ, раздел 7): логотип, название, описание, основатели,
 // город, число и список сотрудников. Видят все вошедшие (RLS: organizations_select).
-export async function CompanyView({ slug }: { slug: string }) {
+export async function CompanyView({ slug, embedded = false }: { slug: string; embedded?: boolean }) {
   const supabase = await createClient();
   const [{ data: org }, myId] = await Promise.all([
     supabase
@@ -19,15 +19,19 @@ export async function CompanyView({ slug }: { slug: string }) {
       .maybeSingle(),
     getUserId(),
   ]);
-  if (!org) notFound();
+  if (!org) {
+    if (embedded) return <p className="m-auto px-6 text-center text-base text-ink">{t.catalog.profileUnavailable}</p>;
+    notFound();
+  }
 
   const members = await getMembers(org.id);
   const me = members.find((m) => m.user_id === myId);
   const founders = org.organization_founders.flatMap((f) => (f.profiles ? [f.profiles] : []));
   const c = t.company;
+  const Container = embedded ? "div" : "main";
 
   return (
-    <main className="flex flex-1 flex-col px-5 pb-8 pt-6 md:pt-10">
+    <Container className="flex flex-1 flex-col px-5 pb-8 pt-6 md:pt-10">
       <div className="mx-auto flex w-full max-w-lg flex-col gap-6">
         <div className="flex flex-col items-center gap-3 text-center">
           <Avatar url={org.logo_url} name={org.name} size={96} alt={c.logoAlt} />
@@ -77,6 +81,6 @@ export async function CompanyView({ slug }: { slug: string }) {
           </ul>
         </section>
       </div>
-    </main>
+    </Container>
   );
 }

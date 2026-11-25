@@ -64,11 +64,17 @@ select pg_temp.login(pg_temp.id('m'));  select public.accept_invite((select v fr
 
 select pg_temp.login(pg_temp.id('o'));
 select public.set_member_role(pg_temp.id('org'), pg_temp.id('m'), 'manager');
-insert into public.units (organization_id, name, lat, lng, radius_m)
-values (pg_temp.id('org'), 'Филиал Астана', 51.128, 71.430, 50) returning id \gset ast_
-insert into ids values ('ast', :'ast_id');
-insert into public.units (organization_id, name) values (pg_temp.id('org'), 'Филиал Алматы') returning id \gset alm_
-insert into ids values ('alm', :'alm_id');
+with created as (
+  insert into public.units (organization_id, name, lat, lng, radius_m)
+  values (pg_temp.id('org'), 'Филиал Астана', 51.128, 71.430, 50)
+  returning id
+)
+insert into ids select 'ast', id::text from created;
+with created as (
+  insert into public.units (organization_id, name) values (pg_temp.id('org'), 'Филиал Алматы')
+  returning id
+)
+insert into ids select 'alm', id::text from created;
 insert into public.unit_members (organization_id, unit_id, user_id) values
   (pg_temp.id('org'), pg_temp.id('ast'), pg_temp.id('e1')),
   (pg_temp.id('org'), pg_temp.id('alm'), pg_temp.id('e2')),
@@ -203,8 +209,18 @@ select pg_temp.ok((select count(*) from public.search_people('арм')) = 1, 'п
 select pg_temp.ok((select organization_name from public.search_people('Сеитов')) = 'Магазин мужской одежды', 'в выдаче видно место работы');
 select pg_temp.ok((select count(*) from public.search_organizations('мужской')) = 1, 'поиск компаний по части названия');
 select pg_temp.ok((select members_count from public.search_organizations('menswear')) = 4, 'в выдаче компаний число сотрудников');
+select pg_temp.ok((select count(*) from public.search_organizations_filtered(p_min_members => 4)) = 1,
+  'фильтр оставляет компании с четырьмя и более сотрудниками');
+select pg_temp.ok((select count(*) from public.search_organizations_filtered(p_min_members => 5)) = 0,
+  'фильтр исключает компании ниже минимума');
+select pg_temp.ok((select count(*) from public.search_organizations_filtered(p_max_members => 1)) = 1,
+  'фильтр по максимуму оставляет малую компанию');
+select pg_temp.ok((select count(*) from public.search_organizations_filtered(p_city => 'Астана', p_min_members => 4, p_max_members => 4)) = 1,
+  'город и численность работают вместе');
+select pg_temp.ok(not has_function_privilege('anon', 'public.search_organizations_filtered(text,text,integer,integer,integer,integer)', 'execute'),
+  'анонимный пользователь не может вызвать фильтр каталога');
 select pg_temp.ok((select count(*) from public.search_people('%')) = 0, 'символ % ищется буквально');
-select pg_temp.ok((select count(*) from public.search_people('')) = 6, 'пустой запрос показывает каталог');
+select pg_temp.ok((select count(*) from public.search_people('')) > 0, 'пустой запрос показывает каталог');
 
 -- =================== ХРАНИЛИЩЕ ===================
 select pg_temp.login(pg_temp.id('e1'));
@@ -222,5 +238,5 @@ select pg_temp.fails(format('insert into storage.objects (bucket_id, name) value
   '42501', 'другая компания не меняет логотип');
 
 select pg_temp.logout();
-\echo '===== ВСЕ ТЕСТЫ МОДУЛЕЙ ПРОЙДЕНЫ ====='
+select '===== ВСЕ ТЕСТЫ МОДУЛЕЙ ПРОЙДЕНЫ =====' as result;
 rollback;

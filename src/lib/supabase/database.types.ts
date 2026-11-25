@@ -1195,6 +1195,25 @@ export type Database = {
           slug: string
         }[]
       }
+      search_organizations_filtered: {
+        Args: {
+          p_city?: string
+          p_limit?: number
+          p_max_members?: number
+          p_min_members?: number
+          p_offset?: number
+          p_query?: string
+        }
+        Returns: {
+          city: string
+          description: string
+          id: string
+          logo_url: string
+          members_count: number
+          name: string
+          slug: string
+        }[]
+      }
       search_people: {
         Args: {
           p_city?: string

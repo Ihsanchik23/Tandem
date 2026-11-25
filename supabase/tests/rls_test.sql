@@ -1,6 +1,7 @@
 -- =====================================================================
 -- Tandem · тесты прав (RLS и RPC)
 -- Запуск: psql -v ON_ERROR_STOP=1 -f supabase/tests/rls_test.sql
+-- или: supabase db query --linked -f supabase/tests/rls_test.sql
 -- Всё выполняется в транзакции и откатывается в конце: данные не остаются.
 -- Любая ошибка «FAIL: ...» означает дыру в правах.
 -- =====================================================================
@@ -58,7 +59,12 @@ grant all on ids to authenticated, anon;
 create function pg_temp.id(p text) returns uuid language sql as $$ select v::uuid from ids where k = p $$;
 create function pg_temp.tok(p text) returns text language sql as $$ select v from ids where k = p $$;
 
-select pg_temp.ok((select count(*) from public.profiles) = 8, 'профили создаются при регистрации');
+select pg_temp.ok((select count(*) from public.profiles where id in (
+  '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a2',
+  '00000000-0000-0000-0000-0000000000a3', '00000000-0000-0000-0000-0000000000a4',
+  '00000000-0000-0000-0000-0000000000a5', '00000000-0000-0000-0000-0000000000b1',
+  '00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-0000000000f1'
+)) = 8, 'профили создаются при регистрации');
 select pg_temp.ok((select first_name from public.profiles where id = '00000000-0000-0000-0000-0000000000a1') = 'Арман',
                   'имя из метаданных попадает в профиль');
 
@@ -134,12 +140,22 @@ select pg_temp.ok((select role from public.memberships where user_id = '00000000
 
 -- ---------- Структура ----------
 select pg_temp.login('00000000-0000-0000-0000-0000000000a1');
-insert into public.units (organization_id, name) values (pg_temp.id('orgA'), 'Филиал Астана') returning id \gset uA_
-insert into ids values ('uA', :'uA_id');
-insert into public.units (organization_id, parent_id, name) values (pg_temp.id('orgA'), pg_temp.id('uA'), 'Склад Астана') returning id \gset uA1_
-insert into ids values ('uA1', :'uA1_id');
-insert into public.units (organization_id, name) values (pg_temp.id('orgA'), 'Филиал Алматы') returning id \gset uB_
-insert into ids values ('uB', :'uB_id');
+with created as (
+  insert into public.units (organization_id, name) values (pg_temp.id('orgA'), 'Филиал Астана')
+  returning id
+)
+insert into ids select 'uA', id::text from created;
+with created as (
+  insert into public.units (organization_id, parent_id, name)
+  values (pg_temp.id('orgA'), pg_temp.id('uA'), 'Склад Астана')
+  returning id
+)
+insert into ids select 'uA1', id::text from created;
+with created as (
+  insert into public.units (organization_id, name) values (pg_temp.id('orgA'), 'Филиал Алматы')
+  returning id
+)
+insert into ids select 'uB', id::text from created;
 insert into public.unit_members (organization_id, unit_id, user_id) values
   (pg_temp.id('orgA'), pg_temp.id('uA1'), '00000000-0000-0000-0000-0000000000a2'),
   (pg_temp.id('orgA'), pg_temp.id('uB'),  '00000000-0000-0000-0000-0000000000a3'),
@@ -286,5 +302,5 @@ select pg_temp.fails(format('select public.create_invite(%L)', pg_temp.id('orgA'
                      'subscription_inactive', 'после истечения нельзя приглашать');
 
 select pg_temp.logout();
-\echo '===== ВСЕ ТЕСТЫ ПРОЙДЕНЫ ====='
+select '===== ВСЕ ТЕСТЫ ПРОЙДЕНЫ =====' as result;
 rollback;
