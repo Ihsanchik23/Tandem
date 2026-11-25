@@ -202,6 +202,35 @@ export function TasksPageIcon({ className }: IconProps) {
   );
 }
 
+export function CompanyProfileIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <rect x="5" y="3.5" width="14" height="17" rx="2" {...line} />
+      <path d="M9 7.5h1M14 7.5h1M9 11.5h1M14 11.5h1M10 20.5v-5h4v5" {...line} />
+    </Svg>
+  );
+}
+
+export function StructureIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <rect x="9" y="3" width="6" height="5" rx="1" {...line} />
+      <rect x="3" y="16" width="6" height="5" rx="1" {...line} />
+      <rect x="15" y="16" width="6" height="5" rx="1" {...line} />
+      <path d="M12 8v4M6 16v-4h12v4" {...line} />
+    </Svg>
+  );
+}
+
+export function PeopleIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <circle cx="9" cy="8" r="3" {...line} />
+      <path d="M3.5 20v-1.5a5.5 5.5 0 0 1 11 0V20M16 5.2a3 3 0 0 1 0 5.6M17 14a5 5 0 0 1 3.5 4.8V20" {...line} />
+    </Svg>
+  );
+}
+
 export function LockIcon({ className }: IconProps) {
   return (
     <Svg className={className}>
