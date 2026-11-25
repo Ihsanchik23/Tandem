@@ -2,35 +2,33 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 import { leaveCompany } from "@/lib/company/actions";
 import { t } from "@/lib/i18n";
 import type { ShellData } from "@/lib/nav/shell";
 import { Avatar } from "@/components/profile/Avatar";
 import { ConfirmAction } from "@/components/ui/ConfirmAction";
-import { Collapse } from "@/components/ui/Collapse";
-import { isNewPage } from "@/modules/pages/logic";
+import { canCreatePage, isNewPage } from "@/modules/pages/logic";
 import { NewBadge } from "@/modules/pages/PagesList";
 import { useSeenPages } from "@/modules/pages/seen";
-import { ChatPageIcon, ChevronDownIcon, CompanyProfileIcon, PeopleIcon, StructureIcon, TasksPageIcon } from "./icons";
+import { ChatPageIcon, CompanyProfileIcon, PeopleIcon, PlusIcon, StructureIcon, TasksPageIcon } from "./icons";
 
-// Панель компании: компания, рабочие страницы, «Моя компания», выход.
+// Панель компании: карточка компании, разделы мелкими заглавными, под ними страницы со значками.
 // На компьютере — постоянная панель в «Работе», на телефоне — выдвижное меню слева.
 export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate?: () => void }) {
   const pathname = usePathname() ?? "";
   const seen = useSeenPages();
   const w = t.work;
-  // Выбранный пункт: жирный шрифт и полоска с градиентом слева.
+  // Выбранный пункт — белая плашка с лёгкой тенью на тёплом сером фоне панели.
   const item = (active: boolean) =>
-    `relative flex min-h-11 items-center gap-3 rounded-xl px-3 py-2 text-base text-ink hover:bg-neutral-100 ${
-      active
-        ? "bg-neutral-100 font-semibold before:absolute before:inset-y-2 before:left-0 before:w-1 before:rounded-full before:bg-brand"
-        : ""
+    `flex h-10 items-center gap-2.5 rounded-xl px-2.5 text-[14px] text-ink transition-colors ${
+      active ? "bg-white font-medium shadow-[0_1px_3px_rgba(0,0,0,0.08)]" : "hover:bg-white/60"
     }`;
+  const icon = "h-[18px] w-[18px] shrink-0";
+
   if (!data.company) {
     return (
-      <div className="flex flex-col gap-2 p-4">
-        <p className="px-3 pb-2 text-base font-semibold text-ink">{w.noCompanyTitle}</p>
+      <div className="flex flex-col gap-1 p-4">
+        <p className="px-2.5 pb-2 text-[15px] font-semibold text-ink">{w.noCompanyTitle}</p>
         <Link href="/search" onClick={onNavigate} className={item(false)}>
           {w.findCompany}
         </Link>
@@ -50,43 +48,62 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
 
   return (
     <div className="flex h-full flex-col">
-      <Link
-        href={`/c/${company.slug}`}
-        onClick={onNavigate}
-        className="flex items-center gap-3 py-5 pl-5 pr-14"
-      >
-        <Avatar url={company.logoUrl} name={company.name} size={40} />
-        <span className="min-w-0 truncate text-lg font-semibold text-ink">{company.name}</span>
-      </Link>
+      {/* Карточка компании: логотип, название, моя роль. */}
+      <div className="px-3 pb-2 pt-4">
+        <div className="flex items-center gap-2.5 rounded-2xl bg-white p-2.5 pr-12 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+          <span className="overflow-hidden rounded-xl">
+            <Avatar url={company.logoUrl} name={company.name} size={36} />
+          </span>
+          <span className="min-w-0">
+            <span className="block truncate text-[14px] font-semibold leading-tight text-ink">{company.name}</span>
+            <span className="block truncate text-[12px] text-muted">{t.company.roles[company.role]}</span>
+          </span>
+        </div>
+      </div>
 
-      <nav aria-label={w.menu} className="flex flex-1 flex-col gap-7 overflow-y-auto p-4">
-        <MenuSection key={`pages-${pathname}`} title={w.menuPages} initiallyOpen={!links.some((link) => pathname.startsWith(link.href))}>
+      <nav aria-label={w.menu} className="flex flex-1 flex-col gap-5 overflow-y-auto px-3 py-3">
+        <Section
+          title={w.menuPages}
+          action={
+            canCreatePage(company.role) ? (
+              <Link
+                href="/work/pages/new"
+                onClick={onNavigate}
+                aria-label={t.pages.create}
+                title={t.pages.create}
+                className="flex h-6 w-6 items-center justify-center rounded-md text-muted hover:bg-white hover:text-ink"
+              >
+                <PlusIcon className="h-3.5 w-3.5" />
+              </Link>
+            ) : null
+          }
+        >
           {pages.length === 0 ? (
-            <p className="px-3 py-1 text-sm text-ink">{w.noPages}</p>
+            <p className="px-2.5 py-1 text-[13px] text-muted">{w.noPages}</p>
           ) : (
             pages.map((p) => (
               <Link key={p.id} href={`/work/p/${p.id}`} onClick={onNavigate} className={item(pathname.startsWith(`/work/p/${p.id}`))}>
-                {p.moduleKey === "chat" ? <ChatPageIcon className="h-5 w-5 shrink-0" /> : <TasksPageIcon className="h-5 w-5 shrink-0" />}
+                {p.moduleKey === "chat" ? <ChatPageIcon className={icon} /> : <TasksPageIcon className={icon} />}
                 <span className="min-w-0 flex-1 truncate">{p.name}</span>
                 {seen && isNewPage(p, seen) ? <NewBadge /> : null}
               </Link>
             ))
           )}
-        </MenuSection>
+        </Section>
 
-        <MenuSection key={`company-${pathname}`} title={w.menuMyCompany} initiallyOpen={links.some((link) => pathname.startsWith(link.href))}>
+        <Section title={w.menuMyCompany}>
           {links.map((l) => (
             <Link key={l.href} href={l.href} onClick={onNavigate} className={item(pathname.startsWith(l.href))}>
-              <l.Icon className="h-5 w-5 shrink-0" />
+              <l.Icon className={icon} />
               {l.label}
             </Link>
           ))}
-        </MenuSection>
+        </Section>
       </nav>
 
-      <div className="p-4">
+      <div className="px-3 pb-4 pt-2">
         {company.role === "owner" ? (
-          <p className="px-1 text-sm text-ink">{w.ownerCannotLeaveHint}</p>
+          <p className="px-2.5 text-[12px] text-muted">{w.ownerCannotLeaveHint}</p>
         ) : (
           <ConfirmAction
             action={leaveCompany}
@@ -101,23 +118,15 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
   );
 }
 
-function MenuSection({ title, initiallyOpen, children }: { title: string; initiallyOpen: boolean; children: React.ReactNode }) {
-  const [open, setOpen] = useState(initiallyOpen);
-
+// Раздел: название мелкими серыми заглавными, справа — необязательное действие («+»), ниже — пункты.
+function Section({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="flex flex-col gap-1">
-      <button
-        type="button"
-        aria-expanded={open}
-        onClick={() => setOpen((value) => !value)}
-        className="flex min-h-11 w-full items-center justify-between gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold text-ink hover:bg-neutral-100"
-      >
-        <span>{title}</span>
-        <ChevronDownIcon className={`h-4 w-4 shrink-0 transition-transform duration-200 ${open ? "" : "-rotate-90"}`} />
-      </button>
-      <Collapse open={open}>
-        <div className="ml-3 flex flex-col gap-1 border-l border-neutral-200 pl-2">{children}</div>
-      </Collapse>
+    <section className="flex flex-col gap-0.5">
+      <h2 className="flex h-7 items-center justify-between px-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-muted">
+        {title}
+        {action}
+      </h2>
+      {children}
     </section>
   );
 }

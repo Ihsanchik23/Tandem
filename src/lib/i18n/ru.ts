@@ -80,7 +80,6 @@ export const ru = {
     closeMenu: "Закрыть меню",
     collapsePanel: "Свернуть панель",
     expandPanel: "Развернуть панель",
-    companyLogo: "Профиль компании",
   },
 
   home: {
@@ -423,7 +422,6 @@ export const ru = {
     statusShort: { todo: "Сделать", in_progress: "В работе", done: "Готово" },
     commentsCount: "Комментариев: {n}",
     peopleMore: "и ещё {n}",
-    accessLabel: "Доступ",
     accessTitle: "У кого есть доступ к странице",
     addTask: "Добавить задачу",
     columns: "Колонки задач",

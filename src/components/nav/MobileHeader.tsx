@@ -1,23 +1,21 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
 import type { ShellData } from "@/lib/nav/shell";
-import { Avatar } from "@/components/profile/Avatar";
 import { CompanyPanel } from "./CompanyPanel";
 import { MenuIcon } from "./icons";
 import { sectionTitle } from "./titles";
 
 export const MOBILE_HEADER_H = "3.5rem";
 
-// Шапка на телефоне: бургер слева, заголовок по центру, круглый логотип компании справа.
+// Шапка на телефоне: бургер слева, по центру — где я сейчас (название раздела или рабочей страницы).
 // Бургер выдвигает слева панель компании.
 export function MobileHeader({ data }: { data: ShellData | null }) {
   const pathname = decodeURIComponent(usePathname() ?? "/");
   const [open, setOpen] = useState(false);
-  const title = sectionTitle(pathname, data?.username ?? null);
+  const title = sectionTitle(pathname, data?.username ?? null, data?.pages ?? []);
   const n = t.nav;
 
   // Меню закрывается при переходе на другую страницу и по Escape.
@@ -47,13 +45,8 @@ export function MobileHeader({ data }: { data: ShellData | null }) {
           <MenuIcon className="h-6 w-6" />
         </button>
         <h1 className="truncate text-center text-base font-semibold text-ink">{title}</h1>
-        <div className="flex justify-end">
-          {data?.company ? (
-            <Link href={`/c/${data.company.slug}`} aria-label={n.companyLogo} className="p-1">
-              <Avatar url={data.company.logoUrl} name={data.company.name} size={32} />
-            </Link>
-          ) : null}
-        </div>
+        {/* Пустая колонка справа — чтобы заголовок стоял ровно по центру. */}
+        <div aria-hidden />
       </header>
 
       {/* Выдвижная панель слева. Всегда в разметке, чтобы плавно и выезжать, и уезжать. */}
@@ -70,7 +63,7 @@ export function MobileHeader({ data }: { data: ShellData | null }) {
           className={`absolute inset-0 bg-black/30 transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"}`}
         />
         <aside
-          className={`absolute inset-y-0 left-0 flex w-[min(20rem,85vw)] flex-col bg-white pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] transition-transform duration-300 ease-out ${
+          className={`absolute inset-y-0 left-0 flex w-[min(20rem,85vw)] flex-col bg-surface pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] transition-transform duration-300 ease-out ${
             open ? "translate-x-0 shadow-xl" : "-translate-x-full"
           }`}
         >

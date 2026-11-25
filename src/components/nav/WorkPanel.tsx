@@ -23,11 +23,11 @@ function setCollapsed(v: boolean) {
 export function WorkPanel({ data }: { data: ShellData }) {
   const collapsed = useSyncExternalStore(subscribe, () => localStorage.getItem(KEY) === "1", () => false);
   const n = t.nav;
-  const btn = "absolute z-10 flex items-center justify-center rounded-xl text-ink transition-opacity duration-200 hover:bg-neutral-100";
+  const btn = "absolute z-10 flex items-center justify-center rounded-xl text-muted transition-opacity duration-200 hover:bg-surface hover:text-ink";
 
   return (
     <aside
-      className={`sticky top-0 hidden h-dvh shrink-0 overflow-hidden border-r-[0.5px] border-neutral-300 bg-white transition-[width] duration-300 ease-out md:block ${
+      className={`sticky top-0 hidden h-dvh shrink-0 overflow-hidden border-r-[0.5px] border-line bg-surface transition-[width] duration-300 ease-out md:block ${
         collapsed ? "w-[72px]" : "w-72"
       }`}
     >
@@ -44,7 +44,7 @@ export function WorkPanel({ data }: { data: ShellData }) {
         disabled={collapsed}
         aria-label={n.collapsePanel}
         title={n.collapsePanel}
-        className={`${btn} right-3 top-5 h-9 w-9 ${collapsed ? "pointer-events-none opacity-0" : "opacity-100"}`}
+        className={`${btn} right-5 top-[26px] h-9 w-9 ${collapsed ? "pointer-events-none opacity-0" : "opacity-100"}`}
       >
         <PanelCloseIcon className="h-5 w-5" />
       </button>

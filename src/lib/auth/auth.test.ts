@@ -70,4 +70,9 @@ test("заголовок шапки телефона по адресу", () => {
   assert.equal(sectionTitle("/@ivan", "ivan"), "Профиль");
   assert.equal(sectionTitle("/@olga", "ivan"), "Профиль");
   assert.equal(sectionTitle("/search", null), "Поиск");
+  // Рабочая страница — её название; неизвестная — общее «Рабочие страницы»; настройки — «Настройки страницы».
+  const pages = [{ id: "p1", name: "Задачи маркетинга" }];
+  assert.equal(sectionTitle("/work/p/p1", null, pages), "Задачи маркетинга");
+  assert.equal(sectionTitle("/work/p/zzz", null, pages), "Рабочие страницы");
+  assert.equal(sectionTitle("/work/p/p1/settings", null, pages), "Настройки страницы");
 });
