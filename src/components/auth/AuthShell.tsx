@@ -16,7 +16,8 @@ export function AuthShell({ children, back }: { children: ReactNode; back?: Reac
       <main className="flex min-w-0 flex-1 flex-col">
         {back ? <div className="px-2 pt-2 lg:hidden">{back}</div> : null}
         <div className="flex flex-1 flex-col items-center px-5 pb-10 pt-6 lg:justify-center lg:py-12">
-          <div className="flex w-full max-w-[360px] flex-col gap-6">
+          {/* На телефоне колонка тянется на всю высоту: ссылка «Нет аккаунта?» прижата к низу (класс auth-bottom). */}
+          <div className="flex w-full max-w-[360px] flex-col gap-6 max-lg:flex-1">
             <p className="flex items-center justify-center gap-2.5 text-xl font-semibold tracking-tight text-ink">
               <BrandMark size={32} className="h-8 w-8" />
               {t.app.name}

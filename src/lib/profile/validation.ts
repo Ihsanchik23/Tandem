@@ -44,8 +44,8 @@ export function validateProfile(input: ProfileInput): ProfileFieldErrors {
   const errors: ProfileFieldErrors = {};
   if (!input.first_name) errors.first_name = "firstNameRequired";
   else if (input.first_name.length > LIMITS.name) errors.first_name = "nameTooLong";
-  if (!input.last_name) errors.last_name = "lastNameRequired";
-  else if (input.last_name.length > LIMITS.name) errors.last_name = "nameTooLong";
+  // Фамилия необязательна: при регистрации её может не быть (имя берётся из почты).
+  if (input.last_name.length > LIMITS.name) errors.last_name = "nameTooLong";
   if (!USERNAME_RE.test(input.username)) errors.username = "usernameFormat";
   if (input.city.length > LIMITS.city) errors.city = "cityTooLong";
   if (input.bio.length > LIMITS.bio) errors.bio = "bioTooLong";

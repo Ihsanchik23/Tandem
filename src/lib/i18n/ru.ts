@@ -6,10 +6,9 @@ export const ru = {
   },
 
   auth: {
+    // Подсказки внутри полей форм входа (они же — подписи для экранного диктора).
     fields: {
-      firstName: "Имя",
-      lastName: "Фамилия",
-      email: "Email",
+      email: "Электронный адрес",
       password: "Пароль",
       newPassword: "Новый пароль",
       confirmPassword: "Повторите пароль",
@@ -63,6 +62,8 @@ export const ru = {
       passwordChanged: "Пароль изменён",
     },
     signOut: "Выйти",
+    // Имя нового профиля, если в адресе почты нет букв (12345@mail.ru).
+    defaultFirstName: "Пользователь",
     // Заголовок вкладки браузера (title у экранов входа короче, чем заголовок на экране).
     pageTitles: {
       login: "Вход",
@@ -587,7 +588,6 @@ export const ru = {
     sessionExpired: "Сессия закончилась. Войдите снова",
     userBanned: "Аккаунт заблокирован. Напишите в поддержку Tandem",
     firstNameRequired: "Укажите имя",
-    lastNameRequired: "Укажите фамилию",
     nameTooLong: "Не больше 60 символов",
     cityTooLong: "Не больше 60 символов",
     bioTooLong: "Не больше 300 символов",

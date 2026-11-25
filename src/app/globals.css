@@ -239,7 +239,7 @@ body {
   transform: scaleX(1);
 }
 .auth-slides-bar-fill[data-state="running"] {
-  animation: auth-bar-fill 3000ms linear forwards;
+  animation: auth-bar-fill 4000ms linear forwards;
 }
 @keyframes auth-bar-fill {
   to {
@@ -301,5 +301,197 @@ body {
 @media (prefers-reduced-motion: no-preference) {
   .guest-screen {
     animation: feed-hero-fade 500ms ease-out both;
+  }
+}
+
+/* ── Формы входа и регистрации (components/auth/AuthField.tsx и формы рядом) ──
+   Вид перенесён из старого проекта eZone: овальные поля и кнопки, глазок внутри поля,
+   бегущая градиентная рамка при фокусе. Цвета — токены Tandem; серые рамки и подсказки —
+   те же neutral-оттенки, что у остальных полей Tandem. */
+.auth-heading {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.16;
+  letter-spacing: -0.8px;
+  color: var(--tandem-ink);
+}
+.auth-description {
+  margin-top: 12px;
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--tandem-ink);
+}
+.auth-input {
+  width: 100%;
+  min-height: 50px;
+  padding: 11px 20px;
+  border: 1.5px solid var(--color-neutral-400, #a1a1a1);
+  border-radius: 999px;
+  background: var(--tandem-canvas);
+  color: var(--tandem-ink);
+  font-size: 16px; /* 16px — чтобы iPhone не увеличивал страницу при вводе */
+  outline: none;
+  transition: transform 250ms ease, box-shadow 250ms ease;
+}
+.auth-input::placeholder {
+  color: var(--color-neutral-400, #a1a1a1);
+  opacity: 1;
+}
+.auth-input:focus {
+  border-color: transparent;
+  background:
+    linear-gradient(var(--tandem-canvas), var(--tandem-canvas)) padding-box,
+    linear-gradient(110deg, transparent 18%, var(--tandem-grad-3) 40%, var(--tandem-grad-1) 55%, transparent 78%) border-box;
+  background-size: 100% 100%, 250% 250%;
+  background-position: 0 0, -150% 50%;
+  box-shadow: 0 0 18px rgba(234, 95, 53, 0.18), 0 8px 24px rgba(234, 95, 53, 0.1);
+  transform: scale(1.008);
+  animation: auth-input-border 2.2s linear infinite;
+}
+@keyframes auth-input-border {
+  to {
+    background-position: 0 0, 200% 50%;
+  }
+}
+.auth-input-password {
+  padding-right: 58px;
+}
+.auth-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 5px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: var(--tandem-muted);
+  transform: translateY(-50%);
+}
+.auth-password-toggle:focus-visible {
+  outline: 2px solid var(--tandem-accent);
+}
+.auth-hint {
+  padding: 0 20px;
+  font-size: 13px;
+  color: var(--tandem-muted);
+}
+.auth-submit,
+.auth-secondary,
+.auth-google {
+  display: flex;
+  width: 100%;
+  min-height: 50px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.auth-submit {
+  background-image: var(--tandem-gradient);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 500;
+}
+.auth-submit:hover {
+  filter: brightness(0.94);
+}
+.auth-secondary,
+.auth-google {
+  gap: 12px;
+  border: 1.5px solid var(--tandem-line);
+  background: var(--tandem-canvas);
+  color: var(--tandem-ink);
+  font-size: 16px;
+  font-weight: 600;
+}
+.auth-secondary:hover,
+.auth-google:hover {
+  background: var(--tandem-surface);
+}
+.auth-submit:disabled,
+.auth-secondary:disabled {
+  cursor: wait;
+  opacity: 0.65;
+  filter: none;
+}
+.auth-submit:focus-visible,
+.auth-secondary:focus-visible,
+.auth-google:focus-visible {
+  outline: 2px solid var(--tandem-accent);
+  outline-offset: 2px;
+}
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--tandem-muted);
+  font-size: 13px;
+  line-height: 1;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: var(--tandem-line);
+}
+.auth-forgot {
+  align-self: flex-end;
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  color: var(--tandem-muted);
+  font-size: 14px;
+}
+.auth-forgot:hover {
+  color: var(--tandem-ink);
+}
+.auth-prompt {
+  color: var(--tandem-muted);
+  font-size: 14px;
+  text-align: center;
+}
+.auth-prompt a {
+  color: var(--tandem-accent);
+  font-weight: 600;
+}
+.auth-prompt a:hover {
+  color: var(--tandem-accent-hover);
+}
+.auth-prompt a:focus-visible,
+.auth-forgot:focus-visible {
+  outline: 2px solid var(--tandem-accent);
+  outline-offset: 4px;
+  border-radius: 3px;
+}
+@media (max-width: 767.98px) {
+  .auth-heading {
+    font-size: 27px;
+  }
+  .auth-description {
+    font-size: 15px;
+  }
+  .auth-input,
+  .auth-submit,
+  .auth-secondary,
+  .auth-google {
+    min-height: 49px;
+  }
+}
+/* «Уменьшить движение»: рамка при фокусе стоит на месте, без увеличения. */
+@media (prefers-reduced-motion: reduce) {
+  .auth-input:focus {
+    animation: none;
+    background-position: 0 0, 50% 50%;
+    transform: none;
+  }
+}
+/* Телефон: ссылка «Нет аккаунта? / Уже есть аккаунт?» прижата к низу экрана, как в eZone. */
+@media (max-width: 1023.98px) {
+  .auth-bottom {
+    margin-top: auto;
+    padding-top: 24px;
   }
 }

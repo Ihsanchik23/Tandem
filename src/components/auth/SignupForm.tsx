@@ -7,60 +7,26 @@ import { signUp, type AuthFormState } from "@/lib/auth/actions";
 import { safeNext, withNext } from "@/lib/auth/redirect";
 import { prefillUrl } from "@/lib/auth/signup";
 import { t } from "@/lib/i18n";
-import { Button } from "@/components/ui/Button";
 import { FormMessage } from "@/components/ui/FormMessage";
-import { PasswordField } from "@/components/ui/PasswordField";
-import { TextField } from "@/components/ui/TextField";
+import { AuthButton, AuthField } from "./AuthField";
 import { AuthHeader } from "./AuthHeader";
 import { GoogleButton } from "./GoogleButton";
 
+// Регистрация: только email и пароль. Имя и фамилию сервер берёт из адреса почты
+// (lib/auth/name-from-email.ts), человек потом меняет их в профиле.
 export function SignupForm() {
   const params = useSearchParams();
   const next = safeNext(params.get("next"));
   const [state, action, pending] = useActionState<AuthFormState, FormData>(signUp, {});
-  const v = state.values ?? {};
-  const k = JSON.stringify(v);
+  const email = state.values?.email ?? "";
 
   return (
     <>
       <AuthHeader title={t.auth.signup.title} subtitle={t.auth.signup.subtitle} />
-      {state.error ? (
-        <FormMessage kind="error">
-          {t.errors[state.error]}
-          {state.error === "emailTaken" ? (
-            <>
-              {". "}
-              <Link href={prefillUrl("/login", v.email ?? "", next)} className="font-medium underline">
-                {t.auth.signup.toLogin}
-              </Link>
-              {" · "}
-              <Link href={prefillUrl("/forgot-password", v.email ?? "", null)} className="font-medium underline">
-                {t.auth.login.forgot}
-              </Link>
-            </>
-          ) : null}
-        </FormMessage>
-      ) : null}
 
-      <form action={action} className="flex flex-col gap-4" noValidate key={k}>
+      <form action={action} className="flex flex-col gap-3.5" noValidate key={email}>
         {next ? <input type="hidden" name="next" value={next} /> : null}
-        <TextField
-          label={t.auth.fields.firstName}
-          name="first_name"
-          autoComplete="given-name"
-          maxLength={60}
-          required
-          defaultValue={v.first_name ?? ""}
-        />
-        <TextField
-          label={t.auth.fields.lastName}
-          name="last_name"
-          autoComplete="family-name"
-          maxLength={60}
-          required
-          defaultValue={v.last_name ?? ""}
-        />
-        <TextField
+        <AuthField
           label={t.auth.fields.email}
           name="email"
           type="email"
@@ -68,28 +34,45 @@ export function SignupForm() {
           autoComplete="email"
           autoCapitalize="none"
           required
-          defaultValue={v.email ?? ""}
+          defaultValue={email}
         />
-        <PasswordField
+        <AuthField
           label={t.auth.fields.password}
           name="password"
+          password
           autoComplete="new-password"
           minLength={8}
           required
           hint={t.auth.fields.passwordHint}
         />
-        <Button type="submit" pending={pending} pendingText={t.auth.signup.pending}>
+
+        {state.error ? (
+          <FormMessage kind="error" compact>
+            {t.errors[state.error]}
+            {state.error === "emailTaken" ? (
+              <>
+                {". "}
+                <Link href={prefillUrl("/login", email, next)} className="font-medium underline">
+                  {t.auth.signup.toLogin}
+                </Link>
+                {" · "}
+                <Link href={prefillUrl("/forgot-password", email, null)} className="font-medium underline">
+                  {t.auth.login.forgot}
+                </Link>
+              </>
+            ) : null}
+          </FormMessage>
+        ) : null}
+
+        <AuthButton type="submit" pending={pending} pendingText={t.auth.signup.pending}>
           {t.auth.signup.submit}
-        </Button>
+        </AuthButton>
       </form>
 
       <GoogleButton />
 
-      <p className="text-center text-sm text-ink">
-        {t.auth.signup.haveAccount}{" "}
-        <Link href={withNext("/login", next)} className="font-medium text-accent underline underline-offset-4">
-          {t.auth.signup.toLogin}
-        </Link>
+      <p className="auth-prompt auth-bottom">
+        {t.auth.signup.haveAccount} <Link href={withNext("/login", next)}>{t.auth.signup.toLogin}</Link>
       </p>
     </>
   );

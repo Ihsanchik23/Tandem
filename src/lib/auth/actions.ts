@@ -5,9 +5,10 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { ErrorKey } from "@/lib/i18n/ru";
+import { ru, type ErrorKey } from "@/lib/i18n/ru";
 import { authErrorKey } from "./errors";
 import { AFTER_LOGIN_PATH, AFTER_SIGNUP_PATH, safeNext } from "./redirect";
+import { nameFromEmail } from "./name-from-email";
 import { isAlreadyRegistered } from "./signup";
 
 export type AuthFormState = {
@@ -51,14 +52,12 @@ function checkEmailUrl(kind: "signup" | "recovery", email: string, next: string 
 }
 
 export async function signUp(_prev: AuthFormState, formData: FormData): Promise<AuthFormState> {
-  const firstName = field(formData, "first_name");
-  const lastName = field(formData, "last_name");
   const email = field(formData, "email").toLowerCase();
   const password = rawField(formData, "password");
   const next = safeNext(field(formData, "next"));
-  const values = { first_name: firstName, last_name: lastName, email };
+  const values = { email };
 
-  if (!firstName || !lastName || !email || !password) return { error: "required", values };
+  if (!email || !password) return { error: "required", values };
   if (!EMAIL_RE.test(email)) return { error: "invalidEmail", values };
   if (password.length < MIN_PASSWORD) return { error: "passwordTooShort", values };
 
@@ -68,7 +67,8 @@ export async function signUp(_prev: AuthFormState, formData: FormData): Promise<
     password,
     options: {
       // Профиль в базе создаётся из этих полей (функция handle_new_user).
-      data: { first_name: firstName.slice(0, 60), last_name: lastName.slice(0, 60) },
+      // Имя и фамилию на регистрации не спрашиваем — берём из адреса почты.
+      data: nameFromEmail(email, ru.auth.defaultFirstName),
       emailRedirectTo: confirmUrl(await siteOrigin(), next ?? AFTER_SIGNUP_PATH),
     },
   });

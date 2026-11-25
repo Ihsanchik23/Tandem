@@ -6,10 +6,8 @@ import { useSearchParams } from "next/navigation";
 import { signIn, type AuthFormState } from "@/lib/auth/actions";
 import { safeNext, withNext } from "@/lib/auth/redirect";
 import { t } from "@/lib/i18n";
-import { Button } from "@/components/ui/Button";
 import { FormMessage } from "@/components/ui/FormMessage";
-import { PasswordField } from "@/components/ui/PasswordField";
-import { TextField } from "@/components/ui/TextField";
+import { AuthButton, AuthField } from "./AuthField";
 import { AuthHeader } from "./AuthHeader";
 import { GoogleButton } from "./GoogleButton";
 import { errorFromParam } from "./messages";
@@ -31,27 +29,10 @@ export function LoginForm({ next: nextProp }: { next?: string } = {}) {
   return (
     <>
       <AuthHeader title={t.auth.login.title} subtitle={t.auth.login.subtitle} />
-      {notice && !state.error ? <FormMessage kind="notice">{notice}</FormMessage> : null}
-      {error ? (
-        <FormMessage kind="error">
-          {error}
-          {state.error === "emailNotConfirmed" && email ? (
-            <>
-              {" "}
-              <Link
-                href={`/check-email?${new URLSearchParams({ kind: "signup", email, ...(next ? { next } : {}) })}`}
-                className="font-medium underline"
-              >
-                {t.auth.login.resendConfirmation}
-              </Link>
-            </>
-          ) : null}
-        </FormMessage>
-      ) : null}
 
-      <form action={action} className="flex flex-col gap-4" noValidate>
+      <form action={action} className="flex flex-col gap-3.5" noValidate>
         {next ? <input type="hidden" name="next" value={next} /> : null}
-        <TextField
+        <AuthField
           label={t.auth.fields.email}
           name="email"
           type="email"
@@ -62,24 +43,42 @@ export function LoginForm({ next: nextProp }: { next?: string } = {}) {
           defaultValue={email}
           key={`email-${email}`}
         />
-        <PasswordField label={t.auth.fields.password} name="password" autoComplete="current-password" required />
-        <div className="-mt-1 text-right">
-          <Link href="/forgot-password" className="text-sm font-medium text-ink underline-offset-4 hover:underline">
-            {t.auth.login.forgot}
-          </Link>
-        </div>
-        <Button type="submit" pending={pending} pendingText={t.auth.login.pending}>
+        <AuthField label={t.auth.fields.password} name="password" password autoComplete="current-password" required />
+
+        {notice && !state.error ? (
+          <FormMessage kind="notice" compact>
+            {notice}
+          </FormMessage>
+        ) : null}
+        {error ? (
+          <FormMessage kind="error" compact>
+            {error}
+            {state.error === "emailNotConfirmed" && email ? (
+              <>
+                {" "}
+                <Link
+                  href={`/check-email?${new URLSearchParams({ kind: "signup", email, ...(next ? { next } : {}) })}`}
+                  className="font-medium underline"
+                >
+                  {t.auth.login.resendConfirmation}
+                </Link>
+              </>
+            ) : null}
+          </FormMessage>
+        ) : null}
+
+        <AuthButton type="submit" pending={pending} pendingText={t.auth.login.pending}>
           {t.auth.login.submit}
-        </Button>
+        </AuthButton>
+        <Link href="/forgot-password" className="auth-forgot">
+          {t.auth.login.forgot}
+        </Link>
       </form>
 
       <GoogleButton />
 
-      <p className="text-center text-sm text-ink">
-        {t.auth.login.noAccount}{" "}
-        <Link href={withNext("/signup", next)} className="font-medium text-accent underline underline-offset-4">
-          {t.auth.login.toSignup}
-        </Link>
+      <p className="auth-prompt auth-bottom">
+        {t.auth.login.noAccount} <Link href={withNext("/signup", next)}>{t.auth.login.toSignup}</Link>
       </p>
     </>
   );

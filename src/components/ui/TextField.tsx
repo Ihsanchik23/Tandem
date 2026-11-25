@@ -46,36 +46,22 @@ export function TextField({
   hint,
   error,
   aside,
-  trailing,
   id,
   className = "",
   ...rest
-}: Common & InputHTMLAttributes<HTMLInputElement> & {
-  /** Кнопка внутри поля справа (например, глазок у пароля). */
-  trailing?: ReactNode;
-}) {
+}: Common & InputHTMLAttributes<HTMLInputElement>) {
   const inputId = id ?? `field-${name}`;
-  const input = (
-    <input
-      id={inputId}
-      name={name}
-      aria-invalid={error ? true : undefined}
-      aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
-      // 16px — чтобы iPhone не увеличивал страницу при вводе.
-      className={`h-12 ${fieldClass} ${stateClass(error)} ${trailing ? "pr-12" : ""} ${className}`}
-      {...rest}
-    />
-  );
   return (
     <Frame id={inputId} label={label} name={name} hint={hint} error={error} aside={aside}>
-      {trailing ? (
-        <div className="relative">
-          {input}
-          <div className="absolute inset-y-0 right-0 flex items-center pr-1">{trailing}</div>
-        </div>
-      ) : (
-        input
-      )}
+      <input
+        id={inputId}
+        name={name}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
+        // 16px — чтобы iPhone не увеличивал страницу при вводе.
+        className={`h-12 ${fieldClass} ${stateClass(error)} ${className}`}
+        {...rest}
+      />
     </Frame>
   );
 }

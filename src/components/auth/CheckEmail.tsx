@@ -6,8 +6,8 @@ import { useSearchParams } from "next/navigation";
 import { resendEmail, type AuthFormState } from "@/lib/auth/actions";
 import { safeNext } from "@/lib/auth/redirect";
 import { t } from "@/lib/i18n";
-import { Button } from "@/components/ui/Button";
 import { FormMessage } from "@/components/ui/FormMessage";
+import { AuthButton } from "./AuthField";
 import { AuthHeader } from "./AuthHeader";
 
 export function CheckEmail() {
@@ -36,24 +36,30 @@ export function CheckEmail() {
         <p className="text-ink">{c.hint}</p>
       </div>
 
-      {state.error ? <FormMessage kind="error">{t.errors[state.error]}</FormMessage> : null}
-      {state.notice === "resent" ? <FormMessage kind="notice">{c.resent}</FormMessage> : null}
+      {state.error ? (
+        <FormMessage kind="error" compact>
+          {t.errors[state.error]}
+        </FormMessage>
+      ) : null}
+      {state.notice === "resent" ? (
+        <FormMessage kind="notice" compact>
+          {c.resent}
+        </FormMessage>
+      ) : null}
 
       {email ? (
         <form action={action}>
           <input type="hidden" name="email" value={email} />
           <input type="hidden" name="kind" value={kind} />
           {next ? <input type="hidden" name="next" value={next} /> : null}
-          <Button type="submit" variant="secondary" pending={pending} pendingText={c.resendPending}>
+          <AuthButton type="submit" variant="secondary" pending={pending} pendingText={c.resendPending}>
             {c.resend}
-          </Button>
+          </AuthButton>
         </form>
       ) : null}
 
-      <p className="text-center">
-        <Link href="/login" className="text-base font-medium text-accent underline underline-offset-4">
-          {c.backToLogin}
-        </Link>
+      <p className="auth-prompt auth-bottom">
+        <Link href="/login">{c.backToLogin}</Link>
       </p>
     </>
   );

@@ -3,9 +3,8 @@
 import { useActionState } from "react";
 import { updatePassword, type AuthFormState } from "@/lib/auth/actions";
 import { t } from "@/lib/i18n";
-import { Button } from "@/components/ui/Button";
 import { FormMessage } from "@/components/ui/FormMessage";
-import { PasswordField } from "@/components/ui/PasswordField";
+import { AuthButton, AuthField } from "./AuthField";
 import { AuthHeader } from "./AuthHeader";
 
 export function ResetPasswordForm() {
@@ -14,27 +13,33 @@ export function ResetPasswordForm() {
   return (
     <>
       <AuthHeader title={t.auth.reset.title} subtitle={t.auth.reset.subtitle} />
-      {state.error ? <FormMessage kind="error">{t.errors[state.error]}</FormMessage> : null}
 
-      <form action={action} className="flex flex-col gap-4" noValidate>
-        <PasswordField
+      <form action={action} className="flex flex-col gap-3.5" noValidate>
+        <AuthField
           label={t.auth.fields.newPassword}
           name="password"
+          password
           autoComplete="new-password"
           minLength={8}
           required
           hint={t.auth.fields.passwordHint}
         />
-        <PasswordField
+        <AuthField
           label={t.auth.fields.confirmPassword}
           name="confirm_password"
+          password
           autoComplete="new-password"
           minLength={8}
           required
         />
-        <Button type="submit" pending={pending} pendingText={t.auth.reset.pending}>
+        {state.error ? (
+          <FormMessage kind="error" compact>
+            {t.errors[state.error]}
+          </FormMessage>
+        ) : null}
+        <AuthButton type="submit" pending={pending} pendingText={t.auth.reset.pending}>
           {t.auth.reset.submit}
-        </Button>
+        </AuthButton>
       </form>
     </>
   );

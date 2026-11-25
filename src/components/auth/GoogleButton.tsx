@@ -1,8 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { t } from "@/lib/i18n";
-import { GoogleLogo } from "@/components/nav/icons";
 import { FormMessage } from "@/components/ui/FormMessage";
 
 // Разделитель «или» и кнопка «Войти через Google».
@@ -10,21 +10,18 @@ import { FormMessage } from "@/components/ui/FormMessage";
 export function GoogleButton() {
   const [shown, setShown] = useState(false);
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3 text-sm text-muted">
-        <span aria-hidden className="h-px flex-1 bg-line" />
-        {t.auth.or}
-        <span aria-hidden className="h-px flex-1 bg-line" />
-      </div>
-      <button
-        type="button"
-        onClick={() => setShown(true)}
-        className="inline-flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-neutral-300 bg-white px-4 text-base font-medium text-ink transition-colors hover:bg-neutral-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-      >
-        <GoogleLogo className="h-5 w-5" />
+    <div className="flex flex-col gap-[18px]">
+      <div className="auth-divider">{t.auth.or}</div>
+      <button type="button" onClick={() => setShown(true)} className="auth-google">
+        {/* Логотип Google — его фирменные цвета, токенами Tandem не заменяются. */}
+        <Image src="/google-g.png" alt="" width={22} height={23} className="h-auto w-[22px] shrink-0" />
         {t.auth.google}
       </button>
-      {shown ? <FormMessage kind="notice">{t.auth.googleSoon}</FormMessage> : null}
+      {shown ? (
+        <FormMessage kind="notice" compact>
+          {t.auth.googleSoon}
+        </FormMessage>
+      ) : null}
     </div>
   );
 }

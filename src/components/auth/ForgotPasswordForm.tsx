@@ -5,9 +5,8 @@ import { useActionState } from "react";
 import { useSearchParams } from "next/navigation";
 import { requestPasswordReset, type AuthFormState } from "@/lib/auth/actions";
 import { t } from "@/lib/i18n";
-import { Button } from "@/components/ui/Button";
 import { FormMessage } from "@/components/ui/FormMessage";
-import { TextField } from "@/components/ui/TextField";
+import { AuthButton, AuthField } from "./AuthField";
 import { AuthHeader } from "./AuthHeader";
 import { errorFromParam } from "./messages";
 
@@ -21,10 +20,9 @@ export function ForgotPasswordForm() {
   return (
     <>
       <AuthHeader title={t.auth.forgot.title} subtitle={t.auth.forgot.subtitle} />
-      {error ? <FormMessage kind="error">{error}</FormMessage> : null}
 
-      <form action={action} className="flex flex-col gap-4" noValidate>
-        <TextField
+      <form action={action} className="flex flex-col gap-3.5" noValidate>
+        <AuthField
           label={t.auth.fields.email}
           name="email"
           type="email"
@@ -35,15 +33,18 @@ export function ForgotPasswordForm() {
           defaultValue={email}
           key={`email-${email}`}
         />
-        <Button type="submit" pending={pending} pendingText={t.auth.forgot.pending}>
+        {error ? (
+          <FormMessage kind="error" compact>
+            {error}
+          </FormMessage>
+        ) : null}
+        <AuthButton type="submit" pending={pending} pendingText={t.auth.forgot.pending}>
           {t.auth.forgot.submit}
-        </Button>
+        </AuthButton>
       </form>
 
-      <p className="text-center">
-        <Link href="/login" className="text-base font-medium text-accent underline underline-offset-4">
-          {t.auth.forgot.backToLogin}
-        </Link>
+      <p className="auth-prompt auth-bottom">
+        <Link href="/login">{t.auth.forgot.backToLogin}</Link>
       </p>
     </>
   );

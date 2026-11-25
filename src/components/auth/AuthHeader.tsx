@@ -1,10 +1,11 @@
 type Props = { title: string; subtitle?: string };
 
+// Заголовок формы входа: слева, крупный и жирный (как в eZone), под ним — пояснение.
 export function AuthHeader({ title, subtitle }: Props) {
   return (
-    <div className="flex flex-col gap-1.5 text-center">
-      <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-[28px]">{title}</h1>
-      {subtitle ? <p className="text-sm text-muted">{subtitle}</p> : null}
+    <div>
+      <h1 className="auth-heading">{title}</h1>
+      {subtitle ? <p className="auth-description">{subtitle}</p> : null}
     </div>
   );
 }

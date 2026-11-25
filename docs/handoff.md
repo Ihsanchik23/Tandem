@@ -11,9 +11,11 @@
   Старый адрес https://tandem-brown-alpha.vercel.app продолжает работать.
   Проверить, что в Redirect URLs есть `https://tandemkz.com/**`, иначе ссылки из писем сломаются (см. раздел про почту ниже).
 - **Экраны входа** (`src/app/(auth)/layout.tsx` → `components/auth/AuthShell.tsx`).
-  - Компьютер (от 1024px, `lg`): слева слайд-шоу `AuthSlideshow` (4 фото, 3 с на фото, полоски как в Stories, при `prefers-reduced-motion` без автосмены), справа форма.
+  - Компьютер (от 1024px, `lg`): слева слайд-шоу `AuthSlideshow` (4 фото, 4 с на фото, полоски как в Stories, при `prefers-reduced-motion` без автосмены), справа форма.
   - Телефон: только форма и стрелка «назад» (`BackLink`).
-  - Глазок у пароля — `components/ui/PasswordField.tsx`. «Войти через Google» (`GoogleButton`) пока только вид: показывает «скоро».
+  - Вид формы перенесён из старого проекта eZone (только вид, цвета — токены Tandem): овальные поля с подсказкой внутри, глазок, бегущая градиентная рамка при фокусе. Поле и кнопки — `components/auth/AuthField.tsx`, стили `.auth-*` в `globals.css`.
+  - «Войти через Google» (`GoogleButton`, логотип `public/google-g.png`) пока только вид: показывает «скоро».
+  - **Регистрация — только email и пароль.** Имя и фамилию `signUp` берёт из адреса почты (`lib/auth/name-from-email.ts`, тесты рядом) и передаёт в `options.data`, как раньше; база не менялась. Фамилия в профиле теперь необязательна (`lib/profile/validation.ts`).
   - Логика входа (`lib/auth/actions.ts`, `redirect.ts`, `auth/confirm`) не менялась.
 - **Гостевой режим.** Без входа открыты ровно 5 адресов: `/`, `/search`, `/work`, `/messages`, `/profile`, без параметров (`isGuestPath` в `lib/auth/redirect.ts`, вызывается в `lib/supabase/proxy.ts`). Всё остальное ведёт на `/login?next=…`.
   - Страницы оборачиваются в `GuestGate` (`components/guest/`): без сессии рендерится `GuestScreen`, а содержимое раздела и запросы к данным не выполняются.
