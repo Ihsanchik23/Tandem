@@ -449,6 +449,9 @@ export const ru = {
   messages: {
     title: "Сообщения",
     empty: "Здесь пока нет сообщений",
+    detailLabel: "Переписка",
+    heroTitle: "Будьте на связи",
+    heroAlt: "Парень смеётся, читая сообщение на ноутбуке",
   },
 
   profile: {
