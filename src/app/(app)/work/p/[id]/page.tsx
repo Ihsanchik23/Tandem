@@ -42,11 +42,7 @@ async function Content({ params }: { params: PageProps<"/work/p/[id]">["params"]
   }
   const canManage = canManagePage(company.role, page.createdBy, userId);
   if (page.moduleKey === "tasks") {
-    return (
-      <PageScreen page={page} canManage={canManage} wide>
-        <TasksSection pageId={page.id} orgId={company.org.id} me={userId} role={company.role} pageArchived={page.archived} />
-      </PageScreen>
-    );
+    return <TasksSection page={page} canManage={canManage} orgId={company.org.id} me={userId} role={company.role} />;
   }
   return <PageScreen page={page} canManage={canManage} />;
 }

@@ -14,10 +14,10 @@ import {
 
 const chip = (on: boolean) =>
   `inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-medium transition-colors ${
-    on ? "border-ink bg-ink text-white" : "border-line bg-white text-ink hover:bg-neutral-50"
+    on ? "border-ink bg-ink text-white" : "border-line bg-white text-ink hover:bg-surface"
   }`;
 const select =
-  "h-11 w-full rounded-xl border border-line bg-white px-3 text-base text-ink focus:border-accent focus:outline-none md:h-10 md:text-sm";
+  "h-11 w-full rounded-2xl border border-line bg-white px-3 text-base text-ink focus:border-accent focus:outline-none md:h-10 md:text-sm";
 
 function SearchIcon() {
   return (
@@ -35,8 +35,8 @@ function FilterIcon() {
   );
 }
 
-// Поиск, быстрые «Мои» и «Просроченные» (на компьютере — рядом с поиском),
-// остальное — в окне «Фильтры»: ответственный, приоритет, в списке ещё статус.
+// Строка фильтров: поиск, кнопка «Фильтры» (просроченные, ответственный, приоритет, в списке — статус)
+// и отдельно «Мои задачи».
 export function Filters({
   value,
   onChange,
@@ -54,8 +54,8 @@ export function Filters({
   const [open, setOpen] = useState(false);
   const set = <K extends keyof TaskFilters>(k: K, v: TaskFilters[K]) => onChange({ ...value, [k]: v });
   // Сколько фильтров включено в окне (на телефоне там же «Мои» и «Просроченные»).
-  const inPanel = (value.assignee !== "any" ? 1 : 0) + (value.priority !== "any" ? 1 : 0) + (withStatus && value.status !== "any" ? 1 : 0);
-  const mobileCount = inPanel + (value.mine ? 1 : 0) + (value.overdue ? 1 : 0);
+  const inPanel =
+    (value.overdue ? 1 : 0) + (value.assignee !== "any" ? 1 : 0) + (value.priority !== "any" ? 1 : 0) + (withStatus && value.status !== "any" ? 1 : 0);
 
   useEffect(() => {
     if (!open) return;
@@ -64,20 +64,9 @@ export function Filters({
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
-  const quick = (
-    <>
-      <button type="button" aria-pressed={value.mine} onClick={() => set("mine", !value.mine)} className={chip(value.mine)}>
-        {s.filterMine}
-      </button>
-      <button type="button" aria-pressed={value.overdue} onClick={() => set("overdue", !value.overdue)} className={chip(value.overdue)}>
-        {overdueCount > 0 ? format(s.overdueCount, { n: overdueCount }) : s.filterOverdue}
-      </button>
-    </>
-  );
-
   return (
     <div className="flex min-w-0 flex-1 items-center gap-2">
-      <label className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-xl border border-line bg-white px-3.5 text-muted focus-within:border-accent">
+      <label className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full border border-line bg-white px-3.5 text-muted focus-within:border-accent md:max-w-xs">
         <SearchIcon />
         <input
           type="search"
@@ -85,10 +74,9 @@ export function Filters({
           onChange={(e) => set("query", e.target.value)}
           placeholder={s.searchTasks}
           aria-label={s.searchTasks}
-          className="h-full min-w-0 flex-1 bg-transparent text-base text-ink placeholder:text-muted focus:outline-none md:text-sm"
+          className="h-full min-w-0 flex-1 bg-transparent text-base text-ink placeholder:text-muted focus:outline-none md:text-[13px]"
         />
       </label>
-      <div className="hidden items-center gap-2 lg:flex">{quick}</div>
 
       <div className="relative">
         <button
@@ -96,20 +84,14 @@ export function Filters({
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
           aria-label={s.filtersButton}
-          className={`relative inline-flex h-11 shrink-0 items-center gap-1.5 rounded-xl border px-3 text-[13px] font-medium md:h-9 md:rounded-full md:px-3.5 ${
-            open ? "border-ink bg-ink text-white" : "border-line bg-white text-ink hover:bg-neutral-50"
+          className={`relative inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border px-3 text-[13px] font-medium md:px-3.5 ${
+            open || inPanel > 0 ? "border-ink bg-ink text-white" : "border-line bg-white text-ink hover:bg-surface"
           }`}
         >
           <FilterIcon />
           <span className="hidden md:inline">{s.filtersButton}</span>
-          {/* Число включённых фильтров: на телефоне считаем и быстрые. */}
-          {mobileCount > 0 ? (
-            <span className="absolute -right-1.5 -top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-brand px-1 text-[10px] font-bold text-white lg:hidden">
-              {mobileCount}
-            </span>
-          ) : null}
           {inPanel > 0 ? (
-            <span className="absolute -right-1.5 -top-1.5 hidden h-[18px] min-w-[18px] items-center justify-center rounded-full bg-brand px-1 text-[10px] font-bold text-white lg:flex">
+            <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold text-ink">
               {inPanel}
             </span>
           ) : null}
@@ -121,9 +103,16 @@ export function Filters({
             <div
               role="dialog"
               aria-label={s.filtersButton}
-              className="animate-fade-in absolute right-0 top-full z-40 mt-2 flex w-[min(20rem,calc(100vw-2.5rem))] flex-col gap-3 rounded-2xl bg-white p-4 shadow-[0_12px_32px_rgba(0,0,0,0.16)]"
+              className="animate-fade-in absolute left-0 top-full z-40 mt-2 md:left-auto md:right-0 flex w-[min(20rem,calc(100vw-2.5rem))] flex-col gap-3 rounded-3xl bg-white p-4 shadow-[0_12px_32px_rgba(0,0,0,0.16)]"
             >
-              <div className="flex flex-wrap gap-2 lg:hidden">{quick}</div>
+              <button
+                type="button"
+                aria-pressed={value.overdue}
+                onClick={() => set("overdue", !value.overdue)}
+                className={`${chip(value.overdue)} self-start`}
+              >
+                {overdueCount > 0 ? format(s.overdueCount, { n: overdueCount }) : s.filterOverdue}
+              </button>
               <label className="flex flex-col gap-1.5">
                 <span className="text-xs font-semibold text-muted">{s.filterAssignee}</span>
                 <select value={value.assignee} onChange={(e) => set("assignee", e.target.value)} className={select}>
@@ -168,7 +157,7 @@ export function Filters({
                 >
                   {s.resetFilters}
                 </button>
-                <button type="button" onClick={() => setOpen(false)} className="h-9 rounded-xl bg-ink px-4 text-sm font-medium text-white">
+                <button type="button" onClick={() => setOpen(false)} className="h-9 rounded-full bg-ink px-4 text-sm font-medium text-white">
                   {s.close}
                 </button>
               </div>
@@ -176,6 +165,10 @@ export function Filters({
           </>
         ) : null}
       </div>
+      {/* «Мои задачи» — отдельно: самый частый фильтр. */}
+      <button type="button" aria-pressed={value.mine} onClick={() => set("mine", !value.mine)} className={`${chip(value.mine)} h-10!`}>
+        {s.filterMine}
+      </button>
     </div>
   );
 }

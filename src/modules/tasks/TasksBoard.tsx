@@ -159,30 +159,33 @@ export function TasksBoard({ pageId, me, role, readOnly, initialTasks, people }:
 
   return (
     <section className="flex flex-col gap-4">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center">
-        <div role="tablist" className="flex shrink-0 gap-0.5 rounded-xl bg-surface p-1">
-          {tabs.map(({ key, label, Icon }) => (
-            <button
-              key={key}
-              type="button"
-              role="tab"
-              aria-selected={tab === key}
-              onClick={() => setTab(key)}
-              className={`flex h-[34px] flex-1 items-center justify-center gap-1.5 rounded-[9px] px-3.5 text-sm font-medium text-ink transition-colors md:flex-none ${
-                tab === key ? "bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08)]" : "hover:bg-white/60"
-              }`}
-            >
-              <Icon />
-              {label}
-            </button>
-          ))}
-        </div>
+      {/* Вид просмотра — отдельной строкой, под шапкой страницы. */}
+      <div role="tablist" className="flex gap-1 self-start rounded-full bg-surface p-1 max-md:w-full">
+        {tabs.map(({ key, label, Icon }) => (
+          <button
+            key={key}
+            type="button"
+            role="tab"
+            aria-selected={tab === key}
+            onClick={() => setTab(key)}
+            className={`flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full px-4 text-[13px] font-medium transition-colors md:flex-none ${
+              tab === key ? "bg-ink text-white" : "text-ink hover:bg-white/70"
+            }`}
+          >
+            <Icon />
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Потом — поиск и фильтры; «Новая задача» справа. */}
+      <div className="flex items-center gap-2">
         <Filters value={filters} onChange={setFilters} people={people} withStatus={tab === "list"} overdueCount={overdueCount} />
         {!readOnly ? (
           <button
             type="button"
             onClick={() => setCreating("todo")}
-            className="hidden h-11 shrink-0 items-center gap-2 rounded-xl bg-brand px-[18px] text-sm font-semibold text-white shadow-[0_6px_16px_rgba(234,95,53,0.3)] hover:bg-brand-hover md:inline-flex"
+            className="hidden h-10 shrink-0 items-center gap-1.5 rounded-full bg-brand px-4 text-[13px] font-semibold text-white shadow-[0_6px_16px_rgba(234,95,53,0.28)] hover:bg-brand-hover md:inline-flex"
           >
             <PlusIcon className="h-4 w-4" />
             {s.create}
@@ -190,7 +193,7 @@ export function TasksBoard({ pageId, me, role, readOnly, initialTasks, people }:
         ) : null}
       </div>
 
-      {readOnly ? <p className="rounded-xl border border-line bg-surface px-4 py-3 text-sm text-ink">{s.readOnly}</p> : null}
+      {readOnly ? <p className="rounded-2xl border border-line bg-surface px-4 py-3 text-sm text-ink">{s.readOnly}</p> : null}
 
       <div aria-live="polite" className="empty:hidden">
         {error ? <FormMessage kind="error">{t.errors[error]}</FormMessage> : notice ? <FormMessage kind="notice">{notice}</FormMessage> : null}
