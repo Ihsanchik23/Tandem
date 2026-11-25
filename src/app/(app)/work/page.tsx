@@ -17,9 +17,13 @@ export default function WorkPage({ searchParams }: PageProps<"/work">) {
   return (
     <Suspense
       fallback={
-        <StubPage title={t.work.title}>
-          <FormFallback />
-        </StubPage>
+        // Пока не знаем, есть ли компания: на телефоне — каркас, на компьютере — пусто
+        // (иначе на мгновение мелькает белая «Работа» перед фото).
+        <div className="flex flex-1 flex-col md:hidden">
+          <StubPage title={t.work.title}>
+            <FormFallback />
+          </StubPage>
+        </div>
       }
     >
       <WorkContent searchParams={searchParams} />
@@ -63,7 +67,6 @@ async function WorkContent({ searchParams }: { searchParams: SearchParams }) {
           title={t.work.heroTitle}
           // Область = экран минус меню слева (64px) и панель компании (288px).
           sizes="calc(100vw - 352px)"
-          placement="bottom"
           objectPosition="50% 35%"
           headingLevel={1}
           notice={notice}

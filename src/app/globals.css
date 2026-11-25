@@ -163,11 +163,19 @@ body {
 }
 
 /* ── Фото-панель пустых состояний (components/ui/HeroPanel.tsx): «Поиск» и «Работа» ──
-   Фото на всю правую область, крупный белый заголовок поверх. */
+   Фото на всю правую область, ровное затемнение, крупный белый заголовок вверху слева. */
 .hero-panel {
   background: #1b1612; /* тёмный тон фото — пока оно грузится */
 }
+.hero-panel-shade {
+  background: rgba(0, 0, 0, 0.35);
+}
+.hero-panel-notice {
+  margin: 48px 48px 0;
+  max-width: 28rem;
+}
 .hero-panel-title {
+  margin: 48px 48px 0;
   max-width: 12em;
   font-family: var(--tandem-font-display);
   font-size: clamp(32px, 3.2vw, 56px);
@@ -177,30 +185,9 @@ body {
   color: #fff;
   text-wrap: balance;
 }
-.hero-panel-notice {
-  margin: 48px 48px 0;
-  max-width: 28rem;
-}
-/* Заголовок вверху: ровное затемнение всего фото («Поиск»). */
-.hero-panel--top .hero-panel-shade {
-  inset: 0;
-  background: rgba(0, 0, 0, 0.35);
-}
-.hero-panel--top .hero-panel-title {
-  margin: 48px 48px 0;
-}
-/* Заголовок внизу: мягкий градиент на нижней половине фото и лёгкая тень текста («Работа»). */
-.hero-panel--bottom .hero-panel-shade {
-  inset: auto 0 0 0;
-  height: 50%;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.65) 0%, rgba(0, 0, 0, 0.35) 50%, rgba(0, 0, 0, 0) 100%);
-}
-.hero-panel--bottom .hero-panel-title {
-  margin: auto 48px 48px;
-  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.25);
-}
+/* Панель появляется плавно целиком (фон, затемнение, текст, фото) — без резкой смены с белого. */
 @media (prefers-reduced-motion: no-preference) {
-  .hero-panel-photo {
+  .hero-panel {
     animation: feed-hero-fade 500ms ease-out both;
   }
 }

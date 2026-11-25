@@ -46,7 +46,6 @@ async function SearchPreview({ searchParams }: { searchParams: PageProps<"/searc
       title={t.catalog.emptyPreviewTitle}
       // Колонка = экран минус меню слева (64px) и список (400px, с 1280px — 460px).
       sizes="(min-width: 1280px) calc(100vw - 524px), calc(100vw - 464px)"
-      placement="top"
       objectPosition="50% 30%"
     />
   );
