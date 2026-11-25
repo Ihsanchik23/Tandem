@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { t } from "@/lib/i18n";
+import { BrandMark } from "@/components/ui/BrandMark";
 import { IconGradientDefs } from "./icons";
 import { NAV_ITEMS } from "./items";
 
@@ -41,7 +42,7 @@ export function AppNavView({ pathname, myUsername }: Props) {
         className="group/nav fixed inset-y-0 left-0 z-40 hidden w-[72px] flex-col gap-8 overflow-hidden border-r-[0.5px] border-neutral-300 bg-white px-3 py-6 transition-[width,box-shadow] duration-200 ease-out hover:w-60 hover:shadow-xl focus-within:w-60 md:flex"
       >
         <Link href="/" className="flex h-10 items-center gap-4 px-2 text-xl font-semibold tracking-tight text-ink">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand text-base text-white">T</span>
+          <BrandMark size={32} className="h-8 w-8 shrink-0" />
           <span className="whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
             {t.app.name}
           </span>
