@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { safeNext, isPublicPath, withNext } from "./redirect.ts";
+import { safeNext, isGuestPath, isPublicPath, withNext } from "./redirect.ts";
 import { authErrorKey } from "./errors.ts";
 import { isAlreadyRegistered, prefillUrl } from "./signup.ts";
 
@@ -28,6 +28,16 @@ test("открытые без входа адреса", () => {
   for (const p of ["/", "/work", "/reset-password", "/@ivan", "/invites-admin"]) {
     assert.equal(isPublicPath(p), false, p);
   }
+});
+
+test("гость видит только пять разделов, без вложенных адресов и параметров", () => {
+  for (const p of ["/", "/search", "/work", "/messages", "/profile"]) assert.equal(isGuestPath(p, ""), true, p);
+  for (const p of ["/work/people", "/work/p/1", "/u/anna", "/@anna", "/c/shop", "/profile/edit", "/search/x", "/work/"]) {
+    assert.equal(isGuestPath(p, ""), false, p);
+  }
+  assert.equal(isGuestPath("/search", "?q=anna"), false);
+  assert.equal(isGuestPath("/search", "?person=anna"), false);
+  assert.equal(isGuestPath("/work", "?notice=left"), false);
 });
 
 test("withNext кодирует адрес возврата", () => {

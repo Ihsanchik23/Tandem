@@ -191,3 +191,115 @@ body {
     animation: feed-hero-fade 500ms ease-out both;
   }
 }
+
+/* ── Вход: слайд-шоу слева на компьютере (components/auth/AuthSlideshow.tsx) ──
+   Фото сменяются плавно (600 мс), снизу — затемнение к чёрному, на нём белый текст и полоски. */
+.auth-slides {
+  background: #1b1612; /* тёмный тон фото — пока оно грузится */
+}
+.auth-slide-photo {
+  opacity: 0;
+  transition: opacity 600ms ease;
+}
+.auth-slide-photo[data-active="true"] {
+  opacity: 1;
+}
+.auth-slides-shade {
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.45) 30%, rgba(0, 0, 0, 0) 60%);
+}
+.auth-slides-title {
+  max-width: 13em;
+  font-family: var(--tandem-font-display);
+  font-size: clamp(32px, 3.2vw, 56px);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  color: #fff;
+  text-wrap: balance;
+}
+.auth-slides-text {
+  margin-top: 16px;
+  max-width: 420px;
+  font-size: 17px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.78);
+}
+.auth-slides-copy {
+  animation: auth-copy-in 600ms ease both;
+}
+.auth-slides-bar {
+  background: rgba(255, 255, 255, 0.35);
+}
+.auth-slides-bar-fill {
+  background: #fff;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.auth-slides-bar-fill[data-state="done"] {
+  transform: scaleX(1);
+}
+.auth-slides-bar-fill[data-state="running"] {
+  animation: auth-bar-fill 3000ms linear forwards;
+}
+@keyframes auth-bar-fill {
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes auth-copy-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* ── Гостевые экраны разделов на телефоне (components/guest/GuestScreen.tsx) ──
+   Один экран без прокрутки над нижней навигацией; с 768px навигация — слева, вычитать не нужно. */
+.guest-screen {
+  min-height: calc(100svh - 4rem - env(safe-area-inset-bottom));
+  background: #1b1612;
+  font-family: var(--tandem-font-display);
+}
+.guest-screen-light {
+  background: var(--tandem-canvas);
+}
+.guest-screen-shade {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.82) 0%,
+    rgba(0, 0, 0, 0.45) 35%,
+    rgba(0, 0, 0, 0.08) 65%,
+    rgba(0, 0, 0, 0.2) 100%
+  );
+}
+.guest-screen-title {
+  font-size: clamp(32px, 9vw, 40px);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: #fff;
+  text-wrap: balance;
+}
+.guest-screen-subtitle {
+  margin-top: 10px;
+  font-size: 17px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.8);
+}
+.guest-screen-light .guest-screen-title {
+  font-size: clamp(40px, 12vw, 48px);
+  color: var(--tandem-ink);
+}
+.guest-screen-light .guest-screen-subtitle {
+  color: var(--tandem-muted);
+}
+@media (min-width: 768px) {
+  .guest-screen {
+    min-height: 100svh;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .guest-screen {
+    animation: feed-hero-fade 500ms ease-out both;
+  }
+}

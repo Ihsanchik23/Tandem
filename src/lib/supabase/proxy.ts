@@ -1,9 +1,9 @@
 // Обновление сессии Supabase на каждом запросе (вызывается из src/proxy.ts)
-// и перенаправления: без входа — на /login, вошедшего — с экранов входа в «Работу».
+// и перенаправления: без входа — на /login (кроме пяти гостевых разделов), вошедшего — с экранов входа в «Работу».
 // Это только удобство: данные защищают RLS и RPC в базе.
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { AFTER_LOGIN_PATH, AUTH_ONLY_PATHS, isPublicPath, safeNext, withNext } from "@/lib/auth/redirect";
+import { AFTER_LOGIN_PATH, AUTH_ONLY_PATHS, isGuestPath, isPublicPath, safeNext, withNext } from "@/lib/auth/redirect";
 import type { Database } from "./database.types";
 import { getSupabaseEnv } from "./env";
 
@@ -38,7 +38,7 @@ export async function updateSession(request: NextRequest) {
     return redirectWithCookies(request, response, "/forgot-password?error=linkExpired");
   }
 
-  if (!isSignedIn && !isPublicPath(pathname)) {
+  if (!isSignedIn && !isPublicPath(pathname) && !isGuestPath(pathname, search)) {
     const next = pathname === "/" ? null : safeNext(pathname + search);
     return redirectWithCookies(request, response, withNext("/login", next));
   }

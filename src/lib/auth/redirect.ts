@@ -27,6 +27,16 @@ export function isPublicPath(pathname: string): boolean {
   );
 }
 
+// Пять разделов, которые гость видит без входа (на телефоне — гостевой экран с кнопками входа,
+// на компьютере — экран входа). Только сами адреса, без параметров: /search?q=…, /work/…, /@user
+// по-прежнему ведут на /login. Данных гость не получает — страницы без сессии их не запрашивают,
+// а база отдаёт данные только по RLS.
+export const GUEST_PATHS = ["/", "/search", "/work", "/messages", "/profile"] as const;
+
+export function isGuestPath(pathname: string, search: string): boolean {
+  return (GUEST_PATHS as readonly string[]).includes(pathname) && (search === "" || search === "?");
+}
+
 // Куда вести после входа и после регистрации (решение 2026-11-24, ТЗ разделы 7 и 15).
 export const AFTER_LOGIN_PATH = "/work";
 export const AFTER_SIGNUP_PATH = "/";

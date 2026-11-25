@@ -19,6 +19,6 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
 
 // Имя вошедшего нужно навигации, чтобы выделять «Профиль» только на своём профиле.
 async function NavWithUser() {
-  const { username } = await getShellData();
-  return <AppNav myUsername={username} />;
+  const { userId, username } = await getShellData();
+  return <AppNav myUsername={username} isGuest={!userId} />;
 }

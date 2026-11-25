@@ -9,8 +9,10 @@ import { prefillUrl } from "@/lib/auth/signup";
 import { t } from "@/lib/i18n";
 import { Button } from "@/components/ui/Button";
 import { FormMessage } from "@/components/ui/FormMessage";
+import { PasswordField } from "@/components/ui/PasswordField";
 import { TextField } from "@/components/ui/TextField";
 import { AuthHeader } from "./AuthHeader";
+import { GoogleButton } from "./GoogleButton";
 
 export function SignupForm() {
   const params = useSearchParams();
@@ -68,10 +70,9 @@ export function SignupForm() {
           required
           defaultValue={v.email ?? ""}
         />
-        <TextField
+        <PasswordField
           label={t.auth.fields.password}
           name="password"
-          type="password"
           autoComplete="new-password"
           minLength={8}
           required
@@ -82,7 +83,9 @@ export function SignupForm() {
         </Button>
       </form>
 
-      <p className="text-center text-base text-ink">
+      <GoogleButton />
+
+      <p className="text-center text-sm text-ink">
         {t.auth.signup.haveAccount}{" "}
         <Link href={withNext("/login", next)} className="font-medium text-accent underline underline-offset-4">
           {t.auth.signup.toLogin}

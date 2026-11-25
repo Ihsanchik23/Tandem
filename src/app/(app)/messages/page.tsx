@@ -1,13 +1,25 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { ListDetailLayout } from "@/components/layout/ListDetailLayout";
+import { GuestGate } from "@/components/guest/GuestGate";
 import { HeroPanel } from "@/components/ui/HeroPanel";
 import { t } from "@/lib/i18n";
 
 export const metadata: Metadata = { title: `${t.messages.title} — ${t.app.name}` };
 
 // «Сообщения» (ТЗ, раздел 13). Раскладка как у «Поиска»: слева список, справа фото.
-// Список чатов появится в день 6; пока слева — пустое состояние.
+// Список чатов появится в день 6; пока слева — пустое состояние. Без входа — гостевой экран.
 export default function MessagesPage() {
+  return (
+    <Suspense fallback={null}>
+      <GuestGate section="messages">
+        <MessagesContent />
+      </GuestGate>
+    </Suspense>
+  );
+}
+
+function MessagesContent() {
   return (
     <ListDetailLayout
       title={t.messages.title}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Catalog } from "@/components/catalog/Catalog";
 import { PreviewLinks } from "@/components/catalog/PreviewLinks";
+import { GuestGate } from "@/components/guest/GuestGate";
 import { HeroPanel } from "@/components/ui/HeroPanel";
 import { CompanyView } from "@/components/company/CompanyView";
 import { ListDetailLayout } from "@/components/layout/ListDetailLayout";
@@ -10,7 +11,18 @@ import { t } from "@/lib/i18n";
 
 export const metadata: Metadata = { title: `${t.catalog.title} — ${t.app.name}` };
 
+// Без входа — гостевой экран (содержимое поиска не рендерится и данных не запрашивает).
 export default function SearchPage({ searchParams }: PageProps<"/search">) {
+  return (
+    <Suspense fallback={null}>
+      <GuestGate section="search">
+        <SearchContent searchParams={searchParams} />
+      </GuestGate>
+    </Suspense>
+  );
+}
+
+function SearchContent({ searchParams }: { searchParams: PageProps<"/search">["searchParams"] }) {
   return (
     <ListDetailLayout
       title={t.catalog.title}

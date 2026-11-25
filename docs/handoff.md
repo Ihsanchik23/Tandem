@@ -5,6 +5,23 @@
 
 ---
 
+## 2026-11-25 — новый вход и регистрация, гостевой режим, адрес tandemkz.com
+
+- **Адрес сайта: https://tandemkz.com.** В Supabase Auth переключён Site URL на https://tandemkz.com.
+  Старый адрес https://tandem-brown-alpha.vercel.app продолжает работать.
+  Проверить, что в Redirect URLs есть `https://tandemkz.com/**`, иначе ссылки из писем сломаются (см. раздел про почту ниже).
+- **Экраны входа** (`src/app/(auth)/layout.tsx` → `components/auth/AuthShell.tsx`).
+  - Компьютер (от 1024px, `lg`): слева слайд-шоу `AuthSlideshow` (4 фото, 3 с на фото, полоски как в Stories, при `prefers-reduced-motion` без автосмены), справа форма.
+  - Телефон: только форма и стрелка «назад» (`BackLink`).
+  - Глазок у пароля — `components/ui/PasswordField.tsx`. «Войти через Google» (`GoogleButton`) пока только вид: показывает «скоро».
+  - Логика входа (`lib/auth/actions.ts`, `redirect.ts`, `auth/confirm`) не менялась.
+- **Гостевой режим.** Без входа открыты ровно 5 адресов: `/`, `/search`, `/work`, `/messages`, `/profile`, без параметров (`isGuestPath` в `lib/auth/redirect.ts`, вызывается в `lib/supabase/proxy.ts`). Всё остальное ведёт на `/login?next=…`.
+  - Страницы оборачиваются в `GuestGate` (`components/guest/`): без сессии рендерится `GuestScreen`, а содержимое раздела и запросы к данным не выполняются.
+  - `GuestScreen`: телефон — фото раздела, заголовок и кнопки «Войти» / «Зарегистрироваться» над нижней навигацией; компьютер — экран входа со слайд-шоу поверх всего (боковое меню у гостя скрыто с 1024px).
+  - `/profile` теперь страница `(app)/profile/page.tsx` (раньше route handler): вошедшего перенаправляет на `/@username`, гостю показывает гостевой экран.
+  - Фото разделов — `components/guest/photos.ts`; фото профиля — `public/images/profile/profile-hero.jpg`.
+- **Граница телефон / компьютер.** Приложение по-прежнему переключает меню на 768px (`md`). Вход пополам и гостевые фото-экраны переключаются на 1024px (`lg`): на планшете гость видит фото-экран с меню слева.
+
 ## 2026-11-24 — правила дизайна (по просьбам владельца)
 
 - **Цвета — только токены** в `src/app/globals.css`: фон белый (`canvas`), весь текст чёрный (`ink` #1E1E1E), акцент #BF4A31 (`accent`, ссылки), наведение #AE3926, светлый #D86750.
@@ -115,7 +132,7 @@
   - Аккаунт владельца пилота (пользователя) добавлен в `public.platform_admins`.
   - На этот аккаунт включена подписка Team: 120 мест, до 22.02.2027, `organization_id` пустой. Кто с этого аккаунта вызовет `create_organization`, тот станет владельцем компании.
   - Есть отдельный тестовый аккаунт сотрудника, его не трогать.
-- **Vercel.** Работаем через `npx vercel@latest ... --scope tandem-01`, у MCP-коннектора нет доступа к команде. Прод: https://tandem-brown-alpha.vercel.app, push в `main` деплоит сам.
+- **Vercel.** Работаем через `npx vercel@latest ... --scope tandem-01`, у MCP-коннектора нет доступа к команде. Прод: https://tandemkz.com (раньше https://tandem-brown-alpha.vercel.app), push в `main` деплоит сам.
 - **Next 16 с `cacheComponents`.** Всё, что читает cookies, `searchParams` или `useSearchParams`, оборачивать в `<Suspense>`.
 
 ### 5. Следующий шаг — день 2, часть 2
@@ -219,7 +236,7 @@
      - Выполнены `supabase init` и `supabase link` к `msgsvyetosqzkkphcbkq`. Supabase CLI авторизован.
 3. **Деплой на Vercel.**
    - Команда `tandem-01`, проект `tandem`, связан с GitHub. Push в `main` сам запускает продакшен-деплой.
-   - Продакшен: https://tandem-brown-alpha.vercel.app
+   - Продакшен: https://tandemkz.com (раньше https://tandem-brown-alpha.vercel.app)
    - Переменные Supabase заданы для production, preview и development.
    - MCP-коннектор Vercel не имеет доступа к команде `tandem-01` (403). Работать через `npx vercel@latest ... --scope tandem-01`, CLI авторизован.
 4. **Sentry перенесён на день 8** по решению пользователя, отражено в `docs/tasks.md`.

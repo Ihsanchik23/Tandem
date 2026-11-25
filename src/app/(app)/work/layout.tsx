@@ -24,10 +24,13 @@ export default function WorkLayout({ children }: LayoutProps<"/work">) {
   );
 }
 
+// Гостю (без входа) панель компании и шапка не нужны — он видит гостевой экран.
 async function PanelWithData() {
-  return <WorkPanel data={await getShellData()} />;
+  const data = await getShellData();
+  return data.userId ? <WorkPanel data={data} /> : null;
 }
 
 async function HeaderWithData() {
-  return <MobileHeader data={await getShellData()} />;
+  const data = await getShellData();
+  return data.userId ? <MobileHeader data={data} /> : null;
 }

@@ -4,11 +4,12 @@ import { BrandMark } from "@/components/ui/BrandMark";
 import { IconGradientDefs } from "./icons";
 import { NAV_ITEMS } from "./items";
 
-type Props = { pathname: string | null; myUsername: string | null };
+// isGuest — без входа: на компьютере (от 1024px) гость видит только экран входа, боковое меню не нужно.
+type Props = { pathname: string | null; myUsername: string | null; isGuest?: boolean };
 
 // Нижняя панель на телефоне и боковая на широком экране (ТЗ, раздел 15).
 // pathname = null — пока адрес неизвестен, ничего не выделяем.
-export function AppNavView({ pathname, myUsername }: Props) {
+export function AppNavView({ pathname, myUsername, isGuest = false }: Props) {
   return (
     <>
       <IconGradientDefs />
@@ -39,7 +40,7 @@ export function AppNavView({ pathname, myUsername }: Props) {
       {/* Компьютер: меню свёрнуто до иконок, при наведении раскрывается с подписями поверх страницы. */}
       <nav
         aria-label={t.nav.label}
-        className="group/nav fixed inset-y-0 left-0 z-40 hidden w-[72px] flex-col gap-8 overflow-hidden border-r-[0.5px] border-neutral-300 bg-white px-3 py-6 transition-[width,box-shadow] duration-200 ease-out hover:w-60 hover:shadow-xl focus-within:w-60 md:flex"
+        className={`group/nav fixed inset-y-0 left-0 z-40 hidden w-[72px] flex-col gap-8 overflow-hidden border-r-[0.5px] border-neutral-300 bg-white px-3 py-6 transition-[width,box-shadow] duration-200 ease-out hover:w-60 hover:shadow-xl focus-within:w-60 md:flex ${isGuest ? "lg:hidden" : ""}`}
       >
         <Link href="/" className="flex h-10 items-center gap-4 px-2 text-xl font-semibold tracking-tight text-ink">
           <BrandMark size={32} className="h-8 w-8 shrink-0" />

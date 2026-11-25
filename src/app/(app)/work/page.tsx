@@ -1,8 +1,8 @@
-import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { StubPage } from "@/components/layout/StubPage";
 import { FormFallback } from "@/components/auth/FormFallback";
 import { NoCompany, WorkHome } from "@/components/company/WorkHome";
+import { GuestScreen } from "@/components/guest/GuestScreen";
 import { FormMessage } from "@/components/ui/FormMessage";
 import { HeroPanel } from "@/components/ui/HeroPanel";
 import { getUserId } from "@/lib/auth/session";
@@ -33,7 +33,8 @@ export default function WorkPage({ searchParams }: PageProps<"/work">) {
 
 async function WorkContent({ searchParams }: { searchParams: SearchParams }) {
   const userId = await getUserId();
-  if (!userId) redirect("/login");
+  // Без входа — гостевой экран, данные компании не запрашиваем.
+  if (!userId) return <GuestScreen section="work" />;
   const notice = <Notice searchParams={searchParams} />;
   const company = await getMyCompany(userId);
   if (company) {
