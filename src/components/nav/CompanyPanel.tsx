@@ -10,9 +10,10 @@ import { ConfirmAction } from "@/components/ui/ConfirmAction";
 import { canCreatePage, isNewPage } from "@/modules/pages/logic";
 import { NewBadge } from "@/modules/pages/PagesList";
 import { useSeenPages } from "@/modules/pages/seen";
-import { ChatPageIcon, CompanyProfileIcon, PeopleIcon, PlusIcon, StructureIcon, TasksPageIcon } from "./icons";
+import { ArchiveIcon, ChatPageIcon, CompanyProfileIcon, PeopleIcon, PlusIcon, StructureIcon, TasksPageIcon } from "./icons";
 
 // Панель компании: карточка компании, разделы мелкими заглавными, под ними страницы со значками.
+// Разделы: «Рабочие страницы», «Моя компания», «Прочее» (архив).
 // На компьютере — постоянная панель в «Работе», на телефоне — выдвижное меню слева.
 export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate?: () => void }) {
   const pathname = usePathname() ?? "";
@@ -98,6 +99,14 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
               {l.label}
             </Link>
           ))}
+        </Section>
+
+        {/* «Прочее» — отдельный раздел: служебные страницы, не рабочие и не «Моя компания». */}
+        <Section title={w.menuOther}>
+          <Link href="/work/archive" onClick={onNavigate} className={item(pathname.startsWith("/work/archive"))}>
+            <ArchiveIcon className={icon} />
+            {w.menuArchive}
+          </Link>
         </Section>
       </nav>
 

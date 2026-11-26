@@ -40,7 +40,8 @@ async function WorkContent({ searchParams }: { searchParams: SearchParams }) {
   const company = await getMyCompany(userId);
   if (company) {
     // В список — только доступные мне страницы (метаданные компании видят все, доступ — по page_access).
-    const pages = (await getCompanyPages(company.org.id, userId)).filter((p) => p.hasAccess);
+    // Архивные — на отдельной странице «Прочее → Архив» (/work/archive).
+    const pages = (await getCompanyPages(company.org.id, userId)).filter((p) => p.hasAccess && !p.archived);
     return (
       <StubPage title={t.work.title}>
         {notice}

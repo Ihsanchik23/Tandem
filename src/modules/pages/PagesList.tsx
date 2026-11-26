@@ -21,15 +21,15 @@ export function NewBadge() {
   );
 }
 
-// «Рабочие страницы»: только доступные, новые сверху, поиск, фильтр по модулю, вкладка «Архив».
-export function PagesList({ pages, canCreate }: { pages: ListPage[]; canCreate: boolean }) {
+// «Рабочие страницы»: только доступные, новые сверху, поиск, фильтр по модулю.
+// archive — список на странице «Архив» (раздел «Прочее»): только архивные, без заголовка и «+».
+export function PagesList({ pages, canCreate, archive = false }: { pages: ListPage[]; canCreate: boolean; archive?: boolean }) {
   const p = t.pages;
   const seen = useSeenPages();
-  const [tab, setTab] = useState<"active" | "archive">("active");
   const [query, setQuery] = useState("");
   const [module, setModule] = useState<ModuleKey | "all">("all");
 
-  const inTab = pages.filter((x) => (tab === "archive" ? x.archived : !x.archived));
+  const inTab = pages.filter((x) => x.archived === archive);
   // «Новые сверху» считаем только в браузере (нужны память устройства и текущее время);
   // при сборке на сервере — просто свежие раньше старых.
   const sorted = seen ? sortPages(inTab, seen) : [...inTab].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
@@ -39,28 +39,21 @@ export function PagesList({ pages, canCreate }: { pages: ListPage[]; canCreate: 
 
   return (
     <section className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-ink">{p.title}</h2>
-        {canCreate ? (
-          <Link
-            href="/work/pages/new"
-            aria-label={p.create}
-            title={p.create}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-white hover:bg-brand-hover"
-          >
-            <PlusIcon className="h-5 w-5" />
-          </Link>
-        ) : null}
-      </div>
-
-      <div className="flex gap-2">
-        <button type="button" onClick={() => setTab("active")} className={chip(tab === "active")}>
-          {p.tabActive}
-        </button>
-        <button type="button" onClick={() => setTab("archive")} className={chip(tab === "archive")}>
-          {p.tabArchive}
-        </button>
-      </div>
+      {archive ? null : (
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold text-ink">{p.title}</h2>
+          {canCreate ? (
+            <Link
+              href="/work/pages/new"
+              aria-label={p.create}
+              title={p.create}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-white hover:bg-brand-hover"
+            >
+              <PlusIcon className="h-5 w-5" />
+            </Link>
+          ) : null}
+        </div>
+      )}
 
       <input
         type="search"
@@ -80,7 +73,7 @@ export function PagesList({ pages, canCreate }: { pages: ListPage[]; canCreate: 
 
       {shown.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-neutral-300 px-4 py-6 text-center text-base text-ink">
-          {inTab.length === 0 ? (tab === "archive" ? p.emptyArchive : p.empty) : p.emptySearch}
+          {inTab.length === 0 ? (archive ? p.emptyArchive : p.empty) : p.emptySearch}
         </p>
       ) : (
         <ul className="flex flex-col">
@@ -93,7 +86,7 @@ export function PagesList({ pages, canCreate }: { pages: ListPage[]; canCreate: 
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2">
                     <span className="truncate text-base font-medium text-ink">{page.name}</span>
-                    {seen && !page.archived && isNewPage(page, seen) ? <NewBadge /> : null}
+                    {seen && !archive && isNewPage(page, seen) ? <NewBadge /> : null}
                   </span>
                   <span className="block truncate text-sm text-ink">{page.description || p.modules[page.moduleKey]}</span>
                 </span>

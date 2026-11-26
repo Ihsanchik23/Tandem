@@ -17,7 +17,7 @@ export function WorkPanelSkeleton() {
         </div>
       </div>
       <div className="flex flex-col gap-5 px-3 py-3">
-        {[3, 3].map((rows, section) => (
+        {[3, 3, 1].map((rows, section) => (
           <div key={section} className="flex flex-col gap-1">
             <span className="mx-2.5 mb-1.5 h-3 w-24 rounded bg-neutral-200/70" />
             {Array.from({ length: rows }, (_, i) => (

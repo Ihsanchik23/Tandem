@@ -231,6 +231,15 @@ export function PeopleIcon({ className }: IconProps) {
   );
 }
 
+export function ArchiveIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <rect x="3" y="4" width="18" height="5" rx="1.5" {...line} />
+      <path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4" {...line} />
+    </Svg>
+  );
+}
+
 export function FilterIcon({ className }: IconProps) {
   return (
     <Svg className={className}>
