@@ -3,11 +3,12 @@ import { Suspense } from "react";
 import { StubPage } from "@/components/layout/StubPage";
 import { RowsSkeleton } from "@/components/ui/Skeletons";
 import { InvitePanel } from "@/components/company/InvitePanel";
-import { PeopleList } from "@/components/company/PeopleList";
+import { PeopleScreen } from "@/components/company/PeopleScreen";
 import { getUserId } from "@/lib/auth/session";
 import { canManageInvites } from "@/lib/company/permissions";
-import { getActiveInvites, getAssignedUserIds, getMembers, getMyCompany, getSeats } from "@/lib/company/queries";
+import { getActiveInvites, getMembers, getMyCompany, getSeats } from "@/lib/company/queries";
 import { t } from "@/lib/i18n";
+import { getStructure } from "@/modules/canvas/queries";
 
 // «Моя компания → Сотрудники». Видят все сотрудники компании (ТЗ, раздел 6).
 export default function PeoplePage() {
@@ -27,17 +28,16 @@ async function PeopleContent() {
   if (!company) redirect("/work");
 
   const orgId = company.org.id;
-  const canInvite = canManageInvites(company.role);
-  const [members, assigned, invites, seats] = await Promise.all([
+  const canManage = canManageInvites(company.role);
+  const [members, structure, invites, seats] = await Promise.all([
     getMembers(orgId),
-    getAssignedUserIds(orgId),
-    canInvite ? getActiveInvites(orgId) : Promise.resolve([]),
+    getStructure(orgId),
+    canManage ? getActiveInvites(orgId) : Promise.resolve([]),
     company.role === "owner" ? getSeats(orgId) : Promise.resolve(null),
   ]);
-  const unassignedIds = members.filter((m) => !assigned.has(m.user_id)).map((m) => m.user_id);
   return (
     <div className="flex flex-col gap-6">
-      {canInvite ? (
+      {canManage ? (
         <InvitePanel
           organizationId={orgId}
           organizationName={company.org.name}
@@ -46,7 +46,7 @@ async function PeopleContent() {
         />
       ) : null}
       {/* «Нераспределённые» видят только Owner и Admin — те, кто распределяет людей по подразделениям. */}
-      <PeopleList members={members} unassignedIds={canInvite ? unassignedIds : []} />
+      <PeopleScreen members={members} units={structure.units} unitMembers={structure.unitMembers} canManage={canManage} />
     </div>
   );
 }

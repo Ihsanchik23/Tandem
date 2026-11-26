@@ -49,6 +49,7 @@ export type Member = {
   first_name: string;
   last_name: string;
   avatar_url: string | null;
+  joined_at: string; // когда вступил в компанию
 };
 
 const ROLE_ORDER: Record<MemberRole, number> = { owner: 0, admin: 1, manager: 2, employee: 3 };
@@ -58,24 +59,16 @@ export async function getMembers(orgId: string): Promise<Member[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("memberships")
-    .select("user_id, role, position, profiles(username, first_name, last_name, avatar_url)")
+    .select("user_id, role, position, created_at, profiles(username, first_name, last_name, avatar_url)")
     .eq("organization_id", orgId);
   const members = (data ?? []).flatMap((m) =>
-    m.profiles ? [{ user_id: m.user_id, role: m.role, position: m.position, ...m.profiles }] : [],
+    m.profiles ? [{ user_id: m.user_id, role: m.role, position: m.position, joined_at: m.created_at, ...m.profiles }] : [],
   );
   return members.sort(
     (a, b) =>
       ROLE_ORDER[a.role] - ROLE_ORDER[b.role] ||
       `${a.first_name} ${a.last_name}`.localeCompare(`${b.first_name} ${b.last_name}`, "ru"),
   );
-}
-
-// id сотрудников, которые уже состоят хотя бы в одном подразделении.
-// Видно только сотрудникам этой компании (RLS unit_members_select).
-export async function getAssignedUserIds(orgId: string): Promise<Set<string>> {
-  const supabase = await createClient();
-  const { data } = await supabase.from("unit_members").select("user_id").eq("organization_id", orgId);
-  return new Set((data ?? []).map((r) => r.user_id));
 }
 
 export { canEditCompany } from "./permissions";
@@ -85,12 +78,12 @@ export async function getMember(orgId: string, userId: string): Promise<Member |
   const supabase = await createClient();
   const { data } = await supabase
     .from("memberships")
-    .select("user_id, role, position, profiles(username, first_name, last_name, avatar_url)")
+    .select("user_id, role, position, created_at, profiles(username, first_name, last_name, avatar_url)")
     .eq("organization_id", orgId)
     .eq("user_id", userId)
     .maybeSingle();
   if (!data?.profiles) return null;
-  return { user_id: data.user_id, role: data.role, position: data.position, ...data.profiles };
+  return { user_id: data.user_id, role: data.role, position: data.position, joined_at: data.created_at, ...data.profiles };
 }
 
 // Действующие ссылки-приглашения. Видят только Owner и Admin (RLS invites_select).

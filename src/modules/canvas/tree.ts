@@ -70,8 +70,8 @@ export function moveTargets(tree: Tree, unitId: string): (string | null)[] {
   return result;
 }
 
-// Путь для подписи в списке переноса: «Филиал 1 / Склад».
-export function unitPath(tree: Tree, unitId: string): string {
+// Путь для подписи: «Филиал 1 / Склад» (в чипах сотрудников — «Астана · Кассиры»).
+export function unitPath(tree: Tree, unitId: string, sep = " / "): string {
   const names: string[] = [];
   const seen = new Set<string>();
   let cur = tree.byId.get(unitId);
@@ -80,7 +80,7 @@ export function unitPath(tree: Tree, unitId: string): string {
     names.unshift(cur.name);
     cur = cur.parent_id ? tree.byId.get(cur.parent_id) : undefined;
   }
-  return names.join(" / ");
+  return names.join(sep);
 }
 
 // Сотрудники компании без подразделения.
