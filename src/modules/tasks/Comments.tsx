@@ -56,7 +56,7 @@ export function Comments({
   const shown = comments ? comments.slice(hidden) : [];
 
   return (
-    <section className="flex flex-col gap-4">
+    <section className="flex flex-col gap-3">
       <h3 className="flex items-center gap-2 text-[15px] font-semibold text-ink">
         {s.comments}
         {total > 0 ? <span className="rounded-full bg-surface px-2 py-0.5 text-[12px] font-medium tabular-nums text-muted">{total}</span> : null}
@@ -67,12 +67,12 @@ export function Comments({
       ) : comments.length === 0 ? (
         <p className="text-sm text-muted">{s.commentsEmpty}</p>
       ) : (
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col">
           {hidden > 0 ? (
             <button
               type="button"
               onClick={() => setLimit((n) => n + STEP)}
-              className="mb-1 self-start rounded-full px-1 text-[13px] font-medium text-accent hover:text-accent-hover"
+              className="mb-1 self-start pl-11 text-[13px] font-medium text-accent hover:text-accent-hover"
             >
               {s.showMore} <span className="font-normal text-muted">· {format(s.hiddenCount, { n: hidden })}</span>
             </button>
@@ -87,8 +87,8 @@ export function Comments({
 
       {canComment ? (
         <div className="flex flex-col gap-2">
-          {/* Поле ввода: мягкая плашка, «Отправить» — внутри, справа внизу. */}
-          <div className="rounded-2xl bg-surface p-1.5 transition-shadow focus-within:shadow-[0_0_0_2px_rgba(191,74,49,0.25)]">
+          {/* Одно поле ввода внизу блока: растёт по мере набора, «Отправить» — справа в той же строке. */}
+          <div className="flex items-end gap-2 rounded-[22px] bg-surface py-1.5 pl-4 pr-1.5 transition-shadow focus-within:shadow-[0_0_0_2px_rgba(191,74,49,0.25)]">
             <textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
@@ -98,19 +98,17 @@ export function Comments({
               placeholder={s.commentPlaceholder}
               aria-label={s.commentPlaceholder}
               maxLength={TASK_LIMITS.comment}
-              rows={2}
-              className="block max-h-48 min-h-14 w-full resize-none bg-transparent px-2.5 py-2 text-base text-ink [field-sizing:content] placeholder:text-muted focus:outline-none md:text-[14px]"
+              rows={1}
+              className="block max-h-40 min-h-8 flex-1 resize-none bg-transparent py-1.5 text-base leading-5 text-ink [field-sizing:content] placeholder:text-muted focus:outline-none md:text-[14px]"
             />
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={send}
-                disabled={pending || !body.trim()}
-                className="h-9 rounded-full bg-accent px-4 text-[13px] font-semibold text-white transition-colors hover:bg-accent-hover disabled:bg-neutral-300 disabled:text-white"
-              >
-                {pending ? s.commentSending : s.commentSend}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={send}
+              disabled={pending || !body.trim()}
+              className="h-8 shrink-0 rounded-full bg-accent px-3.5 text-[13px] font-semibold text-white transition-colors hover:bg-accent-hover disabled:bg-neutral-300"
+            >
+              {pending ? s.commentSending : s.commentSend}
+            </button>
           </div>
           {error ? <FormMessage kind="error">{t.errors[error]}</FormMessage> : null}
         </div>
@@ -166,13 +164,13 @@ function CommentItem({
   }
 
   if (comment.deletedAt) {
-    return <li className="py-2 pl-11 text-[13px] italic text-muted">{s.commentDeleted}</li>;
+    return <li className="py-1.5 pl-11 text-[13px] italic text-muted">{s.commentDeleted}</li>;
   }
 
   const actions = mine && canChange && mode === "view";
 
   return (
-    <li className="group relative -mx-2 flex gap-3 rounded-2xl px-2 py-2.5 transition-colors [@media(hover:hover)]:hover:bg-surface/70">
+    <li className="group relative -mx-2 flex gap-3 rounded-xl px-2 py-1.5 transition-colors [@media(hover:hover)]:hover:bg-surface/70">
       <Avatar url={comment.author?.avatarUrl} name={name} size={32} />
       <div className="min-w-0 flex-1">
         {/* Имя и время — одной строкой, текст — сразу под ними. */}
@@ -207,7 +205,7 @@ function CommentItem({
             </div>
           </div>
         ) : (
-          <p className="mt-0.5 whitespace-pre-wrap break-words text-[14px] leading-relaxed text-ink">{comment.body}</p>
+          <p className="whitespace-pre-wrap break-words text-[14px] leading-snug text-ink">{comment.body}</p>
         )}
 
         {mode === "delete" ? (
@@ -235,7 +233,7 @@ function CommentItem({
 
       {/* Действия — в той же строке справа. С мышью — значки при наведении; на телефоне — «⋯». */}
       {actions ? (
-        <div className="absolute right-2 top-1.5 flex items-center">
+        <div className="absolute right-1.5 top-0.5 flex items-center">
           <div className="hidden items-center opacity-0 transition-opacity group-hover:opacity-100 group-has-[:focus-visible]:opacity-100 [@media(hover:hover)]:flex">
             <IconButton label={s.commentEdit} onClick={startEdit} className="h-8! w-8!">
               <PencilIcon className="h-4 w-4" />
