@@ -142,11 +142,12 @@ body {
     font-size: clamp(40px, min(4vw, 7svh), 88px);
   }
 }
+/* Эффекты появления — только при первом открытии сайта за сессию (html[data-intro], см. components/ui/Intro.tsx). */
 @media (prefers-reduced-motion: no-preference) {
-  .feed-hero-photo {
+  html[data-intro] .feed-hero-photo {
     animation: feed-hero-fade 700ms ease-out both;
   }
-  .feed-hero-title {
+  html[data-intro] .feed-hero-title {
     animation: feed-hero-rise 600ms cubic-bezier(0.22, 1, 0.36, 1) 120ms both;
   }
 }
@@ -187,7 +188,7 @@ body {
 }
 /* Панель появляется плавно целиком (фон, затемнение, текст, фото) — без резкой смены с белого. */
 @media (prefers-reduced-motion: no-preference) {
-  .hero-panel {
+  html[data-intro] .hero-panel {
     animation: feed-hero-fade 500ms ease-out both;
   }
 }
@@ -299,7 +300,7 @@ body {
   }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .guest-screen {
+  html[data-intro] .guest-screen {
     animation: feed-hero-fade 500ms ease-out both;
   }
 }
