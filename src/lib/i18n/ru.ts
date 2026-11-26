@@ -116,6 +116,17 @@ export const ru = {
 
   ui: {
     close: "Закрыть",
+    more: "Ещё",
+    // Общий фильтр (components/ui/filters): каталог, задачи.
+    filters: {
+      title: "Фильтры",
+      reset: "Сбросить",
+      search: "Найти",
+      searchFor: "Искать «{q}»",
+      nothingFound: "Ничего не нашли",
+      remove: "Убрать фильтр «{label}»",
+      resetAll: "Сбросить все",
+    },
   },
 
   nav: {
@@ -550,14 +561,14 @@ export const ru = {
     companiesPlaceholder: "Название компании",
     filters: "Фильтры",
     city: "Город",
-    cityPlaceholder: "Например, Астана",
-    staffSize: "Количество сотрудников",
+    cityAny: "Любой город",
+    citySearch: "Найти город",
+    staffSize: "Сотрудников",
     staffAny: "Любое",
     staffUpTo10: "До 10",
     staff11To50: "11–50",
     staff51To200: "51–200",
     staff201Plus: "Более 200",
-    clearFilters: "Сбросить фильтры",
     personUnknown: "Пользователь",
     loadMore: "Показать ещё",
     loading: "Загружаем…",

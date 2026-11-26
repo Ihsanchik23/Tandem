@@ -2,12 +2,12 @@
 
 /* Только светлая тема (тёмной в MVP нет). Фирменная палитра Tandem — только через эти токены. */
 :root {
-  --tandem-accent: #c6461f; /* ссылки, мелкие акценты (одним цветом — так читается лучше градиента) */
-  --tandem-accent-hover: #af3c19; /* наведение */
-  --tandem-accent-soft: #f58560; /* светлый акцент — редко */
+  --tandem-accent: #bf4a31; /* фирменный цвет: только акценты (ссылки, выбранное, счётчики) */
+  --tandem-accent-hover: #ae3926; /* наведение, нажатие */
+  --tandem-accent-soft: #d86750; /* светлый оттенок — редко */
   --tandem-ink: #1e1e1e; /* основной текст — весь текст чёрный */
   --tandem-canvas: #ffffff; /* фон страниц */
-  --tandem-surface: #f6f4f1; /* тёплый серый фон досок и панелей */
+  --tandem-surface: #f8f6f4; /* тёплый серый фон досок и панелей */
   --tandem-muted: #5d5852; /* второстепенный текст (контраст 7:1 на белом) */
   --tandem-line: #e8e4de; /* тонкие линии и рамки */
   /* Градиент бренда: кнопки, логотип, выбранные элементы и иконки. */
@@ -45,6 +45,22 @@
   --font-sans: var(--font-geist-sans);
   --animate-fade-in: tandem-fade-in 200ms ease-out;
   --animate-focus-pulse: tandem-focus-pulse 1.8s ease-out 1;
+  --animate-pop-in: tandem-pop-in 160ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  --animate-sheet-up: tandem-sheet-up 280ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Поповер (фильтры, меню «⋯»): чуть увеличивается и проявляется от угла кнопки. */
+@keyframes tandem-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-4px);
+  }
+}
+/* Шторка снизу на телефоне. */
+@keyframes tandem-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
 }
 
 @keyframes tandem-fade-in {

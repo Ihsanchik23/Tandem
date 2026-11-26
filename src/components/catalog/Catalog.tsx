@@ -7,7 +7,9 @@ import { pluralRu, t } from "@/lib/i18n";
 import { Avatar } from "@/components/profile/Avatar";
 import { Button } from "@/components/ui/Button";
 import { FormMessage } from "@/components/ui/FormMessage";
-import { FilterIcon, SearchIcon } from "@/components/nav/icons";
+import { SearchIcon } from "@/components/nav/icons";
+import { ActiveFilters, ChoiceChips, FilterMenu, FilterSection, OptionList, type Option } from "@/components/ui/filters/FilterMenu";
+import { CITIES } from "./cities";
 import {
   runSearch,
   type CompanyRow,
@@ -48,41 +50,25 @@ export function Catalog() {
   const [query, setQuery] = useState(params.get("q") ?? "");
   const [city, setCity] = useState(params.get("city") ?? "");
   const [staffSize, setStaffSize] = useState<StaffSize>(readStaffSize(params.get("size")));
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [applied, setApplied] = useState({ query, city, staffSize });
+  // Фильтры (город, размер) применяются сразу; текст поиска — после короткой паузы в наборе.
+  const [appliedQuery, setAppliedQuery] = useState(query);
   const [state, setState] = useState<State>({ key: "", result: null, error: false });
   const [loadingMore, setLoadingMore] = useState(false);
-  const filterRef = useRef<HTMLDivElement>(null);
   const selectionRef = useRef<Selection>({ person: params.get("person"), company: params.get("company") });
   const selectedPerson = params.get("person");
   const selectedCompany = params.get("company");
-  const key = `${tab}|${applied.query.trim()}|${applied.city.trim()}|${applied.staffSize}`;
+  const applied = { query: appliedQuery, city, staffSize };
+  const key = `${tab}|${appliedQuery.trim()}|${city.trim()}|${staffSize}`;
   const latestKey = useRef(key);
 
   useEffect(() => {
     selectionRef.current = { person: selectedPerson, company: selectedCompany };
   }, [selectedPerson, selectedCompany]);
 
-  useEffect(() => {
-    if (!filterOpen) return;
-    const onPointerDown = (event: PointerEvent) => {
-      if (!filterRef.current?.contains(event.target as Node)) setFilterOpen(false);
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setFilterOpen(false);
-    };
-    document.addEventListener("pointerdown", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [filterOpen]);
-
   // Запрос, город и размер компании сохраняются в адресе после короткой задержки.
   useEffect(() => {
     const id = setTimeout(() => {
-      setApplied({ query, city, staffSize });
+      setAppliedQuery(query);
       router.replace(catalogUrl(pathname, tab, query, city, staffSize, selectionRef.current), { scroll: false });
     }, DEBOUNCE_MS);
     return () => clearTimeout(id);
@@ -143,7 +129,13 @@ export function Catalog() {
   const c = t.catalog;
   const loading = state.key !== key;
   const result = loading ? null : state.result;
-  const filtersActive = Boolean(city.trim()) || (tab === "companies" && staffSize !== "all");
+  const cityValue = city.trim();
+  const sizeOn = tab === "companies" && staffSize !== "all";
+  const filterCount = (cityValue ? 1 : 0) + (sizeOn ? 1 : 0);
+  const resetFilters = () => {
+    setCity("");
+    setStaffSize("all");
+  };
   const sizeLabels: Record<StaffSize, string> = {
     all: c.staffAny,
     "0-10": c.staffUpTo10,
@@ -185,58 +177,41 @@ export function Catalog() {
             className="h-11 w-full rounded-full border-0 bg-neutral-100 pl-12 pr-4 text-base text-ink placeholder:text-neutral-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent"
           />
         </label>
-        <div ref={filterRef} className="relative shrink-0">
-          <button
-            type="button"
-            aria-label={c.filters}
-            aria-expanded={filterOpen}
-            title={c.filters}
-            onClick={() => setFilterOpen((open) => !open)}
-            className={`relative flex h-11 w-11 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${filtersActive ? "bg-ink text-white" : "bg-neutral-100 text-ink hover:bg-neutral-200"}`}
-          >
-            <FilterIcon className="h-5 w-5" />
-          </button>
-          {filterOpen ? (
-            <div role="group" aria-label={c.filters} className="absolute right-0 top-full z-30 mt-2 w-[min(90vw,320px)] rounded-2xl border border-neutral-200 bg-white p-4 shadow-xl">
-              <p className="mb-4 text-base font-semibold text-ink">{c.filters}</p>
-              <label className="flex flex-col gap-1.5 text-sm font-medium text-ink">
-                {c.city}
-                <input
-                  type="text"
-                  autoComplete="address-level2"
-                  value={city}
-                  onChange={(event) => setCity(event.target.value)}
-                  placeholder={c.cityPlaceholder}
-                  className="h-11 rounded-xl border border-neutral-300 bg-white px-3 text-base font-normal text-ink placeholder:text-neutral-400 focus:border-accent focus:outline-none"
-                />
-              </label>
-              {tab === "companies" ? (
-                <div className="mt-5">
-                  <p className="mb-2 text-sm font-medium text-ink">{c.staffSize}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {STAFF_SIZES.map((size) => (
-                      <button
-                        key={size}
-                        type="button"
-                        aria-pressed={staffSize === size}
-                        onClick={() => setStaffSize(size)}
-                        className={`rounded-full px-3 py-2 text-sm transition-colors ${staffSize === size ? "bg-ink text-white" : "bg-neutral-100 text-ink hover:bg-neutral-200"}`}
-                      >
-                        {sizeLabels[size]}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-              {filtersActive ? (
-                <button type="button" onClick={() => { setCity(""); setStaffSize("all"); }} className="mt-5 text-sm font-medium text-accent hover:underline">
-                  {c.clearFilters}
-                </button>
-              ) : null}
-            </div>
+        <FilterMenu count={filterCount} onReset={resetFilters} compact large>
+          <FilterSection title={c.city} value={cityValue || c.cityAny}>
+            <OptionList
+              label={c.city}
+              searchPlaceholder={c.citySearch}
+              options={cityOptions(cityValue, c.cityAny)}
+              value={cityValue}
+              onChange={setCity}
+              freeText={(q) => q}
+            />
+          </FilterSection>
+          {tab === "companies" ? (
+            <FilterSection title={c.staffSize}>
+              <ChoiceChips
+                label={c.staffSize}
+                options={STAFF_SIZES.map((size) => ({ value: size, label: sizeLabels[size] }))}
+                value={staffSize}
+                onChange={setStaffSize}
+              />
+            </FilterSection>
           ) : null}
-        </div>
+        </FilterMenu>
       </div>
+
+      {filterCount > 0 ? (
+        <div className="-mt-2 mb-4">
+          <ActiveFilters
+            items={[
+              ...(cityValue ? [{ key: "city", label: cityValue, onRemove: () => setCity("") }] : []),
+              ...(sizeOn ? [{ key: "size", label: `${c.staffSize}: ${sizeLabels[staffSize]}`, onRemove: () => setStaffSize("all") }] : []),
+            ]}
+            onResetAll={resetFilters}
+          />
+        </div>
+      ) : null}
 
       <div id="catalog-results" role="tabpanel" aria-label={tab === "people" ? c.people : c.companies}>
         {state.error && !loading ? <FormMessage kind="error">{t.errors.searchFailed}</FormMessage> : null}
@@ -268,6 +243,16 @@ export function Catalog() {
       ) : null}
     </div>
   );
+}
+
+// Варианты города: «Любой», выбранный сейчас (если его нет в подсказках), подсказки.
+function cityOptions(current: string, anyLabel: string): Option<string>[] {
+  const known = CITIES.some((x) => x.toLocaleLowerCase("ru") === current.toLocaleLowerCase("ru"));
+  return [
+    { value: "", label: anyLabel },
+    ...(current && !known ? [{ value: current, label: current }] : []),
+    ...CITIES.map((x) => ({ value: x, label: x })),
+  ];
 }
 
 type OpenPreview = (event: MouseEvent<HTMLAnchorElement>, kind: "person" | "company", value: string) => void;
