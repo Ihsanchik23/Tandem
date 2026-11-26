@@ -10,7 +10,7 @@ import { ConfirmAction } from "@/components/ui/ConfirmAction";
 import { canCreatePage, isNewPage } from "@/modules/pages/logic";
 import { NewBadge } from "@/modules/pages/PagesList";
 import { useSeenPages } from "@/modules/pages/seen";
-import { ArchiveIcon, ChatPageIcon, CompanyProfileIcon, PeopleIcon, PlusIcon, StructureIcon, TasksPageIcon } from "./icons";
+import { ArchiveIcon, CompanyProfileIcon, PeopleIcon, PlusIcon, StructureIcon, WorkspacePageIcon } from "./icons";
 
 // Панель компании: карточка компании, разделы мелкими заглавными, под ними страницы со значками.
 // Разделы: «Рабочие страницы», «Моя компания», «Прочее» (архив).
@@ -19,10 +19,14 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
   const pathname = usePathname() ?? "";
   const seen = useSeenPages();
   const w = t.work;
-  // Выбранный пункт — белая плашка с лёгкой тенью на тёплом сером фоне панели.
+  // На белой панели выбранный пункт выделяется светло-серой плашкой.
   const item = (active: boolean) =>
     `flex h-10 items-center gap-2.5 rounded-xl px-2.5 text-[14px] text-ink transition-colors ${
-      active ? "bg-white font-medium shadow-[0_1px_3px_rgba(0,0,0,0.08)]" : "hover:bg-white/60"
+      active ? "bg-neutral-100 font-medium" : "hover:bg-neutral-50"
+    }`;
+  const pageItem = (active: boolean) =>
+    `flex min-h-12 items-center gap-3 rounded-xl px-2.5 py-1.5 text-[14px] text-ink transition-colors ${
+      active ? "bg-neutral-100 font-medium" : "hover:bg-neutral-50"
     }`;
   const icon = "h-[18px] w-[18px] shrink-0";
 
@@ -51,7 +55,7 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
     <div className="flex h-full flex-col">
       {/* Карточка компании: логотип, название, моя роль. */}
       <div className="px-3 pb-2 pt-4">
-        <div className="flex items-center gap-2.5 rounded-2xl bg-white p-2.5 pr-12 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+        <div className="flex items-center gap-2.5 rounded-2xl border border-neutral-100 bg-white p-2.5 pr-12 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
           <span className="overflow-hidden rounded-xl">
             <Avatar url={company.logoUrl} name={company.name} size={36} />
           </span>
@@ -72,7 +76,7 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
                 onClick={onNavigate}
                 aria-label={t.pages.create}
                 title={t.pages.create}
-                className="flex h-6 w-6 items-center justify-center rounded-md text-muted hover:bg-white hover:text-ink"
+                className="flex h-6 w-6 items-center justify-center rounded-md text-muted hover:bg-neutral-100 hover:text-ink"
               >
                 <PlusIcon className="h-3.5 w-3.5" />
               </Link>
@@ -82,9 +86,9 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
           {pages.length === 0 ? (
             <p className="px-2.5 py-1 text-[13px] text-muted">{w.noPages}</p>
           ) : (
-            pages.map((p) => (
-              <Link key={p.id} href={`/work/p/${p.id}`} onClick={onNavigate} className={item(pathname.startsWith(`/work/p/${p.id}`))}>
-                {p.moduleKey === "chat" ? <ChatPageIcon className={icon} /> : <TasksPageIcon className={icon} />}
+            pages.map((p, index) => (
+              <Link key={p.id} href={`/work/p/${p.id}`} onClick={onNavigate} className={pageItem(pathname.startsWith(`/work/p/${p.id}`))}>
+                <WorkspacePageIcon variant={index} className="h-9 w-9 shrink-0" />
                 <span className="min-w-0 flex-1 truncate">{p.name}</span>
                 {seen && isNewPage(p, seen) ? <NewBadge /> : null}
               </Link>

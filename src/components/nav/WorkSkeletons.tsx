@@ -6,9 +6,9 @@ import { MenuIcon } from "./icons";
 // Компьютер: панель компании слева (как WorkPanel + CompanyPanel).
 export function WorkPanelSkeleton() {
   return (
-    <aside aria-hidden className="sticky top-0 hidden h-dvh w-72 shrink-0 border-r-[0.5px] border-line bg-surface md:block">
+    <aside aria-hidden className="sticky top-0 hidden h-dvh w-72 shrink-0 border-r-[0.5px] border-line bg-white md:block">
       <div className="px-3 pb-2 pt-4">
-        <div className="flex items-center gap-2.5 rounded-2xl bg-white p-2.5 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+        <div className="flex items-center gap-2.5 rounded-2xl border border-neutral-100 bg-white p-2.5 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
           <span className="h-9 w-9 shrink-0 rounded-full bg-neutral-100" />
           <span className="flex flex-1 flex-col gap-1.5">
             <span className="h-3.5 w-2/3 rounded bg-neutral-100" />
@@ -21,8 +21,8 @@ export function WorkPanelSkeleton() {
           <div key={section} className="flex flex-col gap-1">
             <span className="mx-2.5 mb-1.5 h-3 w-24 rounded bg-neutral-200/70" />
             {Array.from({ length: rows }, (_, i) => (
-              <span key={i} className="flex h-10 items-center gap-2.5 px-2.5">
-                <span className="h-[18px] w-[18px] rounded bg-neutral-200/70" />
+              <span key={i} className={`flex items-center gap-2.5 px-2.5 ${section === 0 ? "h-12" : "h-10"}`}>
+                <span className={`rounded bg-neutral-200/70 ${section === 0 ? "h-9 w-9 rounded-full" : "h-[18px] w-[18px]"}`} />
                 <span className="h-3.5 w-32 rounded bg-neutral-200/70" />
               </span>
             ))}

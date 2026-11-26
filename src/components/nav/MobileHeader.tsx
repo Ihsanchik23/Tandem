@@ -85,7 +85,7 @@ export function MobileHeader({ data }: { data: ShellData | null }) {
           className={`absolute inset-0 bg-black/30 transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"}`}
         />
         <aside
-          className={`absolute inset-y-0 left-0 flex w-[min(20rem,85vw)] flex-col bg-surface pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] transition-transform duration-300 ease-out ${
+          className={`absolute inset-y-0 left-0 flex w-[min(20rem,85vw)] flex-col bg-white pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] transition-transform duration-300 ease-out ${
             open ? "translate-x-0 shadow-xl" : "-translate-x-full"
           }`}
         >

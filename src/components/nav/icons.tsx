@@ -181,7 +181,56 @@ export function PanelOpenIcon({ className }: IconProps) {
   );
 }
 
-// Значки рабочих страниц: чат и задачи.
+// Цветные круглые значки для списка страниц в панели «Работа».
+// Формы и палитра повторяют референс: щит, карта, колокольчик, подарок, здание.
+const workspacePageColors = ["#4DBD78", "#4DBD78", "#FFCA05", "#FF7F83", "#68BDF8"] as const;
+
+export function WorkspacePageIcon({ variant, className }: { variant: number; className?: string }) {
+  const kind = variant % workspacePageColors.length;
+  return (
+    <svg viewBox="0 0 40 40" fill="none" aria-hidden className={className}>
+      <circle cx="20" cy="20" r="20" fill={workspacePageColors[kind]} />
+      {kind === 0 && (
+        <>
+          <path d="M11.5 10.5h17v10.2c0 6.2-3.4 10.4-8.5 12.8-5.1-2.4-8.5-6.6-8.5-12.8V10.5Z" stroke="white" strokeWidth="2.4" opacity=".85" />
+          <path d="M16 15.5h12v4H20v4.4h6.5c-1.2 2.7-3.4 4.8-6.5 6.4v-6.4h-4V15.5Z" fill="white" opacity=".9" />
+        </>
+      )}
+      {kind === 1 && (
+        <>
+          <rect x="10" y="10" width="20" height="14" rx="2.3" stroke="white" strokeWidth="2.2" opacity=".8" />
+          <path d="M10.5 15h19" stroke="white" strokeWidth="2.2" opacity=".8" />
+          <rect x="15" y="15" width="13" height="17" rx="2.3" fill="white" />
+          <path d="M19.5 20v8" stroke={workspacePageColors[kind]} strokeWidth="2" strokeLinecap="round" />
+        </>
+      )}
+      {kind === 2 && (
+        <>
+          <path d="M20 9.5a2 2 0 0 1 2 2v.7c3.7.9 5.7 4 5.7 8.1v4.2l2 2.6c.5.7 0 1.6-.9 1.6H11.2c-.9 0-1.4-.9-.9-1.6l2-2.6v-4.2c0-4.1 2-7.2 5.7-8.1v-.7a2 2 0 0 1 2-2Z" fill="white" />
+          <path d="M17.2 30h5.6a2.9 2.9 0 0 1-5.6 0Z" fill="white" />
+          <path d="M27.7 18.2c1.1 1.1 1.7 2.5 1.7 4.2" stroke="white" strokeWidth="2" strokeLinecap="round" opacity=".7" />
+        </>
+      )}
+      {kind === 3 && (
+        <>
+          <path d="M11 18h18v12.5a2 2 0 0 1-2 2H13a2 2 0 0 1-2-2V18Z" fill="white" />
+          <rect x="9.5" y="14.5" width="21" height="5.5" rx="2" fill="white" />
+          <path d="M20 14.5v18" stroke={workspacePageColors[kind]} strokeWidth="2" />
+          <path d="M19.5 14c-3.8 0-6.5-1.1-6.5-3.5a3 3 0 0 1 3-3c2.3 0 3.5 2.7 4 6.5M20.5 14c3.8 0 6.5-1.1 6.5-3.5a3 3 0 0 0-3-3c-2.3 0-3.5 2.7-4 6.5Z" fill="white" />
+        </>
+      )}
+      {kind === 4 && (
+        <>
+          <path d="m9 17 11-5 11 5v2H9v-2Z" fill="white" opacity=".85" />
+          <path d="M12 20h3v10h-3V20Zm6.5 0h3v10h-3V20Zm6.5 0h3v10h-3V20Z" fill="white" />
+          <rect x="9" y="30" width="22" height="3" rx="1.5" fill="white" />
+        </>
+      )}
+    </svg>
+  );
+}
+
+// Значки модулей рабочих страниц: чат и задачи.
 export function ChatPageIcon({ className }: IconProps) {
   return (
     <Svg className={className}>
