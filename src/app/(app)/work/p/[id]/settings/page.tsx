@@ -8,13 +8,13 @@ import { getMyCompany } from "@/lib/company/queries";
 import { t } from "@/lib/i18n";
 import { archivePage } from "@/modules/pages/actions";
 import { RestoreButton } from "@/modules/pages/RestoreButton";
+import { AccessForm } from "@/modules/pages/AccessForm";
 import { canManagePage, fromScopes } from "@/modules/pages/logic";
 import { PageForm } from "@/modules/pages/PageForm";
 import { getPage } from "@/modules/pages/queries";
-import { ScopeForm } from "@/modules/pages/ScopeForm";
 import { getScopeOptions } from "@/modules/pages/scopeOptions";
 
-// Настройки страницы: название и описание, доступ (с подтверждением), архив.
+// Настройки страницы: название и описание, доступ (через структуру и индивидуальный, с подтверждением), архив.
 // Кнопки видны тем, кому разрешено; окончательно права проверяют функции базы.
 export default function PageSettings({ params }: PageProps<"/work/p/[id]/settings">) {
   return (
@@ -41,9 +41,7 @@ async function Content({ params }: { params: PageProps<"/work/p/[id]/settings">[
   return (
     <div className="flex flex-col gap-8">
       <PageForm mode="edit" pageId={page.id} initial={{ name: page.name, description: page.description ?? "" }} />
-      <section className="flex flex-col gap-3">
-        <ScopeForm pageId={page.id} options={options} initial={fromScopes(page.scopes)} />
-      </section>
+      <AccessForm pageId={page.id} options={options} initial={fromScopes(page.scopes)} />
       {page.archived ? (
         <RestoreButton pageId={page.id} />
       ) : (
