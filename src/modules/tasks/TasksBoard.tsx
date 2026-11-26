@@ -6,6 +6,7 @@ import { format, t } from "@/lib/i18n";
 import type { ErrorKey } from "@/lib/i18n/ru";
 import { PlusIcon } from "@/components/nav/icons";
 import { FormMessage } from "@/components/ui/FormMessage";
+import { subscribeLive } from "@/lib/supabase/realtime";
 import { setStatus, supabase } from "./api";
 import { CreateTask } from "./CreateTask";
 import { fetchPageTasks, type PagePerson } from "./data";
@@ -100,14 +101,20 @@ export function TasksBoard({ pageId, me, role, readOnly, initialTasks, people }:
   }, [pageId]);
 
   // Изменения других людей приходят сразу. RLS пропускает только события доступной страницы.
+  // subscribeLive: подписка с токеном пользователя, дочитывание после переподключения и
+  // при возврате на вкладку (см. lib/supabase/realtime.ts).
   useEffect(() => {
-    const channel = supabase()
-      .channel(`tasks:${pageId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "tasks", filter: `page_id=eq.${pageId}` }, reload)
-      .on("postgres_changes", { event: "*", schema: "public", table: "task_comments" }, reload)
-      .subscribe();
+    const stop = subscribeLive(
+      supabase(),
+      `tasks:${pageId}`,
+      (ch) =>
+        ch
+          .on("postgres_changes", { event: "*", schema: "public", table: "tasks", filter: `page_id=eq.${pageId}` }, reload)
+          .on("postgres_changes", { event: "*", schema: "public", table: "task_comments" }, reload),
+      reload,
+    );
     return () => {
-      supabase().removeChannel(channel);
+      stop();
       if (timer.current) clearTimeout(timer.current);
     };
   }, [pageId, reload]);

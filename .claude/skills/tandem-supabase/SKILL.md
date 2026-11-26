@@ -100,13 +100,17 @@ description: Как фронтенд Tandem работает с готовой �
 - История: `messages` по `page_id`, `order(created_at desc)`, по 50.
 - Прочитано: `mark_chat_read(p_page)` при открытии и прокрутке вниз.
 - Раздел «Сообщения»: `get_my_chats()` → чаты, последнее сообщение, `unread_count`.
-- Realtime:
+- Realtime — только через `subscribeLive` из `src/lib/supabase/realtime.ts` (не голый `channel().subscribe()`):
   ```ts
-  supabase.channel(`chat:${pageId}`)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: `page_id=eq.${pageId}` }, onChange)
-    .subscribe()
+  useEffect(() => subscribeLive(
+    supabase(), `chat:${pageId}`,
+    (ch) => ch.on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: `page_id=eq.${pageId}` }, onChange),
+    reload, // дочитать данные: после (пере)подключения и при возврате на вкладку
+  ), [pageId]);
   ```
-  Отписывайся при уходе со страницы. Тот же подход для `tasks` и `task_comments`.
+  Почему: канал, созданный сразу при загрузке страницы, мог войти без токена пользователя (токен
+  читается из cookies асинхронно) и пройти RLS как аноним — события молча не приходили (баг задач на macOS).
+  `subscribeLive` ждёт токен, пересоздаёт канал при ошибке и дочитывает пропущенное после сна/смены вкладки.
 
 ## GPS-отметки
 - `navigator.geolocation.getCurrentPosition` с `{ enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }`.

@@ -6,6 +6,7 @@ import type { ErrorKey } from "@/lib/i18n/ru";
 import { Button } from "@/components/ui/Button";
 import { FormMessage } from "@/components/ui/FormMessage";
 import { Sheet } from "@/components/ui/Sheet";
+import { subscribeLive } from "@/lib/supabase/realtime";
 import { setArchived, setAssignees, supabase, taskRights, updateTask } from "./api";
 import { DueLabel, PersonChip, PriorityBadge } from "./bits";
 import { Comments } from "./Comments";
@@ -137,14 +138,19 @@ export function TaskCard({ open, taskId, task, people, peopleById, me, readOnly,
   // Новые комментарии приходят сразу (Realtime; RLS отдаёт только доступное).
   useEffect(() => {
     if (!open || !taskId) return;
-    const channel = supabase()
-      .channel(`task-comments:${taskId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "task_comments", filter: `task_id=eq.${taskId}` }, () => {
-        fetchComments(supabase(), taskId).then(setComments);
-      })
-      .subscribe();
+    let alive = true;
+    const sync = () => {
+      fetchComments(supabase(), taskId).then((c) => alive && setComments(c));
+    };
+    const stop = subscribeLive(
+      supabase(),
+      `task-comments:${taskId}`,
+      (ch) => ch.on("postgres_changes", { event: "*", schema: "public", table: "task_comments", filter: `task_id=eq.${taskId}` }, sync),
+      sync,
+    );
     return () => {
-      supabase().removeChannel(channel);
+      alive = false;
+      stop();
     };
   }, [open, taskId]);
 
