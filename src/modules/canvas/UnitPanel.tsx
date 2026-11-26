@@ -110,7 +110,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function PersonLine({ m }: { m: Member }) {
   const name = personName(m);
   return (
-    <Link href={`/work/people/${m.user_id}`} className="flex items-center gap-3 py-1">
+    <Link href={`/work/people?member=${m.user_id}`} className="flex items-center gap-3 py-1">
       <Avatar url={m.avatar_url} name={name} size={36} />
       <span className="min-w-0">
         <span className="block truncate text-base text-ink">{name}</span>

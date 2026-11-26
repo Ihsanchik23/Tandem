@@ -79,3 +79,23 @@ async function setArchived(pageId: string, archived: boolean): Promise<PageResul
   refresh();
   return {};
 }
+
+// Индивидуальный доступ к странице (Scope «человек»), остальной Scope не меняется.
+// Права (как у смены Scope) и подписку проверяют функции базы grant_page_user / revoke_page_user.
+export async function grantPageUser(pageId: string, userId: string): Promise<PageResult> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("grant_page_user", { p_page: pageId, p_user: userId });
+  if (error?.message === "not_member") return { error: "personNotMember" };
+  if (error) return { error: pageDbError(error) };
+  refresh();
+  return {};
+}
+
+export async function revokePageUser(pageId: string, userId: string): Promise<PageResult> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("revoke_page_user", { p_page: pageId, p_user: userId });
+  if (error?.message === "scope_required") return { error: "lastScope" };
+  if (error) return { error: pageDbError(error) };
+  refresh();
+  return {};
+}

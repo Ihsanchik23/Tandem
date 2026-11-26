@@ -553,7 +553,7 @@ function UnassignedList({ people }: { people: Member[] }) {
                 const name = `${p.first_name} ${p.last_name}`.trim();
                 return (
                   <li key={p.user_id}>
-                    <Link href={`/work/people/${p.user_id}`} className="flex items-center gap-2 px-3 py-2 hover:bg-neutral-50">
+                    <Link href={`/work/people?member=${p.user_id}`} className="flex items-center gap-2 px-3 py-2 hover:bg-neutral-50">
                       <Avatar url={p.avatar_url} name={name} size={28} />
                       <span className="min-w-0">
                         <span className="block truncate text-sm text-ink">{name}</span>

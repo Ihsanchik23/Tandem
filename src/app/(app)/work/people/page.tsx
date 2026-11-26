@@ -9,6 +9,7 @@ import { canManageInvites } from "@/lib/company/permissions";
 import { getActiveInvites, getMembers, getMyCompany, getSeats } from "@/lib/company/queries";
 import { t } from "@/lib/i18n";
 import { getStructure } from "@/modules/canvas/queries";
+import { getCompanyPages } from "@/modules/pages/queries";
 
 // «Моя компания → Сотрудники». Видят все сотрудники компании (ТЗ, раздел 6).
 export default function PeoplePage() {
@@ -29,12 +30,17 @@ async function PeopleContent() {
 
   const orgId = company.org.id;
   const canManage = canManageInvites(company.role);
-  const [members, structure, invites, seats] = await Promise.all([
+  const [members, structure, allPages, invites, seats] = await Promise.all([
     getMembers(orgId),
     getStructure(orgId),
+    getCompanyPages(orgId, userId),
     canManage ? getActiveInvites(orgId) : Promise.resolve([]),
     company.role === "owner" ? getSeats(orgId) : Promise.resolve(null),
   ]);
+  // Для блока «Доступ к страницам» в карточке: активные страницы и их Scope (видят все сотрудники).
+  const pages = allPages
+    .filter((p) => !p.archived)
+    .map((p) => ({ id: p.id, name: p.name, moduleKey: p.moduleKey, hasAccess: p.hasAccess, createdBy: p.createdBy, scopes: p.scopes }));
   return (
     <div className="flex flex-col gap-6">
       {canManage ? (
@@ -46,7 +52,15 @@ async function PeopleContent() {
         />
       ) : null}
       {/* «Нераспределённые» видят только Owner и Admin — те, кто распределяет людей по подразделениям. */}
-      <PeopleScreen members={members} units={structure.units} unitMembers={structure.unitMembers} canManage={canManage} />
+      <PeopleScreen
+        organizationId={orgId}
+        members={members}
+        units={structure.units}
+        unitMembers={structure.unitMembers}
+        pages={pages}
+        me={userId}
+        myRole={company.role}
+      />
     </div>
   );
 }

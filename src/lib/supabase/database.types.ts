@@ -1137,6 +1137,10 @@ export type Database = {
           will_be_unassigned: number
         }[]
       }
+      grant_page_user: {
+        Args: { p_page: string; p_user: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           p_org: string
@@ -1157,6 +1161,10 @@ export type Database = {
         Returns: string[]
       }
       mark_chat_read: { Args: { p_page: string }; Returns: undefined }
+      move_unit_member: {
+        Args: { p_from?: string; p_org: string; p_to: string; p_user: string }
+        Returns: undefined
+      }
       my_role: {
         Args: { p_org: string }
         Returns: Database["public"]["Enums"]["member_role"]
@@ -1174,6 +1182,10 @@ export type Database = {
       }
       require_uid: { Args: never; Returns: string }
       revoke_invite: { Args: { p_invite: string }; Returns: undefined }
+      revoke_page_user: {
+        Args: { p_page: string; p_user: string }
+        Returns: undefined
+      }
       save_canvas_positions: {
         Args: { p_org: string; p_positions: Json }
         Returns: undefined

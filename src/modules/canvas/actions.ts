@@ -129,3 +129,18 @@ export async function saveCanvasPositions(organizationId: string, positions: Rec
   revalidatePath(PATH);
   return {};
 }
+
+// Перевести человека в подразделение одним действием (функция базы move_unit_member).
+// fromUnitId — откуда убрать; null — из всех прежних подразделений. Права проверяет база.
+export async function moveUnitMember(organizationId: string, userId: string, toUnitId: string, fromUnitId: string | null): Promise<UnitResult> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("move_unit_member", {
+    p_org: organizationId,
+    p_user: userId,
+    p_to: toUnitId,
+    p_from: fromUnitId ?? undefined,
+  });
+  if (error?.message === "not_member") return { error: "personNotMember" };
+  if (error) return { error: unitDbError(error) };
+  return done();
+}
