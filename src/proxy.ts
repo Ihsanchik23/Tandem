@@ -1,11 +1,7 @@
-import { NextResponse, type NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/proxy";
 
 export async function proxy(request: NextRequest) {
-  // Локальный предпросмотр панели работает без сессии и не доступен в production.
-  if (process.env.NODE_ENV === "development" && request.nextUrl.pathname === "/work-preview") {
-    return NextResponse.next();
-  }
   return updateSession(request);
 }
 
