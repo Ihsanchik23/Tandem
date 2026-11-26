@@ -4,7 +4,8 @@
 Новые изменения схемы — только новыми файлами в `migrations/`, старые не редактировать.
 
 ## Тесты прав
-`tests/rls_test.sql` (ядро, 62), `tests/modules_test.sql` (модули, 62), `tests/rate_limit_test.sql` (лимиты, 6), `tests/column_grants_test.sql` (права на столбцы, 11), `tests/unit_branch_test.sql` (удаление ветки, 19), `tests/page_people_test.sql` (люди страницы, 9), `tests/canvas_prefs_test.sql` (личная расстановка, 16), `tests/people_access_test.sql` (перевод и индивидуальный доступ, 32). Всего 217 проверок.
+`tests/rls_test.sql` (ядро, 62), `tests/modules_test.sql` (модули, 62), `tests/rate_limit_test.sql` (лимиты, 6), `tests/column_grants_test.sql` (права на столбцы, 11), `tests/unit_branch_test.sql` (удаление ветки, 19), `tests/page_people_test.sql` (люди страницы, 9), `tests/canvas_prefs_test.sql` (личная расстановка, 16), `tests/people_access_test.sql` (перевод и индивидуальный доступ, 32), `tests/unit_access_up_test.sql` (доступ вниз и вверх по дереву, 26). Всего 243 проверки.
+Правило доступа к странице подразделения (`recompute_page_access`): его сотрудники, все дочерние и все родительские до корня; соседние ветки — нет.
 На общей базе тесты можно прогнать так: `supabase db query --linked -f supabase/tests/<файл>.sql` (всё откатывается).
 Запускаются на локальной базе (`supabase start`) через psql; всё в транзакции с откатом.
 

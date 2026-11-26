@@ -25,6 +25,7 @@ import type { ErrorKey } from "@/lib/i18n/ru";
 import { Avatar } from "@/components/profile/Avatar";
 import { btnPrimary, btnSecondary } from "@/components/ui/Card";
 import { FormMessage } from "@/components/ui/FormMessage";
+import { childrenHint } from "@/components/company/childrenHint";
 import { unitPath, type Tree } from "./tree";
 
 // Кого тащат и откуда (null — из «Нераспределённых»).
@@ -199,6 +200,8 @@ function AssignDialog({
   const name = person ? fullName(person) : "";
   const unit = unitPath(tree, assign.toUnitId, " · ");
   const from = assign.fromUnitId ? unitPath(tree, assign.fromUnitId, " · ") : null;
+  // В подразделении есть дочерние — человек увидит и их рабочие страницы.
+  const kidsHint = childrenHint(tree, assign.toUnitId, name);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && !busy && onClose();
@@ -231,6 +234,7 @@ function AssignDialog({
           </p>
         </div>
         {from ? <p className="-mt-2 text-[13px] text-muted">{format(c.assignAddKeep, { from })}</p> : null}
+        {kidsHint ? <p className="-mt-2 text-[12px] text-muted">{kidsHint}</p> : null}
         {error ? <FormMessage kind="error">{t.errors[error]}</FormMessage> : null}
         <div className="flex flex-col gap-2 sm:flex-row-reverse">
           {from ? (

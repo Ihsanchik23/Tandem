@@ -1,11 +1,18 @@
 // Кому доступна рабочая страница и почему — для показа в карточке сотрудника и в настройках страницы.
 // Повторяет правила базы (recompute_page_access): Owner/Admin — все страницы; «вся компания» — все;
-// подразделение — его сотрудники и сотрудники всех вложенных; «человек» — он сам.
+// подразделение — его сотрудники, сотрудники всех дочерних и всех родительских до корня
+// (соседним веткам — нет); «человек» — он сам.
 // Это только объяснение на экране: настоящий доступ считает и проверяет база.
-import { subtreeIds, type Tree } from "../../modules/canvas/tree.ts";
+import { ancestorIds, subtreeIds, type Tree } from "../../modules/canvas/tree.ts";
 
 export type ScopeLite = { kind: "organization" | "unit" | "user"; unit_id: string | null; user_id: string | null };
-export type AccessReason = { kind: "role" } | { kind: "organization" } | { kind: "unit"; unitId: string } | { kind: "user" };
+// unit: страница подразделения unitId. child = true — это дочернее подразделение того, где человек состоит
+// (доступ «вверх»: руководитель филиала видит страницы точек); false — человек в нём самом или ниже.
+export type AccessReason =
+  | { kind: "role" }
+  | { kind: "organization" }
+  | { kind: "unit"; unitId: string; child: boolean }
+  | { kind: "user" };
 export type MemberLite = { user_id: string; role: string };
 
 const seesAll = (role: string) => role === "owner" || role === "admin";
@@ -26,7 +33,8 @@ export function accessReasons(scopes: ScopeLite[], tree: Tree, userId: string, r
   for (const s of scopes) {
     if (s.kind !== "unit" || !s.unit_id || !tree.byId.has(s.unit_id)) continue;
     const branch = subtreeIds(tree, s.unit_id);
-    if ([...mine].some((id) => branch.has(id))) reasons.push({ kind: "unit", unitId: s.unit_id });
+    if ([...mine].some((id) => branch.has(id))) reasons.push({ kind: "unit", unitId: s.unit_id, child: false });
+    else if (ancestorIds(tree, s.unit_id).some((id) => mine.has(id))) reasons.push({ kind: "unit", unitId: s.unit_id, child: true });
   }
   if (scopes.some((s) => s.kind === "user" && s.user_id === userId)) reasons.push({ kind: "user" });
   return reasons;

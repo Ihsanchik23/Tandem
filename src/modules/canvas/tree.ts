@@ -55,6 +55,19 @@ export function subtreeIds(tree: Tree, unitId: string): Set<string> {
   return seen;
 }
 
+// Все родительские подразделения до корня (без самого подразделения), от ближайшего к корню.
+export function ancestorIds(tree: Tree, unitId: string): string[] {
+  const result: string[] = [];
+  const seen = new Set<string>([unitId]);
+  let cur = tree.byId.get(unitId)?.parent_id ?? null;
+  while (cur && tree.byId.has(cur) && !seen.has(cur)) {
+    seen.add(cur); // защита от цикла в данных
+    result.push(cur);
+    cur = tree.byId.get(cur)!.parent_id;
+  }
+  return result;
+}
+
 // Уникальные сотрудники всей ветки: человек в двух вложенных отделах считается один раз.
 export function branchPeople(tree: Tree, unitId: string): Set<string> {
   const people = new Set<string>();

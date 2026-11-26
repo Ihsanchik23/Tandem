@@ -21,6 +21,7 @@ import { ChatPageIcon, LockIcon, TasksPageIcon } from "@/components/nav/icons";
 import { addUnitMembers, moveUnitMember, removeUnitMember, type UnitResult } from "@/modules/canvas/actions";
 import { branchColors, unitPath, type Tree } from "@/modules/canvas/tree";
 import { grantPageUser, revokePageUser } from "@/modules/pages/actions";
+import { childrenHint } from "./childrenHint";
 import { UnitPicker } from "./UnitPicker";
 
 // Рабочая страница для блока «Доступ к страницам». hasAccess — может ли её открыть тот, кто смотрит карточку.
@@ -42,7 +43,9 @@ type Mode =
   | null
   | { kind: "addUnit" }
   | { kind: "askAddOrMove"; unitId: string }
+  | { kind: "confirmAdd"; unitId: string } // в подразделении есть дочерние — подтверждаем с подсказкой
   | { kind: "moveFrom"; unitId: string }
+  | { kind: "confirmMove"; from: string; to: string }
   | { kind: "removeUnit"; unitId: string }
   | { kind: "grant" }
   | { kind: "confirmGrant"; pageId: string }
@@ -113,9 +116,24 @@ export function MemberSheet({ open, member, tree, pages, organizationId, me, myR
     });
   }
 
+  function addTo(unitId: string) {
+    run(() => addUnitMembers(organizationId, unitId, [m.user_id]), format(c.added, { unit: path(unitId) }));
+  }
+  function moveTo(to: string, from: string | null) {
+    run(() => moveUnitMember(organizationId, m.user_id, to, from), format(c.moved, { unit: path(to) }));
+  }
+
+  // Нигде не состоит: в подразделение без дочерних — сразу, с дочерними — с подтверждением и подсказкой.
+  // Уже где-то состоит — вопрос «Добавить / Перевести».
   function pickUnitToAdd(unitId: string) {
-    if (myUnits.length === 0) return run(() => addUnitMembers(organizationId, unitId, [m.user_id]), format(c.added, { unit: path(unitId) }));
-    setMode({ kind: "askAddOrMove", unitId });
+    if (myUnits.length > 0) return setMode({ kind: "askAddOrMove", unitId });
+    if (childrenHint(tree, unitId, name)) return setMode({ kind: "confirmAdd", unitId });
+    addTo(unitId);
+  }
+
+  function pickMoveTarget(to: string, from: string) {
+    if (childrenHint(tree, to, name)) return setMode({ kind: "confirmMove", from, to });
+    moveTo(to, from);
   }
 
   function submitForm(action: (prev: { error?: ErrorKey }, fd: FormData) => Promise<{ error?: ErrorKey }>, fields: Record<string, string>) {
@@ -131,7 +149,13 @@ export function MemberSheet({ open, member, tree, pages, organizationId, me, myR
   }
 
   const reasonText = (r: AccessReason) =>
-    r.kind === "organization" ? c.reasonOrg : r.kind === "unit" ? format(c.reasonUnit, { unit: tree.byId.get(r.unitId)?.name ?? "" }) : r.kind === "user" ? c.reasonUser : "";
+    r.kind === "organization"
+      ? c.reasonOrg
+      : r.kind === "unit"
+        ? format(r.child ? c.reasonChildUnit : c.reasonUnit, { unit: tree.byId.get(r.unitId)?.name ?? "" })
+        : r.kind === "user"
+          ? c.reasonUser
+          : "";
 
   const header = (
     <CardHeader title={c.memberTitle} onClose={onClose}>
@@ -290,9 +314,21 @@ export function MemberSheet({ open, member, tree, pages, organizationId, me, myR
                           tree={tree}
                           disabled={new Set(myUnits)}
                           autoFocus
-                          onPick={(to) => run(() => moveUnitMember(organizationId, m.user_id, to, id), format(c.moved, { unit: path(to) }))}
+                          onPick={(to) => pickMoveTarget(to, id)}
                         />
                       </PickerBox>
+                    ) : null}
+                  </Collapse>
+                  <Collapse open={mode?.kind === "confirmMove" && mode.from === id}>
+                    {mode?.kind === "confirmMove" && mode.from === id ? (
+                      <Confirm
+                        text={format(c.moveConfirm, { name, from: label, unit: path(mode.to) })}
+                        note={childrenHint(tree, mode.to, name)}
+                        yes={c.moveYes}
+                        pending={pending}
+                        onYes={() => moveTo(mode.to, id)}
+                        onNo={() => setMode(null)}
+                      />
                     ) : null}
                   </Collapse>
                 </li>
@@ -314,11 +350,12 @@ export function MemberSheet({ open, member, tree, pages, organizationId, me, myR
                     <p className="text-[14px] text-ink">
                       {format(c.addOrMove, { name, units: myUnits.map((id) => `«${path(id)}»`).join(", "), unit: path(mode.unitId) })}
                     </p>
+                    {childrenHint(tree, mode.unitId, name) ? <p className="-mt-1 text-[12px] text-muted">{childrenHint(tree, mode.unitId, name)}</p> : null}
                     <div className="flex flex-col gap-2">
                       <button
                         type="button"
                         disabled={pending}
-                        onClick={() => run(() => addUnitMembers(organizationId, mode.unitId, [m.user_id]), format(c.added, { unit: path(mode.unitId) }))}
+                        onClick={() => addTo(mode.unitId)}
                         className={btnSecondary + " bg-white! hover:bg-neutral-100!"}
                       >
                         {c.addKeep}
@@ -326,7 +363,7 @@ export function MemberSheet({ open, member, tree, pages, organizationId, me, myR
                       <button
                         type="button"
                         disabled={pending}
-                        onClick={() => run(() => moveUnitMember(organizationId, m.user_id, mode.unitId, null), format(c.moved, { unit: path(mode.unitId) }))}
+                        onClick={() => moveTo(mode.unitId, null)}
                         className={btnPrimary}
                       >
                         {c.addMove}
@@ -338,7 +375,19 @@ export function MemberSheet({ open, member, tree, pages, organizationId, me, myR
                   </div>
                 ) : null}
               </Collapse>
-              {mode?.kind !== "addUnit" && mode?.kind !== "askAddOrMove" ? (
+              <Collapse open={mode?.kind === "confirmAdd"}>
+                {mode?.kind === "confirmAdd" ? (
+                  <Confirm
+                    text={format(c.addConfirm, { name, unit: path(mode.unitId) })}
+                    note={childrenHint(tree, mode.unitId, name)}
+                    yes={c.addYes}
+                    pending={pending}
+                    onYes={() => addTo(mode.unitId)}
+                    onNo={() => setMode(null)}
+                  />
+                ) : null}
+              </Collapse>
+              {mode?.kind !== "addUnit" && mode?.kind !== "askAddOrMove" && mode?.kind !== "confirmAdd" ? (
                 <AddButton label={c.addToUnit} onClick={() => setMode({ kind: "addUnit" })} />
               ) : null}
             </>
@@ -494,10 +543,27 @@ function PickerBox({ title, onCancel, children }: { title: string; onCancel: () 
   );
 }
 
-function Confirm({ text, yes, danger = false, pending, onYes, onNo }: { text: string; yes: string; danger?: boolean; pending: boolean; onYes: () => void; onNo: () => void }) {
+function Confirm({
+  text,
+  note = null,
+  yes,
+  danger = false,
+  pending,
+  onYes,
+  onNo,
+}: {
+  text: string;
+  note?: string | null; // мелкая подсказка под вопросом
+  yes: string;
+  danger?: boolean;
+  pending: boolean;
+  onYes: () => void;
+  onNo: () => void;
+}) {
   return (
     <div className={`mt-1 flex flex-col gap-3 rounded-2xl p-4 ${danger ? "bg-red-50" : "bg-surface"}`}>
       <p className={`text-[14px] ${danger ? "text-red-900" : "text-ink"}`}>{text}</p>
+      {note ? <p className="-mt-1 text-[12px] text-muted">{note}</p> : null}
       <div className="flex flex-wrap gap-2">
         <button type="button" disabled={pending} onClick={onYes} className={`${btnPrimary} h-10! ${danger ? "bg-red-700! hover:bg-red-800!" : ""}`}>
           {pending ? t.company.saving : yes}
