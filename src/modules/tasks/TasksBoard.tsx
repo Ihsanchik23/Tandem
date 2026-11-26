@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { format, t } from "@/lib/i18n";
 import type { ErrorKey } from "@/lib/i18n/ru";
@@ -69,7 +69,6 @@ function ArchiveIcon() {
 // Прямая ссылка на задачу — ?task=<id>: открывает её карточку (если есть доступ).
 export function TasksBoard({ pageId, me, role, readOnly, initialTasks, people }: Props) {
   const s = t.tasks;
-  const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
   const openId = params.get("task");
@@ -128,11 +127,13 @@ export function TasksBoard({ pageId, me, role, readOnly, initialTasks, people }:
   const shown = useMemo(() => sortTasks(filterTasks(inTab, effective, me, now ?? 0)), [inTab, effective, me, now]);
   const overdueCount = useMemo(() => (now === null ? 0 : active.filter((x) => isOverdue(x, now)).length), [active, now]);
 
+  // Карточка открывается сменой адреса без запроса к серверу (history API, Next его поддерживает):
+  // доска не перерисовывается заново, и панель плавно выезжает и уезжает.
   function openTask(task: Task) {
-    router.push(`${pathname}?task=${task.id}`, { scroll: false });
+    window.history.pushState(null, "", `${pathname}?task=${task.id}`);
   }
   function closeTask() {
-    router.replace(pathname, { scroll: false });
+    window.history.replaceState(null, "", pathname);
   }
 
   // Перенос по доске или кнопка статуса: сразу двигаем карточку, при ошибке возвращаем.

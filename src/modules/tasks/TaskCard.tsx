@@ -242,7 +242,7 @@ export function TaskCard({ open, taskId, task, people, peopleById, me, readOnly,
   const canArchive = !readOnly && rights?.canEdit === true;
 
   return (
-    <Sheet open={open} title={editing ? s.edit : (task?.title ?? s.notFound)} onClose={requestClose}>
+    <Sheet open={open} from="right" title={editing ? s.edit : (task?.title ?? s.notFound)} onClose={requestClose}>
       {!task ? (
         <p className="text-base text-ink">{taskId ? s.notFound : null}</p>
       ) : askClose ? (
