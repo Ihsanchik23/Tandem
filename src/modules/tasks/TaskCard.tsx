@@ -374,7 +374,7 @@ export function TaskCard({ open, taskId, task, people, peopleById, me, readOnly,
           ) : null}
 
           <Comments
-            key={task.id}
+            key={`comments-${task.id}`}
             taskId={task.id}
             me={me}
             comments={comments}
@@ -382,7 +382,7 @@ export function TaskCard({ open, taskId, task, people, peopleById, me, readOnly,
             now={now}
             onChanged={() => loadDetails(task.id)}
           />
-          <History key={task.id} events={events} people={peopleById} now={now} />
+          <History key={`history-${task.id}`} events={events} people={peopleById} now={now} />
         </div>
       )}
     </Sheet>
