@@ -21,8 +21,8 @@ export function WorkPanelSkeleton() {
           <div key={section} className="flex flex-col gap-1">
             <span className="mx-2.5 mb-1.5 h-3 w-24 rounded bg-neutral-200/70" />
             {Array.from({ length: rows }, (_, i) => (
-              <span key={i} className={`flex items-center gap-2.5 px-2.5 ${section === 0 ? "h-12" : "h-10"}`}>
-                <span className={`rounded bg-neutral-200/70 ${section === 0 ? "h-9 w-9 rounded-full" : "h-[18px] w-[18px]"}`} />
+              <span key={i} className="flex h-12 items-center gap-2.5 px-2.5">
+                <span className="h-9 w-9 rounded-full bg-neutral-200/70" />
                 <span className="h-3.5 w-32 rounded bg-neutral-200/70" />
               </span>
             ))}

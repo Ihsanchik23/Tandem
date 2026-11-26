@@ -10,7 +10,7 @@ import { ConfirmAction } from "@/components/ui/ConfirmAction";
 import { canCreatePage, isNewPage } from "@/modules/pages/logic";
 import { NewBadge } from "@/modules/pages/PagesList";
 import { useSeenPages } from "@/modules/pages/seen";
-import { ArchiveIcon, CompanyProfileIcon, PeopleIcon, PlusIcon, StructureIcon, WorkspacePageIcon } from "./icons";
+import { ArchiveIcon, ChatPageIcon, CompanyProfileIcon, PeopleIcon, PlusIcon, StructureIcon, TasksPageIcon } from "./icons";
 
 // Панель компании: карточка компании, разделы мелкими заглавными, под ними страницы со значками.
 // Разделы: «Рабочие страницы», «Моя компания», «Прочее» (архив).
@@ -21,14 +21,9 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
   const w = t.work;
   // На белой панели выбранный пункт выделяется светло-серой плашкой.
   const item = (active: boolean) =>
-    `flex h-10 items-center gap-2.5 rounded-xl px-2.5 text-[14px] text-ink transition-colors ${
-      active ? "bg-neutral-100 font-medium" : "hover:bg-neutral-50"
-    }`;
-  const pageItem = (active: boolean) =>
     `flex min-h-12 items-center gap-3 rounded-xl px-2.5 py-1.5 text-[14px] text-ink transition-colors ${
       active ? "bg-neutral-100 font-medium" : "hover:bg-neutral-50"
     }`;
-  const icon = "h-[18px] w-[18px] shrink-0";
 
   if (!data.company) {
     return (
@@ -86,9 +81,9 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
           {pages.length === 0 ? (
             <p className="px-2.5 py-1 text-[13px] text-muted">{w.noPages}</p>
           ) : (
-            pages.map((p, index) => (
-              <Link key={p.id} href={`/work/p/${p.id}`} onClick={onNavigate} className={pageItem(pathname.startsWith(`/work/p/${p.id}`))}>
-                <WorkspacePageIcon variant={index} className="h-9 w-9 shrink-0" />
+            pages.map((p) => (
+              <Link key={p.id} href={`/work/p/${p.id}`} onClick={onNavigate} className={item(pathname.startsWith(`/work/p/${p.id}`))}>
+                <RoundIcon tone="pages" Icon={p.moduleKey === "chat" ? ChatPageIcon : TasksPageIcon} />
                 <span className="min-w-0 flex-1 truncate">{p.name}</span>
                 {seen && isNewPage(p, seen) ? <NewBadge /> : null}
               </Link>
@@ -99,7 +94,7 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
         <Section title={w.menuMyCompany}>
           {links.map((l) => (
             <Link key={l.href} href={l.href} onClick={onNavigate} className={item(pathname.startsWith(l.href))}>
-              <l.Icon className={icon} />
+              <RoundIcon tone="company" Icon={l.Icon} />
               {l.label}
             </Link>
           ))}
@@ -108,7 +103,7 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
         {/* «Прочее» — отдельный раздел: служебные страницы, не рабочие и не «Моя компания». */}
         <Section title={w.menuOther}>
           <Link href="/work/archive" onClick={onNavigate} className={item(pathname.startsWith("/work/archive"))}>
-            <ArchiveIcon className={icon} />
+            <RoundIcon tone="other" Icon={ArchiveIcon} />
             {w.menuArchive}
           </Link>
         </Section>
@@ -128,6 +123,20 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
         )}
       </div>
     </div>
+  );
+}
+
+const tones = {
+  pages: "bg-[var(--branch-1-line)]",
+  company: "bg-[var(--branch-3-line)]",
+  other: "bg-[var(--branch-2-line)]",
+} as const;
+
+function RoundIcon({ tone, Icon }: { tone: keyof typeof tones; Icon: (props: { className?: string }) => React.ReactNode }) {
+  return (
+    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white ${tones[tone]}`}>
+      <Icon className="h-[21px] w-[21px]" />
+    </span>
   );
 }
 
