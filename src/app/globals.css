@@ -56,6 +56,50 @@
     transform: scale(0.96) translateY(-4px);
   }
 }
+/* Ползунок «от–до» (components/ui/filters, RangeSlider): два input range один над другим.
+   Дорожку рисует разметка; у самих input видны и ловят нажатия только бегунки. */
+.range-dual input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  margin: 0;
+  background: transparent;
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.range-dual input::-webkit-slider-runnable-track {
+  height: 24px;
+  background: transparent;
+}
+.range-dual input::-moz-range-track {
+  background: transparent;
+}
+.range-dual input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: auto;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  border-radius: 999px;
+  background: #fff;
+  border: 2px solid var(--tandem-accent);
+  box-shadow: 0 1px 4px rgba(30, 30, 30, 0.2);
+  cursor: grab;
+}
+.range-dual input::-moz-range-thumb {
+  pointer-events: auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #fff;
+  border: 2px solid var(--tandem-accent);
+  box-shadow: 0 1px 4px rgba(30, 30, 30, 0.2);
+  cursor: grab;
+}
+.range-dual input:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px rgba(191, 74, 49, 0.25);
+}
 /* Шторка снизу на телефоне. */
 @keyframes tandem-sheet-up {
   from {

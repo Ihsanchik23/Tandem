@@ -3,38 +3,46 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { pluralRu, t } from "@/lib/i18n";
+import { format, pluralRu, t } from "@/lib/i18n";
 import { Avatar } from "@/components/profile/Avatar";
 import { Button } from "@/components/ui/Button";
 import { FormMessage } from "@/components/ui/FormMessage";
 import { SearchIcon } from "@/components/nav/icons";
-import { ActiveFilters, ChoiceChips, FilterMenu, FilterSection, OptionList, type Option } from "@/components/ui/filters/FilterMenu";
-import { CITIES } from "./cities";
+import { FilterMenu, FilterSection, RangeSlider } from "@/components/ui/filters/FilterMenu";
 import {
   runSearch,
   type CompanyRow,
   type PersonRow,
   type SearchResult,
-  type StaffSize,
   type Tab,
 } from "./search";
 
 const DEBOUNCE_MS = 300;
-const STAFF_SIZES: StaffSize[] = ["all", "0-10", "11-50", "51-200", "201+"];
+// Шкала ползунка численности: в начале шаг мелкий, дальше крупнее. Крайние точки — «без границы».
+const STAFF_STEPS = [0, 1, 2, 3, 5, 10, 15, 20, 30, 50, 75, 100, 150, 200, 300, 500, 1000];
+const LAST = STAFF_STEPS.length - 1;
 
 type State = { key: string; result: SearchResult | null; error: boolean };
 type Selection = { person: string | null; company: string | null };
 
-function readStaffSize(value: string | null): StaffSize {
-  return STAFF_SIZES.find((size) => size === value) ?? "all";
+type Staff = [number, number]; // индексы в STAFF_STEPS: [от, до]
+
+function readStaff(min: string | null, max: string | null): Staff {
+  const at = (v: string | null, fallback: number) => {
+    const i = v === null ? -1 : STAFF_STEPS.indexOf(Number(v));
+    return i >= 0 ? i : fallback;
+  };
+  const lo = at(min, 0);
+  const hi = at(max, LAST);
+  return lo <= hi ? [lo, hi] : [0, LAST];
 }
 
-function catalogUrl(pathname: string, tab: Tab, query: string, city: string, staffSize: StaffSize, selection: Selection) {
+function catalogUrl(pathname: string, tab: Tab, query: string, staff: Staff, selection: Selection) {
   const next = new URLSearchParams();
   if (tab === "people") next.set("tab", "people");
   if (query.trim()) next.set("q", query.trim());
-  if (city.trim()) next.set("city", city.trim());
-  if (staffSize !== "all") next.set("size", staffSize);
+  if (staff[0] > 0) next.set("min", String(STAFF_STEPS[staff[0]]));
+  if (staff[1] < LAST) next.set("max", String(STAFF_STEPS[staff[1]]));
   if (selection.person) next.set("person", selection.person);
   else if (selection.company) next.set("company", selection.company);
   const qs = next.toString();
@@ -48,17 +56,17 @@ export function Catalog() {
   const pathname = usePathname();
   const [tab, setTab] = useState<Tab>(params.get("tab") === "people" ? "people" : "companies");
   const [query, setQuery] = useState(params.get("q") ?? "");
-  const [city, setCity] = useState(params.get("city") ?? "");
-  const [staffSize, setStaffSize] = useState<StaffSize>(readStaffSize(params.get("size")));
-  // Фильтры (город, размер) применяются сразу; текст поиска — после короткой паузы в наборе.
+  const [staff, setStaff] = useState<Staff>(readStaff(params.get("min"), params.get("max")));
+  // Ползунок применяется сразу; текст поиска — после короткой паузы в наборе.
   const [appliedQuery, setAppliedQuery] = useState(query);
   const [state, setState] = useState<State>({ key: "", result: null, error: false });
   const [loadingMore, setLoadingMore] = useState(false);
   const selectionRef = useRef<Selection>({ person: params.get("person"), company: params.get("company") });
   const selectedPerson = params.get("person");
   const selectedCompany = params.get("company");
-  const applied = { query: appliedQuery, city, staffSize };
-  const key = `${tab}|${appliedQuery.trim()}|${city.trim()}|${staffSize}`;
+  const minMembers = staff[0] > 0 ? STAFF_STEPS[staff[0]] : null;
+  const maxMembers = staff[1] < LAST ? STAFF_STEPS[staff[1]] : null;
+  const key = `${tab}|${appliedQuery.trim()}|${minMembers}|${maxMembers}`;
   const latestKey = useRef(key);
 
   useEffect(() => {
@@ -69,29 +77,29 @@ export function Catalog() {
   useEffect(() => {
     const id = setTimeout(() => {
       setAppliedQuery(query);
-      router.replace(catalogUrl(pathname, tab, query, city, staffSize, selectionRef.current), { scroll: false });
+      router.replace(catalogUrl(pathname, tab, query, staff, selectionRef.current), { scroll: false });
     }, DEBOUNCE_MS);
     return () => clearTimeout(id);
-  }, [tab, query, city, staffSize, pathname, router]);
+  }, [tab, query, staff, pathname, router]);
 
   useEffect(() => {
     latestKey.current = key;
     let cancelled = false;
-    runSearch(tab, applied.query, { city: applied.city, staffSize: applied.staffSize }, 0).then(
+    runSearch(tab, appliedQuery, { minMembers, maxMembers }, 0).then(
       (result) => !cancelled && setState({ key, result, error: false }),
       () => !cancelled && setState({ key, result: null, error: true }),
     );
     return () => {
       cancelled = true;
     };
-  }, [key, tab, applied.query, applied.city, applied.staffSize]);
+  }, [key, tab, appliedQuery, minMembers, maxMembers]);
 
   async function loadMore() {
     if (!state.result || loadingMore) return;
     const startKey = key;
     setLoadingMore(true);
     try {
-      const more = await runSearch(tab, applied.query, { city: applied.city, staffSize: applied.staffSize }, state.result.items.length);
+      const more = await runSearch(tab, appliedQuery, { minMembers, maxMembers }, state.result.items.length);
       if (latestKey.current !== startKey) return;
       setState((current) =>
         current.result && current.result.tab === more.tab
@@ -109,7 +117,7 @@ export function Catalog() {
     if (value === tab) return;
     selectionRef.current = { person: null, company: null };
     setTab(value);
-    router.replace(catalogUrl(pathname, value, query, city, staffSize, selectionRef.current), { scroll: false });
+    router.replace(catalogUrl(pathname, value, query, staff, selectionRef.current), { scroll: false });
   }
 
   function openPreview(event: MouseEvent<HTMLAnchorElement>, kind: "person" | "company", value: string) {
@@ -123,26 +131,18 @@ export function Catalog() {
     ) return;
     event.preventDefault();
     selectionRef.current = kind === "person" ? { person: value, company: null } : { person: null, company: value };
-    router.push(catalogUrl(pathname, tab, query, city, staffSize, selectionRef.current), { scroll: false });
+    router.push(catalogUrl(pathname, tab, query, staff, selectionRef.current), { scroll: false });
   }
 
   const c = t.catalog;
   const loading = state.key !== key;
   const result = loading ? null : state.result;
-  const cityValue = city.trim();
-  const sizeOn = tab === "companies" && staffSize !== "all";
-  const filterCount = (cityValue ? 1 : 0) + (sizeOn ? 1 : 0);
-  const resetFilters = () => {
-    setCity("");
-    setStaffSize("all");
-  };
-  const sizeLabels: Record<StaffSize, string> = {
-    all: c.staffAny,
-    "0-10": c.staffUpTo10,
-    "11-50": c.staff11To50,
-    "51-200": c.staff51To200,
-    "201+": c.staff201Plus,
-  };
+  const staffOn = tab === "companies" && (minMembers !== null || maxMembers !== null);
+  const staffLabel = (i: number) => (i === LAST ? `${STAFF_STEPS[LAST]}+` : String(STAFF_STEPS[i]));
+  const staffText =
+    minMembers === null && maxMembers === null
+      ? c.staffAny
+      : format(c.staffRange, { from: staffLabel(staff[0]), to: staffLabel(staff[1]) });
 
   return (
     <div className="flex min-w-0 flex-col">
@@ -177,41 +177,21 @@ export function Catalog() {
             className="h-11 w-full rounded-full border-0 bg-neutral-100 pl-12 pr-4 text-base text-ink placeholder:text-neutral-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent"
           />
         </label>
-        <FilterMenu count={filterCount} onReset={resetFilters} compact large>
-          <FilterSection title={c.city} value={cityValue || c.cityAny}>
-            <OptionList
-              label={c.city}
-              searchPlaceholder={c.citySearch}
-              options={cityOptions(cityValue, c.cityAny)}
-              value={cityValue}
-              onChange={setCity}
-              freeText={(q) => q}
-            />
-          </FilterSection>
-          {tab === "companies" ? (
-            <FilterSection title={c.staffSize}>
-              <ChoiceChips
+        {/* Фильтр есть только у компаний: численность ползунком «от–до». */}
+        {tab === "companies" ? (
+          <FilterMenu count={staffOn ? 1 : 0} onReset={() => setStaff([0, LAST])} iconOnly>
+            <FilterSection title={c.staffSize} value={staffText}>
+              <RangeSlider
                 label={c.staffSize}
-                options={STAFF_SIZES.map((size) => ({ value: size, label: sizeLabels[size] }))}
-                value={staffSize}
-                onChange={setStaffSize}
+                max={LAST}
+                value={staff}
+                onChange={setStaff}
+                format={staffLabel}
               />
             </FilterSection>
-          ) : null}
-        </FilterMenu>
+          </FilterMenu>
+        ) : null}
       </div>
-
-      {filterCount > 0 ? (
-        <div className="-mt-2 mb-4">
-          <ActiveFilters
-            items={[
-              ...(cityValue ? [{ key: "city", label: cityValue, onRemove: () => setCity("") }] : []),
-              ...(sizeOn ? [{ key: "size", label: `${c.staffSize}: ${sizeLabels[staffSize]}`, onRemove: () => setStaffSize("all") }] : []),
-            ]}
-            onResetAll={resetFilters}
-          />
-        </div>
-      ) : null}
 
       <div id="catalog-results" role="tabpanel" aria-label={tab === "people" ? c.people : c.companies}>
         {state.error && !loading ? <FormMessage kind="error">{t.errors.searchFailed}</FormMessage> : null}
@@ -243,16 +223,6 @@ export function Catalog() {
       ) : null}
     </div>
   );
-}
-
-// Варианты города: «Любой», выбранный сейчас (если его нет в подсказках), подсказки.
-function cityOptions(current: string, anyLabel: string): Option<string>[] {
-  const known = CITIES.some((x) => x.toLocaleLowerCase("ru") === current.toLocaleLowerCase("ru"));
-  return [
-    { value: "", label: anyLabel },
-    ...(current && !known ? [{ value: current, label: current }] : []),
-    ...CITIES.map((x) => ({ value: x, label: x })),
-  ];
 }
 
 type OpenPreview = (event: MouseEvent<HTMLAnchorElement>, kind: "person" | "company", value: string) => void;

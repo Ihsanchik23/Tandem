@@ -15,6 +15,7 @@ export function FilterMenu({
   align = "right",
   compact = false,
   large = false,
+  iconOnly = false,
   children,
 }: {
   /** Сколько фильтров выбрано — число на кнопке и «Сбросить» в шапке. */
@@ -26,6 +27,8 @@ export function FilterMenu({
   compact?: boolean;
   /** Высота кнопки 44 px — рядом с крупной строкой поиска. */
   large?: boolean;
+  /** Круглая кнопка 44 px только со значком (каталог); включённый фильтр — тёмная кнопка. */
+  iconOnly?: boolean;
   children: React.ReactNode;
 }) {
   const f = t.ui.filters;
@@ -50,24 +53,40 @@ export function FilterMenu({
 
   return (
     <div ref={box} className="relative shrink-0">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        aria-controls={panelId}
-        aria-label={count > 0 ? `${f.title}: ${count}` : f.title}
-        className={`inline-flex items-center gap-2 rounded-full border px-3 ${large ? "h-11 min-w-11 justify-center" : "h-10"} text-[13px] font-medium text-ink transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
-          compact ? "" : "md:px-3.5"
-        } ${open ? "border-ink/80 bg-white" : "border-line bg-white hover:border-neutral-300 hover:bg-surface"}`}
-      >
-        <FilterIcon className="h-[18px] w-[18px] shrink-0" />
-        <span className={compact ? "sr-only md:not-sr-only" : ""}>{f.title}</span>
-        {count > 0 ? (
-          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-semibold tabular-nums text-white">
-            {count}
-          </span>
-        ) : null}
-      </button>
+      {iconOnly ? (
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          aria-controls={panelId}
+          aria-label={f.title}
+          title={f.title}
+          className={`flex h-11 w-11 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+            count > 0 ? "bg-ink text-white" : "bg-neutral-100 text-ink hover:bg-neutral-200"
+          }`}
+        >
+          <FilterIcon className="h-5 w-5" />
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          aria-controls={panelId}
+          aria-label={count > 0 ? `${f.title}: ${count}` : f.title}
+          className={`inline-flex items-center gap-2 rounded-full border px-3 ${large ? "h-11 min-w-11 justify-center" : "h-10"} text-[13px] font-medium text-ink transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
+            compact ? "" : "md:px-3.5"
+          } ${open ? "border-ink/80 bg-white" : "border-line bg-white hover:border-neutral-300 hover:bg-surface"}`}
+        >
+          <FilterIcon className="h-[18px] w-[18px] shrink-0" />
+          <span className={compact ? "sr-only md:not-sr-only" : ""}>{f.title}</span>
+          {count > 0 ? (
+            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-semibold tabular-nums text-white">
+              {count}
+            </span>
+          ) : null}
+        </button>
+      )}
 
       {open ? (
         <>
@@ -296,6 +315,65 @@ export function ActiveFilters({ items, onResetAll }: { items: { key: string; lab
           {f.resetAll}
         </button>
       ) : null}
+    </div>
+  );
+}
+
+// Диапазон «от–до» двумя бегунками; значения — индексы шкалы 0…max, подписи даёт format.
+// Применяется сразу при перетаскивании. Два обычных <input type="range"> один над другим:
+// работают и мышью, и пальцем, и с клавиатуры (стрелки).
+export function RangeSlider({
+  label,
+  max,
+  value,
+  onChange,
+  format: fmt,
+}: {
+  label: string;
+  max: number;
+  value: [number, number];
+  onChange: (v: [number, number]) => void;
+  format: (i: number) => string;
+}) {
+  const [lo, hi] = value;
+  const pct = (i: number) => (i / max) * 100;
+  return (
+    <div className="flex flex-col gap-2 pt-1">
+      <div className="range-dual relative h-6">
+        <span aria-hidden className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-neutral-200" />
+        <span
+          aria-hidden
+          className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-accent"
+          style={{ left: `${pct(lo)}%`, right: `${100 - pct(hi)}%` }}
+        />
+        <input
+          type="range"
+          min={0}
+          max={max}
+          step={1}
+          value={lo}
+          aria-label={`${label}: ${t.ui.filters.from}`}
+          aria-valuetext={fmt(lo)}
+          onChange={(e) => onChange([Math.min(Number(e.target.value), hi), hi])}
+          // Нижний бегунок сверху, когда оба у правого края, — иначе его не сдвинуть.
+          style={{ zIndex: lo >= max - 1 ? 3 : 2 }}
+        />
+        <input
+          type="range"
+          min={0}
+          max={max}
+          step={1}
+          value={hi}
+          aria-label={`${label}: ${t.ui.filters.to}`}
+          aria-valuetext={fmt(hi)}
+          onChange={(e) => onChange([lo, Math.max(Number(e.target.value), lo)])}
+          style={{ zIndex: 2 }}
+        />
+      </div>
+      <div className="flex justify-between text-[12px] tabular-nums text-muted">
+        <span>{fmt(0)}</span>
+        <span>{fmt(max)}</span>
+      </div>
     </div>
   );
 }
