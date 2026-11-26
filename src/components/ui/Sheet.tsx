@@ -6,13 +6,14 @@ import { t } from "@/lib/i18n";
 // Панель поверх экрана: на компьютере — справа, на телефоне — на весь экран.
 // from="bottom" (по умолчанию): на телефоне выезжает снизу; from="right" — справа на любом экране
 // (карточка задачи). Всегда в разметке, чтобы плавно и выезжать, и уезжать; закрытая — невидима и недоступна.
-// header — своя шапка вместо стандартной (заголовок + «Закрыть»).
+// header — своя шапка вместо стандартной (заголовок + «Закрыть»); footer — закреплённый низ (кнопки).
 export function Sheet({
   open,
   title,
   onClose,
   from = "bottom",
   header,
+  footer,
   children,
 }: {
   open: boolean;
@@ -20,6 +21,7 @@ export function Sheet({
   onClose: () => void;
   from?: "bottom" | "right";
   header?: React.ReactNode;
+  footer?: React.ReactNode;
   children: React.ReactNode;
 }) {
   useEffect(() => {
@@ -77,7 +79,12 @@ export function Sheet({
             </button>
           </header>
         )}
-        <div className="flex-1 overflow-y-auto px-5 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-3">{children}</div>
+        <div className={`flex-1 overflow-y-auto px-5 pt-3 ${footer ? "pb-6" : "pb-[calc(2rem+env(safe-area-inset-bottom))]"}`}>{children}</div>
+        {footer ? (
+          <footer className="flex shrink-0 items-center justify-end gap-2 border-t border-line bg-white px-5 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+            {footer}
+          </footer>
+        ) : null}
       </section>
     </div>
   );

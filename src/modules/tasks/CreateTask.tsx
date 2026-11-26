@@ -3,13 +3,15 @@
 import { useState, useTransition } from "react";
 import { t } from "@/lib/i18n";
 import type { ErrorKey } from "@/lib/i18n/ru";
-import { Button } from "@/components/ui/Button";
 import { FormMessage } from "@/components/ui/FormMessage";
 import { Sheet } from "@/components/ui/Sheet";
 import { createTask, setStatus } from "./api";
 import type { PagePerson } from "./data";
 import { joinLocalDateTime, splitLocalDateTime, validateTask, type TaskFieldErrors, type TaskStatus } from "./logic";
+import { btnPrimary, btnSecondary, CardHeader } from "./parts";
 import { TaskForm, type TaskFormValue } from "./TaskForm";
+
+const FORM_ID = "create-task-form";
 
 // По умолчанию дедлайн — завтра в 18:00 по времени телефона.
 function emptyForm(): TaskFormValue {
@@ -70,20 +72,34 @@ export function CreateTask({
     });
   }
 
+  const title = status === "todo" ? s.createTitle : `${s.createTitle} · ${s.status[status]}`;
+  const close = () => {
+    if (!pending) onClose();
+  };
+
+  // Выглядит как карточка просмотра: выезжает справа, компактная шапка, кнопки закреплены внизу.
   return (
     <Sheet
       open={open}
-      title={status === "todo" ? s.createTitle : `${s.createTitle} · ${s.status[status]}`}
-      onClose={() => {
-        if (!pending) onClose();
-      }}
+      from="right"
+      title={title}
+      onClose={close}
+      header={<CardHeader title={<span className="text-[15px] font-semibold text-ink">{title}</span>} onClose={close} />}
+      footer={
+        <>
+          <button type="button" onClick={close} disabled={pending} className={btnSecondary}>
+            {s.cancel}
+          </button>
+          <button type="submit" form={FORM_ID} disabled={pending} className={`${btnPrimary} flex-1 md:flex-none`}>
+            {pending ? s.creating : s.createSubmit}
+          </button>
+        </>
+      }
     >
-      <form onSubmit={submit} className="flex flex-col gap-4" noValidate>
+      <form id={FORM_ID} onSubmit={submit} className="flex flex-col gap-4 pt-2" noValidate>
+        {/* Ошибки полей — под самими полями; здесь только общие (сеть, нет прав и т. п.). */}
+        {error && error !== "fixFields" && !errors.due && !errors.assignee ? <FormMessage kind="error">{t.errors[error]}</FormMessage> : null}
         <TaskForm value={form} onChange={setForm} people={people} me={me} mode="create" errors={errors} />
-        {error ? <FormMessage kind="error">{t.errors[error]}</FormMessage> : null}
-        <Button type="submit" pending={pending} pendingText={s.creating}>
-          {s.createSubmit}
-        </Button>
       </form>
     </Sheet>
   );

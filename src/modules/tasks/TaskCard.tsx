@@ -8,12 +8,13 @@ import { FormMessage } from "@/components/ui/FormMessage";
 import { Sheet } from "@/components/ui/Sheet";
 import { subscribeLive } from "@/lib/supabase/realtime";
 import { setArchived, setAssignees, supabase, taskRights, updateTask } from "./api";
-import { ArchiveBoxIcon, IconButton, LinkIcon, PencilIcon, RestoreIcon, XIcon } from "@/components/ui/IconButton";
+import { ArchiveBoxIcon, IconButton, LinkIcon, PencilIcon, RestoreIcon } from "@/components/ui/IconButton";
 import { MoreMenu } from "@/components/ui/MoreMenu";
 import { CalendarIcon, DueLabel, PersonChip, PriorityBadge, STATUS_DOT } from "./bits";
 import { Comments } from "./Comments";
 import { fetchComments, fetchEvents, fetchProfileName, fetchTask, type PagePerson, type TaskComment, type TaskEvent } from "./data";
 import { History } from "./History";
+import { AuthorIcon, btnPrimary, btnSecondary, CardHeader, CheckCircleIcon, ClockIcon, FlagIcon, Prop, TextIcon, UserIcon, UsersIcon } from "./parts";
 import {
   cleanCoassignees,
   joinLocalDateTime,
@@ -249,18 +250,20 @@ export function TaskCard({ open, taskId, task, people, peopleById, me, readOnly,
   // Шапка: слева — где я (задача и её статус), справа — компактные действия с подсказками,
   // меню «⋯» (второстепенное) и «Закрыть».
   const header = (
-    <header className="relative z-10 flex h-14 shrink-0 items-center gap-1 border-b border-line px-3 pl-5 pt-[env(safe-area-inset-top)] box-content">
-      <p className="min-w-0 flex-1 truncate text-[13px] text-muted">
-        {editing ? (
-          <span className="font-medium text-ink">{s.editTitle}</span>
+    <CardHeader
+      onClose={requestClose}
+      title={
+        editing ? (
+          <span className="text-[15px] font-semibold text-ink">{s.editTitle}</span>
         ) : task ? (
           <span className="inline-flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full" style={{ background: STATUS_DOT[task.status] }} aria-hidden />
             {s.status[task.status]}
             {archived ? <span className="text-muted">· {s.archivedNotice}</span> : null}
           </span>
-        ) : null}
-      </p>
+        ) : null
+      }
+    >
       {showActions && canEdit ? (
         <IconButton label={s.edit} onClick={startEdit}>
           <PencilIcon />
@@ -271,18 +274,25 @@ export function TaskCard({ open, taskId, task, people, peopleById, me, readOnly,
           {archived ? <RestoreIcon /> : <ArchiveBoxIcon />}
         </IconButton>
       ) : null}
-      {showActions ? (
-        <MoreMenu items={[{ key: "link", label: s.copyLink, icon: <LinkIcon />, onSelect: copyLink }]} />
-      ) : null}
-      <span aria-hidden className="mx-1 h-5 w-px bg-line" />
-      <IconButton label={t.ui.close} tip="end" onClick={requestClose}>
-        <XIcon />
-      </IconButton>
-    </header>
+      {showActions ? <MoreMenu items={[{ key: "link", label: s.copyLink, icon: <LinkIcon />, onSelect: copyLink }]} /> : null}
+    </CardHeader>
   );
 
+  // Режим правки: «Отмена» и «Сохранить» закреплены внизу панели.
+  const footer =
+    task && editing && !askClose ? (
+      <>
+        <button type="button" onClick={requestClose} disabled={pending} className={btnSecondary}>
+          {s.cancel}
+        </button>
+        <button type="button" onClick={save} disabled={pending || !dirty} className={`${btnPrimary} flex-1 md:flex-none`}>
+          {pending ? s.saving : s.save}
+        </button>
+      </>
+    ) : null;
+
   return (
-    <Sheet open={open} from="right" title={editing ? s.editTitle : (task?.title ?? s.notFound)} onClose={requestClose} header={header}>
+    <Sheet open={open} from="right" title={editing ? s.editTitle : (task?.title ?? s.notFound)} onClose={requestClose} header={header} footer={footer}>
       {!task ? (
         <p className="text-base text-ink">{taskId ? s.notFound : null}</p>
       ) : askClose ? (
@@ -304,17 +314,10 @@ export function TaskCard({ open, taskId, task, people, peopleById, me, readOnly,
           </Button>
         </div>
       ) : editing ? (
-        <div className="flex flex-col gap-4">
-          {error ? <FormMessage kind="error">{t.errors[error]}</FormMessage> : null}
+        <div className="flex flex-col gap-4 pt-2">
+          {/* Ошибки полей — под самими полями; здесь только общие (сеть, конфликт версий). */}
+          {error && error !== "fixFields" && !errors.assignee ? <FormMessage kind="error">{t.errors[error]}</FormMessage> : null}
           <TaskForm value={form} onChange={setForm} people={people} me={me} mode="edit" errors={errors} />
-          <div className="sticky bottom-0 -mx-5 flex gap-2 border-t border-neutral-200 bg-white px-5 py-3">
-            <Button type="button" onClick={save} pending={pending} pendingText={s.saving} disabled={!dirty}>
-              {s.save}
-            </Button>
-            <Button type="button" variant="secondary" onClick={requestClose} disabled={pending}>
-              {s.cancel}
-            </Button>
-          </div>
         </div>
       ) : (
         <div className="flex flex-col gap-7 pt-2">
@@ -389,19 +392,6 @@ export function TaskCard({ open, taskId, task, people, peopleById, me, readOnly,
   );
 }
 
-// Строка свойства: иконка + название (серым) и значение.
-function Prop({ icon, label, top = false, children }: { icon: React.ReactNode; label: string; top?: boolean; children: React.ReactNode }) {
-  return (
-    <>
-      <dt className={`flex min-h-10 items-center gap-2.5 text-muted ${top ? "self-start" : ""}`}>
-        <span className="flex h-5 w-5 shrink-0 items-center justify-center">{icon}</span>
-        <span className="truncate">{label}</span>
-      </dt>
-      <dd className="flex min-h-10 min-w-0 items-center text-ink">{children}</dd>
-    </>
-  );
-}
-
 // Статус — сегментированный контрол: плашка плавно переезжает к выбранному.
 function StatusControl({ status, disabled, onChange }: { status: TaskStatus; disabled: boolean; onChange: (s: TaskStatus) => void }) {
   const s = t.tasks;
@@ -435,50 +425,3 @@ function StatusControl({ status, disabled, onChange }: { status: TaskStatus; dis
     </div>
   );
 }
-
-function PropSvg({ children }: { children: React.ReactNode }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="h-[17px] w-[17px]" aria-hidden>
-      {children}
-    </svg>
-  );
-}
-const FlagIcon = () => (
-  <PropSvg>
-    <path d="M5 21V4M5 4h11l-2 4 2 4H5" />
-  </PropSvg>
-);
-const UserIcon = () => (
-  <PropSvg>
-    <circle cx="12" cy="8" r="3.5" />
-    <path d="M5 20a7 7 0 0 1 14 0" />
-  </PropSvg>
-);
-const UsersIcon = () => (
-  <PropSvg>
-    <circle cx="9" cy="8.5" r="3" />
-    <path d="M3.5 19.5a5.5 5.5 0 0 1 11 0M16 5.5a3 3 0 0 1 0 6M17.5 14.2a5 5 0 0 1 3 4.8" />
-  </PropSvg>
-);
-const AuthorIcon = () => (
-  <PropSvg>
-    <path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-4-4L4 16v4z" />
-  </PropSvg>
-);
-const ClockIcon = () => (
-  <PropSvg>
-    <circle cx="12" cy="12" r="8.5" />
-    <path d="M12 7.5V12l3 2" />
-  </PropSvg>
-);
-const CheckCircleIcon = () => (
-  <PropSvg>
-    <circle cx="12" cy="12" r="8.5" />
-    <path d="m8.5 12.3 2.4 2.4 4.8-5" />
-  </PropSvg>
-);
-const TextIcon = () => (
-  <PropSvg>
-    <path d="M5 6h14M5 11h14M5 16h9" />
-  </PropSvg>
-);
