@@ -10,7 +10,8 @@ import { ConfirmAction } from "@/components/ui/ConfirmAction";
 import { canCreatePage, isNewPage } from "@/modules/pages/logic";
 import { NewBadge } from "@/modules/pages/PagesList";
 import { useSeenPages } from "@/modules/pages/seen";
-import { ArchiveIcon, ChatPageIcon, CompanyProfileIcon, PeopleIcon, PlusIcon, StructureIcon, TasksPageIcon } from "./icons";
+import { PlusIcon } from "./icons";
+import { SidebarGlyph, type SidebarGlyphKind } from "./SidebarGlyph";
 
 // Панель компании: карточка компании, разделы мелкими заглавными, под ними страницы со значками.
 // Разделы: «Рабочие страницы», «Моя компания», «Прочее» (архив).
@@ -21,7 +22,7 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
   const w = t.work;
   // На белой панели выбранный пункт выделяется светло-серой плашкой.
   const item = (active: boolean) =>
-    `flex min-h-12 items-center gap-3 rounded-xl px-2.5 py-1.5 text-[14px] text-ink transition-colors ${
+    `flex min-h-14 items-center gap-3 rounded-xl px-2.5 py-1.5 text-[14px] text-ink transition-colors ${
       active ? "bg-neutral-100 font-medium" : "hover:bg-neutral-50"
     }`;
 
@@ -41,13 +42,13 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
 
   const { company, pages } = data;
   const links = [
-    { href: `/c/${company.slug}`, label: w.menuProfile, Icon: CompanyProfileIcon },
-    { href: "/work/structure", label: w.menuStructure, Icon: StructureIcon },
-    { href: "/work/people", label: w.menuPeople, Icon: PeopleIcon },
-  ];
+    { href: `/c/${company.slug}`, label: w.menuProfile, kind: "profile" },
+    { href: "/work/structure", label: w.menuStructure, kind: "structure" },
+    { href: "/work/people", label: w.menuPeople, kind: "people" },
+  ] as const;
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col bg-white">
       {/* Карточка компании: логотип, название, моя роль. */}
       <div className="px-3 pb-2 pt-4">
         <div className="flex items-center gap-2.5 rounded-2xl border border-neutral-100 bg-white p-2.5 pr-12 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
@@ -83,7 +84,7 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
           ) : (
             pages.map((p) => (
               <Link key={p.id} href={`/work/p/${p.id}`} onClick={onNavigate} className={item(pathname.startsWith(`/work/p/${p.id}`))}>
-                <RoundIcon tone="pages" Icon={p.moduleKey === "chat" ? ChatPageIcon : TasksPageIcon} />
+                <RoundIcon tone="pages" kind={p.moduleKey === "chat" ? "chat" : "tasks"} />
                 <span className="min-w-0 flex-1 truncate">{p.name}</span>
                 {seen && isNewPage(p, seen) ? <NewBadge /> : null}
               </Link>
@@ -94,7 +95,7 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
         <Section title={w.menuMyCompany}>
           {links.map((l) => (
             <Link key={l.href} href={l.href} onClick={onNavigate} className={item(pathname.startsWith(l.href))}>
-              <RoundIcon tone="company" Icon={l.Icon} />
+              <RoundIcon tone="company" kind={l.kind} />
               {l.label}
             </Link>
           ))}
@@ -103,7 +104,7 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
         {/* «Прочее» — отдельный раздел: служебные страницы, не рабочие и не «Моя компания». */}
         <Section title={w.menuOther}>
           <Link href="/work/archive" onClick={onNavigate} className={item(pathname.startsWith("/work/archive"))}>
-            <RoundIcon tone="other" Icon={ArchiveIcon} />
+            <RoundIcon tone="other" kind="archive" />
             {w.menuArchive}
           </Link>
         </Section>
@@ -127,15 +128,16 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
 }
 
 const tones = {
-  pages: "bg-[var(--branch-1-line)]",
-  company: "bg-[var(--branch-3-line)]",
-  other: "bg-[var(--branch-2-line)]",
+  pages: "var(--branch-1-line)",
+  company: "var(--branch-3-line)",
+  other: "var(--branch-2-line)",
 } as const;
 
-function RoundIcon({ tone, Icon }: { tone: keyof typeof tones; Icon: (props: { className?: string }) => React.ReactNode }) {
+function RoundIcon({ tone, kind }: { tone: keyof typeof tones; kind: SidebarGlyphKind }) {
+  const color = tones[tone];
   return (
-    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white ${tones[tone]}`}>
-      <Icon className="h-[21px] w-[21px]" />
+    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: color }}>
+      <SidebarGlyph kind={kind} cutout={color} />
     </span>
   );
 }

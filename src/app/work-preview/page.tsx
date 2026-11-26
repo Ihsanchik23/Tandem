@@ -21,7 +21,7 @@ export default function WorkPreview() {
   if (process.env.NODE_ENV !== "development") notFound();
 
   return (
-    <div className="flex min-h-dvh flex-col pb-16 md:pb-0 md:pl-16">
+    <div className="flex min-h-dvh flex-col bg-white pb-16 md:pb-0 md:pl-16">
       <AppNavView pathname="/work" myUsername={previewData.username} />
       <div className="flex flex-1">
         <WorkPanel data={previewData} />
