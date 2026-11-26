@@ -382,7 +382,7 @@ export function TaskCard({ open, taskId, task, people, peopleById, me, readOnly,
             now={now}
             onChanged={() => loadDetails(task.id)}
           />
-          <History events={events} people={peopleById} now={now} />
+          <History key={task.id} events={events} people={peopleById} now={now} />
         </div>
       )}
     </Sheet>
