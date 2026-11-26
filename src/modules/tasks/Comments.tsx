@@ -1,18 +1,20 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { t } from "@/lib/i18n";
+import { format, t } from "@/lib/i18n";
 import type { ErrorKey } from "@/lib/i18n/ru";
 import { Avatar } from "@/components/profile/Avatar";
-import { Button } from "@/components/ui/Button";
 import { FormMessage } from "@/components/ui/FormMessage";
+import { IconButton, PencilIcon, TrashIcon } from "@/components/ui/IconButton";
+import { MoreMenu } from "@/components/ui/MoreMenu";
 import { addComment, deleteComment, editComment } from "./api";
 import type { TaskComment } from "./data";
 import { TASK_LIMITS, validateComment } from "./logic";
 import { formatAgo } from "./time";
 
-const areaClass =
-  "min-h-20 w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-ink placeholder:text-neutral-400 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent";
+// Сначала видны только последние комментарии; «Показать ещё» раскрывает по 5 более ранних.
+const FIRST = 3;
+const STEP = 5;
 
 // Комментарии: пишут автор, ответственный, соисполнители и руководители (решает база).
 // Свой комментарий можно изменить и удалить. Ссылки — обычным текстом, файлов нет.
@@ -35,6 +37,7 @@ export function Comments({
   const [body, setBody] = useState("");
   const [error, setError] = useState<ErrorKey | null>(null);
   const [pending, start] = useTransition();
+  const [limit, setLimit] = useState(FIRST);
 
   function send() {
     const invalid = validateComment(body);
@@ -48,38 +51,71 @@ export function Comments({
     });
   }
 
+  const total = comments?.filter((c) => !c.deletedAt).length ?? 0;
+  const hidden = comments ? Math.max(0, comments.length - limit) : 0;
+  const shown = comments ? comments.slice(hidden) : [];
+
   return (
-    <section className="flex flex-col gap-3">
-      <h3 className="text-base font-semibold text-ink">{s.comments}</h3>
+    <section className="flex flex-col gap-4">
+      <h3 className="flex items-center gap-2 text-[15px] font-semibold text-ink">
+        {s.comments}
+        {total > 0 ? <span className="rounded-full bg-surface px-2 py-0.5 text-[12px] font-medium tabular-nums text-muted">{total}</span> : null}
+      </h3>
+
       {comments === null ? (
-        <p className="text-sm text-ink">{s.loading}</p>
+        <p className="text-sm text-muted">{s.loading}</p>
       ) : comments.length === 0 ? (
-        <p className="text-sm text-ink">{s.commentsEmpty}</p>
+        <p className="text-sm text-muted">{s.commentsEmpty}</p>
       ) : (
-        <ul className="flex flex-col gap-3">
-          {comments.map((c) => (
-            <CommentItem key={c.id} comment={c} mine={c.authorId === me} canChange={canComment} now={now} onChanged={onChanged} />
-          ))}
-        </ul>
+        <div className="flex flex-col gap-1">
+          {hidden > 0 ? (
+            <button
+              type="button"
+              onClick={() => setLimit((n) => n + STEP)}
+              className="mb-1 self-start rounded-full px-1 text-[13px] font-medium text-accent hover:text-accent-hover"
+            >
+              {s.showMore} <span className="font-normal text-muted">· {format(s.hiddenCount, { n: hidden })}</span>
+            </button>
+          ) : null}
+          <ul className="flex flex-col">
+            {shown.map((c) => (
+              <CommentItem key={c.id} comment={c} mine={c.authorId === me} canChange={canComment} now={now} onChanged={onChanged} />
+            ))}
+          </ul>
+        </div>
       )}
 
       {canComment ? (
         <div className="flex flex-col gap-2">
-          <textarea
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            placeholder={s.commentPlaceholder}
-            aria-label={s.commentPlaceholder}
-            maxLength={TASK_LIMITS.comment}
-            className={areaClass}
-          />
+          {/* Поле ввода: мягкая плашка, «Отправить» — внутри, справа внизу. */}
+          <div className="rounded-2xl bg-surface p-1.5 transition-shadow focus-within:shadow-[0_0_0_2px_rgba(191,74,49,0.25)]">
+            <textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) send();
+              }}
+              placeholder={s.commentPlaceholder}
+              aria-label={s.commentPlaceholder}
+              maxLength={TASK_LIMITS.comment}
+              rows={2}
+              className="block max-h-48 min-h-14 w-full resize-none bg-transparent px-2.5 py-2 text-base text-ink [field-sizing:content] placeholder:text-muted focus:outline-none md:text-[14px]"
+            />
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={send}
+                disabled={pending || !body.trim()}
+                className="h-9 rounded-full bg-accent px-4 text-[13px] font-semibold text-white transition-colors hover:bg-accent-hover disabled:bg-neutral-300 disabled:text-white"
+              >
+                {pending ? s.commentSending : s.commentSend}
+              </button>
+            </div>
+          </div>
           {error ? <FormMessage kind="error">{t.errors[error]}</FormMessage> : null}
-          <Button type="button" onClick={send} pending={pending} pendingText={s.commentSending} disabled={!body.trim()}>
-            {s.commentSend}
-          </Button>
         </div>
       ) : (
-        <p className="text-sm text-ink">{s.commentNoRights}</p>
+        <p className="text-sm text-muted">{s.commentNoRights}</p>
       )}
     </section>
   );
@@ -124,60 +160,102 @@ function CommentItem({
       onChanged();
     });
   }
-
-  if (comment.deletedAt) {
-    return <li className="rounded-xl bg-neutral-50 px-3 py-2 text-sm italic text-ink">{s.commentDeleted}</li>;
+  function startEdit() {
+    setDraft(comment.body ?? "");
+    setMode("edit");
   }
 
+  if (comment.deletedAt) {
+    return <li className="py-2 pl-11 text-[13px] italic text-muted">{s.commentDeleted}</li>;
+  }
+
+  const actions = mine && canChange && mode === "view";
+
   return (
-    <li className="flex gap-3">
+    <li className="group relative -mx-2 flex gap-3 rounded-2xl px-2 py-2.5 transition-colors [@media(hover:hover)]:hover:bg-surface/70">
       <Avatar url={comment.author?.avatarUrl} name={name} size={32} />
       <div className="min-w-0 flex-1">
-        <p className="flex flex-wrap items-baseline gap-x-2 text-sm">
-          <span className="font-medium text-ink">{name}</span>
-          {now !== null ? <span className="text-xs text-ink">{formatAgo(comment.createdAt, now)}</span> : null}
-          {comment.editedAt ? <span className="text-xs text-ink">· {s.commentEdited}</span> : null}
+        {/* Имя и время — одной строкой, текст — сразу под ними. */}
+        <p className="flex min-w-0 items-baseline gap-1.5 pr-16 text-[13px] leading-5">
+          <span className="truncate font-semibold text-ink">{name}</span>
+          {now !== null ? <span className="shrink-0 text-[12px] text-muted">{formatAgo(comment.createdAt, now)}</span> : null}
+          {comment.editedAt ? <span className="shrink-0 text-[12px] text-muted">· {s.commentEdited}</span> : null}
         </p>
+
         {mode === "edit" ? (
-          <div className="mt-1 flex flex-col gap-2">
-            <textarea value={draft} onChange={(e) => setDraft(e.target.value)} maxLength={TASK_LIMITS.comment} className={areaClass} aria-label={s.commentEdit} />
-            <div className="flex gap-2">
-              <Button type="button" onClick={save} pending={pending} pendingText={s.saving} className="h-10!">
-                {s.save}
-              </Button>
-              <Button type="button" variant="secondary" onClick={() => setMode("view")} disabled={pending} className="h-10!">
+          <div className="mt-1.5 flex flex-col gap-2">
+            <textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              maxLength={TASK_LIMITS.comment}
+              aria-label={s.commentEdit}
+              autoFocus
+              className="min-h-16 w-full resize-none rounded-xl border border-line bg-white px-3 py-2 text-base text-ink [field-sizing:content] focus:border-accent focus:outline-none md:text-[14px]"
+            />
+            <div className="flex gap-1.5">
+              <button
+                type="button"
+                onClick={save}
+                disabled={pending}
+                className="h-8 rounded-full bg-ink px-3.5 text-[12px] font-semibold text-white disabled:opacity-60"
+              >
+                {pending ? s.saving : s.save}
+              </button>
+              <button type="button" onClick={() => setMode("view")} disabled={pending} className="h-8 rounded-full px-3 text-[12px] font-medium text-ink hover:bg-surface">
                 {s.cancel}
-              </Button>
+              </button>
             </div>
           </div>
         ) : (
-          <p className="mt-0.5 whitespace-pre-wrap break-words text-base text-ink">{comment.body}</p>
+          <p className="mt-0.5 whitespace-pre-wrap break-words text-[14px] leading-relaxed text-ink">{comment.body}</p>
         )}
+
         {mode === "delete" ? (
-          <div className="mt-2 flex flex-col gap-2 rounded-xl border border-red-200 bg-red-50 p-3">
-            <p className="text-sm text-red-900">{s.commentDeleteConfirm}</p>
-            <div className="flex gap-2">
-              <Button type="button" onClick={remove} pending={pending} pendingText={s.saving} className="h-10! bg-red-700! hover:bg-red-800!">
-                {s.commentDeleteYes}
-              </Button>
-              <Button type="button" variant="secondary" onClick={() => setMode("view")} disabled={pending} className="h-10!">
-                {s.cancel}
-              </Button>
-            </div>
-          </div>
-        ) : null}
-        {mine && canChange && mode === "view" ? (
-          <div className="mt-1 flex gap-4">
-            <button type="button" onClick={() => { setDraft(comment.body ?? ""); setMode("edit"); }} className="text-sm font-medium text-accent">
-              {s.commentEdit}
+          <div className="mt-2 flex flex-wrap items-center gap-1.5 rounded-xl bg-red-50 px-3 py-2">
+            <span className="mr-auto text-[13px] text-red-900">{s.commentDeleteConfirm}</span>
+            <button
+              type="button"
+              onClick={remove}
+              disabled={pending}
+              className="h-8 rounded-full bg-red-700 px-3.5 text-[12px] font-semibold text-white hover:bg-red-800 disabled:opacity-60"
+            >
+              {pending ? s.saving : s.commentDeleteYes}
             </button>
-            <button type="button" onClick={() => setMode("delete")} className="text-sm font-medium text-red-700">
-              {s.commentDelete}
+            <button type="button" onClick={() => setMode("view")} disabled={pending} className="h-8 rounded-full px-3 text-[12px] font-medium text-ink hover:bg-white">
+              {s.cancel}
             </button>
           </div>
         ) : null}
-        {error ? <div className="mt-2"><FormMessage kind="error">{t.errors[error]}</FormMessage></div> : null}
+        {error ? (
+          <div className="mt-2">
+            <FormMessage kind="error">{t.errors[error]}</FormMessage>
+          </div>
+        ) : null}
       </div>
+
+      {/* Действия — в той же строке справа. С мышью — значки при наведении; на телефоне — «⋯». */}
+      {actions ? (
+        <div className="absolute right-2 top-1.5 flex items-center">
+          <div className="hidden items-center opacity-0 transition-opacity group-hover:opacity-100 group-has-[:focus-visible]:opacity-100 [@media(hover:hover)]:flex">
+            <IconButton label={s.commentEdit} onClick={startEdit} className="h-8! w-8!">
+              <PencilIcon className="h-4 w-4" />
+            </IconButton>
+            <IconButton label={s.commentDelete} tone="danger" tip="end" onClick={() => setMode("delete")} className="h-8! w-8!">
+              <TrashIcon className="h-4 w-4" />
+            </IconButton>
+          </div>
+          <div className="[@media(hover:hover)]:hidden">
+            <MoreMenu
+              size="sm"
+              label={s.commentActions}
+              items={[
+                { key: "edit", label: s.commentEdit, icon: <PencilIcon className="h-4 w-4" />, onSelect: startEdit },
+                { key: "delete", label: s.commentDelete, icon: <TrashIcon className="h-4 w-4" />, tone: "danger", onSelect: () => setMode("delete") },
+              ]}
+            />
+          </div>
+        </div>
+      ) : null}
     </li>
   );
 }
