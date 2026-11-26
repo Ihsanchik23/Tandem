@@ -1,23 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { format, t } from "@/lib/i18n";
+import { Avatar } from "@/components/profile/Avatar";
+import { ActiveFilters, ChoiceChips, FilterMenu, FilterSection, FilterSwitch, OptionList } from "@/components/ui/filters/FilterMenu";
 import type { PagePerson } from "./data";
-import {
-  EMPTY_FILTERS,
-  TASK_PRIORITIES,
-  TASK_STATUSES,
-  type TaskFilters,
-  type TaskPriority,
-  type TaskStatus,
-} from "./logic";
+import { EMPTY_FILTERS, TASK_PRIORITIES, TASK_STATUSES, type TaskFilters, type TaskPriority, type TaskStatus } from "./logic";
 
 const chip = (on: boolean) =>
-  `inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-medium transition-colors ${
+  `inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-medium transition-colors ${
     on ? "border-ink bg-ink text-white" : "border-line bg-white text-ink hover:bg-surface"
   }`;
-const select =
-  "h-11 w-full rounded-2xl border border-line bg-white px-3 text-base text-ink focus:border-accent focus:outline-none md:h-10 md:text-sm";
 
 function SearchIcon() {
   return (
@@ -27,16 +19,9 @@ function SearchIcon() {
     </svg>
   );
 }
-function FilterIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" className="h-4 w-4 shrink-0" aria-hidden>
-      <path d="M4 6h16M7 12h10M10 18h4" />
-    </svg>
-  );
-}
 
-// Строка фильтров: поиск, кнопка «Фильтры» (просроченные, ответственный, приоритет, в списке — статус)
-// и отдельно «Мои задачи».
+// Строка фильтров: поиск, общий фильтр (components/ui/filters — тот же, что в каталоге)
+// и отдельно «Мои задачи». Под строкой — выбранные фильтры чипсами. Всё применяется сразу.
 export function Filters({
   value,
   onChange,
@@ -51,124 +36,102 @@ export function Filters({
   overdueCount: number;
 }) {
   const s = t.tasks;
-  const [open, setOpen] = useState(false);
   const set = <K extends keyof TaskFilters>(k: K, v: TaskFilters[K]) => onChange({ ...value, [k]: v });
-  // Сколько фильтров включено в окне (на телефоне там же «Мои» и «Просроченные»).
-  const inPanel =
-    (value.overdue ? 1 : 0) + (value.assignee !== "any" ? 1 : 0) + (value.priority !== "any" ? 1 : 0) + (withStatus && value.status !== "any" ? 1 : 0);
+  const statusOn = withStatus && value.status !== "any";
+  const count = (value.overdue ? 1 : 0) + (value.assignee !== "any" ? 1 : 0) + (value.priority !== "any" ? 1 : 0) + (statusOn ? 1 : 0);
+  // «Сбросить» снимает фильтры окна; поиск и «Мои задачи» остаются.
+  const reset = () => onChange({ ...EMPTY_FILTERS, query: value.query, mine: value.mine });
 
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
+  const assigneeLabel =
+    value.assignee === "any"
+      ? s.filterAssigneeAny
+      : value.assignee === "none"
+        ? s.filterAssigneeNone
+        : (people.find((p) => p.userId === value.assignee)?.name ?? s.formerMember);
+
+  const active = [
+    ...(value.overdue ? [{ key: "overdue", label: s.filterOverdue, onRemove: () => set("overdue", false) }] : []),
+    ...(value.assignee !== "any" ? [{ key: "assignee", label: assigneeLabel, onRemove: () => set("assignee", "any") }] : []),
+    ...(value.priority !== "any"
+      ? [{ key: "priority", label: `${s.filterPriority}: ${s.priority[value.priority]}`, onRemove: () => set("priority", "any") }]
+      : []),
+    ...(statusOn && value.status !== "any" ? [{ key: "status", label: s.status[value.status], onRemove: () => set("status", "any") }] : []),
+  ];
 
   return (
-    <div className="flex min-w-0 flex-1 items-center gap-2">
-      <label className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full border border-line bg-white px-3.5 text-muted focus-within:border-accent md:max-w-xs">
-        <SearchIcon />
-        <input
-          type="search"
-          value={value.query}
-          onChange={(e) => set("query", e.target.value)}
-          placeholder={s.searchTasks}
-          aria-label={s.searchTasks}
-          className="h-full min-w-0 flex-1 bg-transparent text-base text-ink placeholder:text-muted focus:outline-none md:text-[13px]"
-        />
-      </label>
+    <div className="flex min-w-0 flex-1 flex-col gap-2">
+      <div className="flex min-w-0 items-center gap-2">
+        <label className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full border border-line bg-white px-3.5 text-muted focus-within:border-accent md:max-w-xs">
+          <SearchIcon />
+          <input
+            type="search"
+            value={value.query}
+            onChange={(e) => set("query", e.target.value)}
+            placeholder={s.searchTasks}
+            aria-label={s.searchTasks}
+            className="h-full min-w-0 flex-1 bg-transparent text-base text-ink placeholder:text-muted focus:outline-none md:text-[13px]"
+          />
+        </label>
 
-      <div className="relative">
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          aria-expanded={open}
-          aria-label={s.filtersButton}
-          className={`relative inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border px-3 text-[13px] font-medium md:px-3.5 ${
-            open || inPanel > 0 ? "border-ink bg-ink text-white" : "border-line bg-white text-ink hover:bg-surface"
-          }`}
-        >
-          <FilterIcon />
-          <span className="hidden md:inline">{s.filtersButton}</span>
-          {inPanel > 0 ? (
-            <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold text-ink">
-              {inPanel}
-            </span>
+        <FilterMenu count={count} onReset={reset} compact align="left">
+          <FilterSection title={s.filterOverdue}>
+            <FilterSwitch
+              label={s.filterOverdueOnly}
+              hint={overdueCount > 0 ? format(s.overdueHint, { n: overdueCount }) : s.overdueNone}
+              checked={value.overdue}
+              onChange={(v) => set("overdue", v)}
+            />
+          </FilterSection>
+          <FilterSection title={s.filterAssignee} value={assigneeLabel}>
+            <OptionList
+              label={s.filterAssignee}
+              searchPlaceholder={s.coassigneesSearch}
+              value={value.assignee}
+              onChange={(v) => set("assignee", v)}
+              options={[
+                { value: "any", label: s.filterAssigneeAny },
+                { value: "none", label: s.filterAssigneeNone },
+                ...people.map((p) => ({
+                  value: p.userId,
+                  label: p.name,
+                  sub: p.position ?? undefined,
+                  leading: <Avatar url={p.avatarUrl} name={p.name} size={28} />,
+                })),
+              ]}
+            />
+          </FilterSection>
+          <FilterSection title={s.filterPriority}>
+            <ChoiceChips
+              label={s.filterPriority}
+              value={value.priority}
+              onChange={(v) => set("priority", v)}
+              options={[
+                { value: "any" as TaskPriority | "any", label: s.filterPriorityAny },
+                ...TASK_PRIORITIES.map((p) => ({ value: p as TaskPriority | "any", label: s.priority[p] })),
+              ]}
+            />
+          </FilterSection>
+          {withStatus ? (
+            <FilterSection title={s.filterStatus}>
+              <ChoiceChips
+                label={s.filterStatus}
+                value={value.status}
+                onChange={(v) => set("status", v)}
+                options={[
+                  { value: "any" as TaskStatus | "any", label: s.filterStatusAny },
+                  ...TASK_STATUSES.map((st) => ({ value: st as TaskStatus | "any", label: s.status[st] })),
+                ]}
+              />
+            </FilterSection>
           ) : null}
-        </button>
+        </FilterMenu>
 
-        {open ? (
-          <>
-            <button type="button" aria-label={s.close} tabIndex={-1} onClick={() => setOpen(false)} className="fixed inset-0 z-30 cursor-default" />
-            <div
-              role="dialog"
-              aria-label={s.filtersButton}
-              className="animate-fade-in absolute left-0 top-full z-40 mt-2 md:left-auto md:right-0 flex w-[min(20rem,calc(100vw-2.5rem))] flex-col gap-3 rounded-3xl bg-white p-4 shadow-[0_12px_32px_rgba(0,0,0,0.16)]"
-            >
-              <button
-                type="button"
-                aria-pressed={value.overdue}
-                onClick={() => set("overdue", !value.overdue)}
-                className={`${chip(value.overdue)} self-start`}
-              >
-                {overdueCount > 0 ? format(s.overdueCount, { n: overdueCount }) : s.filterOverdue}
-              </button>
-              <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold text-muted">{s.filterAssignee}</span>
-                <select value={value.assignee} onChange={(e) => set("assignee", e.target.value)} className={select}>
-                  <option value="any">{s.filterAssigneeAny}</option>
-                  <option value="none">{s.filterAssigneeNone}</option>
-                  {people.map((p) => (
-                    <option key={p.userId} value={p.userId}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold text-muted">{s.filterPriority}</span>
-                <select value={value.priority} onChange={(e) => set("priority", e.target.value as TaskPriority | "any")} className={select}>
-                  <option value="any">{s.filterPriorityAny}</option>
-                  {TASK_PRIORITIES.map((p) => (
-                    <option key={p} value={p}>
-                      {s.priority[p]}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {withStatus ? (
-                <label className="flex flex-col gap-1.5">
-                  <span className="text-xs font-semibold text-muted">{s.filterStatus}</span>
-                  <select value={value.status} onChange={(e) => set("status", e.target.value as TaskStatus | "any")} className={select}>
-                    <option value="any">{s.filterStatusAny}</option>
-                    {TASK_STATUSES.map((st) => (
-                      <option key={st} value={st}>
-                        {s.status[st]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ) : null}
-              <div className="flex items-center justify-between pt-1">
-                <button
-                  type="button"
-                  onClick={() => onChange({ ...EMPTY_FILTERS, query: value.query })}
-                  className="text-sm font-medium text-accent underline-offset-4 hover:underline"
-                >
-                  {s.resetFilters}
-                </button>
-                <button type="button" onClick={() => setOpen(false)} className="h-9 rounded-full bg-ink px-4 text-sm font-medium text-white">
-                  {s.close}
-                </button>
-              </div>
-            </div>
-          </>
-        ) : null}
+        {/* «Мои задачи» — отдельно: самый частый фильтр. */}
+        <button type="button" aria-pressed={value.mine} onClick={() => set("mine", !value.mine)} className={chip(value.mine)}>
+          {s.filterMine}
+        </button>
       </div>
-      {/* «Мои задачи» — отдельно: самый частый фильтр. */}
-      <button type="button" aria-pressed={value.mine} onClick={() => set("mine", !value.mine)} className={`${chip(value.mine)} h-10!`}>
-        {s.filterMine}
-      </button>
+      <ActiveFilters items={active} onResetAll={reset} />
     </div>
   );
 }

@@ -186,7 +186,7 @@ export function TasksBoard({ pageId, me, role, readOnly, initialTasks, people }:
       </div>
 
       {/* Потом — поиск и фильтры; «Новая задача» справа. */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-start gap-2">
         <Filters value={filters} onChange={setFilters} people={people} withStatus={tab === "list"} overdueCount={overdueCount} />
         {!readOnly ? (
           <button
