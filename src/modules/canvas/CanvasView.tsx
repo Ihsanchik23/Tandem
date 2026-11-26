@@ -1,7 +1,6 @@
 "use client";
 
 import "@xyflow/react/dist/style.css";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import {
@@ -17,13 +16,17 @@ import {
   type XYPosition,
 } from "@xyflow/react";
 import type { Member } from "@/lib/company/queries";
-import { t } from "@/lib/i18n";
+import { format, t } from "@/lib/i18n";
+import type { ErrorKey } from "@/lib/i18n/ru";
+import { fullName } from "@/lib/company/people";
+import { UnitPicker } from "@/components/company/UnitPicker";
 import { Avatar } from "@/components/profile/Avatar";
 import { ChevronDownIcon, FitIcon, MinusIcon, PlusIcon, UndoIcon } from "@/components/nav/icons";
 import { Button } from "@/components/ui/Button";
 import { Collapse } from "@/components/ui/Collapse";
 import { Sheet } from "@/components/ui/Sheet";
-import { createUnit, saveCanvasPositions } from "./actions";
+import { addUnitMembers, createUnit, moveUnitMember, saveCanvasPositions } from "./actions";
+import { CanvasDnd, DraggablePerson, useAssign, type Assign } from "./PeopleDnd";
 import { layoutTree, placeNear, ROOT_ID, type Rect } from "./layout";
 import {
   CARD_W,
@@ -38,7 +41,7 @@ import {
   type Tint,
   type UnitNodeType,
 } from "./Nodes";
-import { branchColors, buildTree, pageHome, treeOrder, unassignedIds, type UnitMemberRow, type UnitRow } from "./tree";
+import { branchColors, buildTree, pageHome, treeOrder, unassignedIds, unitPath, type UnitMemberRow, type UnitRow } from "./tree";
 import { UnitPanel } from "./UnitPanel";
 
 type Props = {
@@ -117,7 +120,24 @@ export function CanvasView(props: Props) {
 }
 
 // Canvas (ТЗ, раздел 10): дерево компании с перемещением и масштабом.
-function CanvasInner({ organization, units, unitMembers, people, canEdit, pages = [], savedPositions }: Props) {
+// Перенос человека применяем сразу (до ответа сервера); если сервер откажет — вернётся как было.
+function applyAssign(rows: UnitMemberRow[], a: { assign: Assign; move: boolean }): UnitMemberRow[] {
+  const { userId, fromUnitId, toUnitId } = a.assign;
+  let next = a.move && fromUnitId ? rows.filter((r) => !(r.user_id === userId && r.unit_id === fromUnitId)) : rows;
+  if (!next.some((r) => r.user_id === userId && r.unit_id === toUnitId)) next = [...next, { unit_id: toUnitId, user_id: userId }];
+  return next;
+}
+
+function CanvasInner({ organization, units, unitMembers: serverMembers, people, canEdit, pages = [], savedPositions }: Props) {
+  // Подтверждённый, но ещё не сохранённый перенос — виден на холсте сразу.
+  // Сбрасывается, когда сервер прислал свежий состав (или если он отказал).
+  const [pendingAssign, setPendingAssign] = useState<{ assign: Assign; move: boolean } | null>(null);
+  const [seenServer, setSeenServer] = useState(serverMembers);
+  if (seenServer !== serverMembers) {
+    setSeenServer(serverMembers);
+    setPendingAssign(null);
+  }
+  const unitMembers = useMemo(() => (pendingAssign ? applyAssign(serverMembers, pendingAssign) : serverMembers), [serverMembers, pendingAssign]);
   const router = useRouter();
   const params = useSearchParams();
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -147,6 +167,12 @@ function CanvasInner({ organization, units, unitMembers, people, canEdit, pages 
   const rfRef = useRef<ReactFlowInstance<CanvasNode, Edge> | null>(null);
   const touch = useTouchScreen();
   const c = t.canvas;
+  // Перетаскивать людей — Owner/Admin и только мышью; на телефоне — выбор из списка.
+  const dnd = canEdit && !touch;
+  const [pickFor, setPickFor] = useState<Member | null>(null);
+  const [shownPick, setShownPick] = useState<Member | null>(null);
+  if (pickFor && pickFor !== shownPick) setShownPick(pickFor);
+  const [toast, setToast] = useState<string | null>(null);
 
   const tree = useMemo(() => buildTree(units, unitMembers), [units, unitMembers]);
   const colors = useMemo(() => branchColors(tree), [tree]);
@@ -252,6 +278,8 @@ function CanvasInner({ organization, units, unitMembers, people, canEdit, pages 
             setMenuFor(null);
             setOpenUnitId(u.id);
           },
+          id: u.id,
+          dnd,
         },
       };
     });
@@ -307,7 +335,7 @@ function CanvasInner({ organization, units, unitMembers, people, canEdit, pages 
     for (const u of units) parentOf.set(u.id, u.parent_id && tree.byId.has(u.parent_id) ? u.parent_id : ROOT_ID);
     for (const pg of pages) parentOf.set(pageNodeId(pg.id), pageHome(order, pg.scopes) ?? ROOT_ID);
     return { layoutNodes: all, edges: edgeList, parentOf };
-  }, [tree, colors, units, people.length, peopleById, expanded, canEdit, organization.name, organization.logoUrl, pages, router, menuFor, highlightId, onCreateUnit, pinLayout]);
+  }, [tree, colors, units, people.length, peopleById, expanded, canEdit, organization.name, organization.logoUrl, pages, router, menuFor, highlightId, onCreateUnit, pinLayout, dnd]);
 
   // Состояние карточек ведёт сам холст (рекомендованная схема React Flow): во время перетаскивания
   // меняется только передвигаемая карточка, а размеры, которые React Flow измерил, не теряются.
@@ -426,6 +454,31 @@ function CanvasInner({ organization, units, unitMembers, people, canEdit, pages 
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  const onAssign = useCallback(
+    async (assign: Assign, move: boolean): Promise<{ error?: ErrorKey }> => {
+      setPendingAssign({ assign, move });
+      const res = move
+        ? await moveUnitMember(organization.id, assign.userId, assign.toUnitId, assign.fromUnitId)
+        : await addUnitMembers(organization.id, assign.toUnitId, [assign.userId]);
+      if (res.error) {
+        setPendingAssign(null);
+        return res;
+      }
+      const who = peopleById.get(assign.userId);
+      const unit = unitPath(tree, assign.toUnitId, " · ");
+      setToast(format(move ? c.assignMoved : c.assignDone, { name: who ? fullName(who) : "", unit }));
+      setHighlightId(assign.toUnitId);
+      setTimeout(() => setHighlightId((cur) => (cur === assign.toUnitId ? null : cur)), 2000);
+      return res;
+    },
+    [organization.id, peopleById, tree, c.assignMoved, c.assignDone],
+  );
+  useEffect(() => {
+    if (!toast) return;
+    const id = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(id);
+  }, [toast]);
+
   const openUnit = shownUnitId ? tree.byId.get(shownUnitId) : undefined;
   // Подразделение удалили, пока панель была открыта, — панель закрывается.
   const sheetOpen = openUnitId !== null && !!tree.byId.get(openUnitId);
@@ -439,6 +492,7 @@ function CanvasInner({ organization, units, unitMembers, people, canEdit, pages 
         touch ? "" : "[&_.react-flow__pane]:cursor-default"
       }`}
     >
+      <CanvasDnd enabled={canEdit} tree={tree} peopleById={peopleById} onAssign={onAssign}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -475,7 +529,14 @@ function CanvasInner({ organization, units, unitMembers, people, canEdit, pages 
         {/* Фон «в точку», как блокнот. */}
         <Background variant={BackgroundVariant.Dots} gap={20} size={1.5} color="#cfc8c0" />
         {/* «Нераспределённые» видят только Owner и Admin — те, кто распределяет людей. */}
-        {canEdit ? <UnassignedList people={unassigned} /> : null}
+        {canEdit ? (
+          <UnassignedList
+            people={unassigned}
+            dnd={dnd}
+            onOpenPerson={(id) => router.push(`/work/people?member=${id}`)}
+            onPick={setPickFor}
+          />
+        ) : null}
         <ZoomButtons canReset={moved.size > 0} onReset={() => setMoved(new Map())} />
         {units.length === 0 ? (
           <Panel position="bottom-center" className="mb-6! w-[calc(100%-2rem)] max-w-sm">
@@ -490,6 +551,24 @@ function CanvasInner({ organization, units, unitMembers, people, canEdit, pages 
           </Panel>
         ) : null}
       </ReactFlow>
+
+      {/* Телефон: выбор подразделения для нераспределённого, затем то же подтверждение. */}
+      {canEdit ? (
+        <PickUnitSheet
+          person={pickFor ? shownPick : null}
+          shown={shownPick}
+          tree={tree}
+          onClose={() => setPickFor(null)}
+          onOpenCard={(id) => router.push(`/work/people?member=${id}`)}
+        />
+      ) : null}
+      </CanvasDnd>
+
+      {toast ? (
+        <div role="status" className="pointer-events-none absolute inset-x-0 bottom-6 z-40 flex justify-center px-4">
+          <span className="animate-pop-in rounded-full bg-ink px-4 py-2.5 text-[14px] font-medium text-white shadow-lg">{toast}</span>
+        </div>
+      ) : null}
 
       <Sheet open={sheetOpen} title={openUnit?.name ?? ""} onClose={closeSheet}>
         {openUnit ? (
@@ -527,11 +606,23 @@ function ZoomButtons({ canReset, onReset }: { canReset: boolean; onReset: () => 
 }
 
 // «Нераспределённые» — не на холсте, а раскрывающийся список справа сверху.
-function UnassignedList({ people }: { people: Member[] }) {
+// Мышь: человека тащат на карточку подразделения (клик — карточка сотрудника).
+// Палец: нажатие открывает выбор подразделения.
+function UnassignedList({
+  people,
+  dnd,
+  onOpenPerson,
+  onPick,
+}: {
+  people: Member[];
+  dnd: boolean;
+  onOpenPerson: (userId: string) => void;
+  onPick: (m: Member) => void;
+}) {
   const [open, setOpen] = useState(false);
   const c = t.canvas;
   return (
-    <Panel position="top-right" className="w-64 max-w-[calc(100vw-2rem)]">
+    <Panel position="top-right" className="nopan nowheel w-64 max-w-[calc(100vw-2rem)]">
       <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
         <button
           type="button"
@@ -548,25 +639,86 @@ function UnassignedList({ people }: { people: Member[] }) {
           {people.length === 0 ? (
             <p className="border-t border-neutral-100 px-3 py-3 text-sm text-ink">{c.unassignedEmpty}</p>
           ) : (
-            <ul className="max-h-72 overflow-y-auto border-t border-neutral-100">
-              {people.map((p) => {
-                const name = `${p.first_name} ${p.last_name}`.trim();
-                return (
-                  <li key={p.user_id}>
-                    <Link href={`/work/people?member=${p.user_id}`} className="flex items-center gap-2 px-3 py-2 hover:bg-neutral-50">
-                      <Avatar url={p.avatar_url} name={name} size={28} />
-                      <span className="min-w-0">
-                        <span className="block truncate text-sm text-ink">{name}</span>
-                        {p.position ? <span className="block truncate text-xs text-ink">{p.position}</span> : null}
-                      </span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+            <div className="border-t border-neutral-100">
+              <p className="px-3 pt-2 text-[11px] text-muted">{dnd ? c.dragHint : c.tapHint}</p>
+              <ul className="max-h-72 overflow-y-auto py-1">
+                {people.map((p) => {
+                  const name = fullName(p);
+                  return (
+                    <li key={p.user_id}>
+                      <DraggablePerson
+                        person={p}
+                        fromUnitId={null}
+                        disabled={!dnd}
+                        onClick={() => (dnd ? onOpenPerson(p.user_id) : onPick(p))}
+                        className="flex items-center gap-2 px-3 py-2 hover:bg-neutral-50"
+                      >
+                        <Avatar url={p.avatar_url} name={name} size={28} />
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm text-ink">{name}</span>
+                          {p.position ? <span className="block truncate text-xs text-muted">{p.position}</span> : null}
+                        </span>
+                        {dnd ? <GripIcon /> : null}
+                      </DraggablePerson>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           )}
         </Collapse>
       </div>
     </Panel>
+  );
+}
+
+function GripIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 shrink-0 text-neutral-400" aria-hidden>
+      <circle cx="9" cy="6" r="1.5" />
+      <circle cx="15" cy="6" r="1.5" />
+      <circle cx="9" cy="12" r="1.5" />
+      <circle cx="15" cy="12" r="1.5" />
+      <circle cx="9" cy="18" r="1.5" />
+      <circle cx="15" cy="18" r="1.5" />
+    </svg>
+  );
+}
+
+// Выбор подразделения на телефоне. Подтверждение показывает общий диалог (useAssign).
+function PickUnitSheet({
+  person,
+  shown,
+  tree,
+  onClose,
+  onOpenCard,
+}: {
+  person: Member | null;
+  shown: Member | null;
+  tree: ReturnType<typeof buildTree>;
+  onClose: () => void;
+  onOpenCard: (userId: string) => void;
+}) {
+  const { request } = useAssign();
+  const c = t.canvas;
+  const name = shown ? fullName(shown) : "";
+  return (
+    <Sheet open={person !== null} title={format(c.pickUnitFor, { name })} onClose={onClose}>
+      {shown ? (
+        <div className="flex flex-col gap-3">
+          <UnitPicker
+            key={shown.user_id}
+            tree={tree}
+            onPick={(unitId) => {
+              onClose();
+              request({ userId: shown.user_id, fromUnitId: null, toUnitId: unitId });
+            }}
+          />
+          <button type="button" onClick={() => onOpenCard(shown.user_id)} className="h-11 text-[14px] font-medium text-ink underline underline-offset-4">
+            {c.openCard}
+          </button>
+        </div>
+      ) : null}
+    </Sheet>
   );
 }

@@ -9,6 +9,7 @@ import type { ErrorKey } from "@/lib/i18n/ru";
 import { Avatar } from "@/components/profile/Avatar";
 import { Collapse } from "@/components/ui/Collapse";
 import { ChatPageIcon, ChevronDownIcon, LockIcon, PlusIcon, TasksPageIcon } from "@/components/nav/icons";
+import { DraggablePerson, useUnitDrop } from "./PeopleDnd";
 
 // Размеры карточек для раскладки (layout.ts). Высоты — с запасом, чтобы карточки не наезжали.
 export const CARD_W = 240;
@@ -46,6 +47,7 @@ export type RootData = AddMenu & {
   members: number; // сотрудников в компании
 };
 export type UnitData = AddMenu & {
+  id: string;
   name: string;
   tint: Tint;
   head: Member | null;
@@ -54,6 +56,7 @@ export type UnitData = AddMenu & {
   expanded: boolean;
   onToggle: () => void;
   onOpen: () => void;
+  dnd: boolean; // людей можно перетаскивать сюда и отсюда (Owner/Admin, мышь)
 };
 export type PageData = {
   name: string;
@@ -277,13 +280,24 @@ export function UnitNode({ data, selected }: NodeProps<UnitNodeType>) {
   const count = `${data.direct} ${pluralRu(data.direct, c.peopleForms)}`;
   const faces = data.people.slice(0, 3);
   const more = data.people.length - faces.length;
+  // Сюда можно отпустить человека: подходящая карточка под курсором подсвечивается цветом ветки.
+  const { setNodeRef: dropRef, over: dropOver } = useUnitDrop(data.id, data.dnd);
 
   return (
     <div className="group relative" style={{ width: CARD_W }}>
+      {dropOver ? (
+        <span
+          className="pointer-events-none absolute -top-9 left-1/2 z-30 -translate-x-1/2 animate-fade-in whitespace-nowrap rounded-full px-3 py-1.5 text-[12px] font-semibold text-white shadow-md"
+          style={{ background: v(tint, "strong", "#1e1e1e") }}
+        >
+          {c.dropHere}
+        </span>
+      ) : null}
       <div
-        className={`relative flex flex-col gap-3 rounded-3xl p-4 pb-6 transition-[transform,box-shadow] duration-200 ease-out group-hover:-translate-y-0.5 group-hover:shadow-[0_10px_24px_rgba(0,0,0,0.12)] ${
+        ref={dropRef}
+        className={`relative flex flex-col gap-3 rounded-3xl p-4 pb-6 transition-[transform,box-shadow,scale] duration-200 ease-out group-hover:-translate-y-0.5 group-hover:shadow-[0_10px_24px_rgba(0,0,0,0.12)] ${
           data.highlight ? "animate-focus-pulse" : ""
-        } ${selected ? SELECTED : ""}`}
+        } ${selected || dropOver ? SELECTED : ""} ${dropOver ? "scale-[1.04] shadow-[0_16px_36px_rgba(0,0,0,0.16)]" : ""}`}
         style={{ background: cardBg(tint), ...ringColor(tint) }}
       >
         {/* Вся карточка — одна большая кнопка «открыть»; кнопки внутри лежат поверх неё. */}
@@ -362,12 +376,22 @@ export function UnitNode({ data, selected }: NodeProps<UnitNodeType>) {
 
         <Collapse open={data.expanded}>
           <ul className="pointer-events-none flex flex-col rounded-2xl bg-white/70 px-2">
-            {data.people.map((p) => (
-              <li key={p.user_id} className="flex items-center gap-2" style={{ height: PERSON_H }}>
-                <Face m={p} size={26} tint={tint} />
-                <span className="truncate text-sm text-ink">{fullName(p)}</span>
-              </li>
-            ))}
+            {data.people.map((p) =>
+              data.dnd ? (
+                // Человека из списка можно перетащить на другое подразделение («Добавить / Перевести»).
+                <li key={p.user_id} className="pointer-events-auto relative z-10 -mx-1" style={{ height: PERSON_H }}>
+                  <DraggablePerson person={p} fromUnitId={data.id} disabled={false} className="flex h-full items-center gap-2 rounded-xl px-1 hover:bg-white">
+                    <Face m={p} size={26} tint={tint} />
+                    <span className="truncate text-sm text-ink">{fullName(p)}</span>
+                  </DraggablePerson>
+                </li>
+              ) : (
+                <li key={p.user_id} className="flex items-center gap-2" style={{ height: PERSON_H }}>
+                  <Face m={p} size={26} tint={tint} />
+                  <span className="truncate text-sm text-ink">{fullName(p)}</span>
+                </li>
+              ),
+            )}
           </ul>
         </Collapse>
       </div>
