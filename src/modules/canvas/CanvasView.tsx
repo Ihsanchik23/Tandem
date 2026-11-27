@@ -21,7 +21,7 @@ import type { ErrorKey } from "@/lib/i18n/ru";
 import { fullName } from "@/lib/company/people";
 import { UnitPicker } from "@/components/company/UnitPicker";
 import { Avatar } from "@/components/profile/Avatar";
-import { ChevronDownIcon, FitIcon, MinusIcon, PlusIcon, UndoIcon } from "@/components/nav/icons";
+import { ChevronDownIcon } from "@/components/nav/icons";
 import { Button } from "@/components/ui/Button";
 import { Collapse } from "@/components/ui/Collapse";
 import { Sheet } from "@/components/ui/Sheet";
@@ -525,6 +525,7 @@ function CanvasInner({ organization, units, unitMembers: serverMembers, people, 
         maxZoom={1.5}
         zoomOnDoubleClick={false}
         forceColorMode="light"
+        proOptions={{ hideAttribution: true }}
       >
         {/* Фон «в точку», как блокнот. */}
         <Background variant={BackgroundVariant.Dots} gap={20} size={1.5} color="#cfc8c0" />
@@ -537,7 +538,7 @@ function CanvasInner({ organization, units, unitMembers: serverMembers, people, 
             onPick={setPickFor}
           />
         ) : null}
-        <ZoomButtons canReset={moved.size > 0} onReset={() => setMoved(new Map())} />
+        <ZoomButtons />
         {units.length === 0 ? (
           <Panel position="bottom-center" className="mb-6! w-[calc(100%-2rem)] max-w-sm">
             <div className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-4 text-center shadow-sm">
@@ -580,34 +581,50 @@ function CanvasInner({ organization, units, unitMembers: serverMembers, people, 
 }
 
 // Кнопки масштаба (подписи на русском), внутри ReactFlow — у них есть доступ к холсту.
-function ZoomButtons({ canReset, onReset }: { canReset: boolean; onReset: () => void }) {
+// Справа внизу — под большой палец на телефоне. Движение плавное (~200 мс), без анимации,
+// если в системе включено «Уменьшить движение».
+function ZoomButtons() {
   const rf = useReactFlow();
   const c = t.canvas;
+  const duration = () => (window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 200);
   const btn =
-    "flex h-10 w-10 items-center justify-center bg-white text-lg text-ink hover:bg-neutral-50 border-neutral-200";
+    "flex h-11 w-11 items-center justify-center rounded-xl text-ink transition-[background-color,transform] duration-150 hover:bg-surface active:scale-95 active:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 md:h-10 md:w-10";
   return (
-    <Panel position="bottom-left" className="flex flex-col overflow-hidden rounded-xl border border-neutral-200 shadow-sm">
-      <button type="button" aria-label={c.zoomIn} onClick={() => void rf.zoomIn()} className={`${btn} border-b`}>
-        <PlusIcon className="h-5 w-5" />
+    <Panel
+      position="bottom-right"
+      className="m-3! mb-[calc(0.75rem+env(safe-area-inset-bottom))]! flex flex-col gap-0.5 rounded-2xl border border-line bg-white/95 p-1 shadow-[0_8px_24px_-10px_rgba(30,30,30,0.28)] backdrop-blur md:m-4!"
+    >
+      <button type="button" aria-label={c.zoomIn} title={c.zoomIn} onClick={() => void rf.zoomIn({ duration: duration() })} className={btn}>
+        <ThinIcon d="M12 5v14M5 12h14" />
       </button>
-      <button type="button" aria-label={c.zoomOut} onClick={() => void rf.zoomOut()} className={`${btn} border-b`}>
-        <MinusIcon className="h-5 w-5" />
+      <button type="button" aria-label={c.zoomOut} title={c.zoomOut} onClick={() => void rf.zoomOut({ duration: duration() })} className={btn}>
+        <ThinIcon d="M5 12h14" />
       </button>
-      <button type="button" aria-label={c.fit} onClick={() => void rf.fitView({ padding: 0.2, maxZoom: 1 })} className={btn}>
-        <FitIcon className="h-5 w-5" />
+      <span aria-hidden className="mx-2 h-px bg-line" />
+      <button
+        type="button"
+        aria-label={c.fit}
+        title={c.fit}
+        onClick={() => void rf.fitView({ padding: 0.2, maxZoom: 1, duration: duration() })}
+        className={btn}
+      >
+        <ThinIcon d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4" />
       </button>
-      {canReset ? (
-        <button type="button" aria-label={c.resetLayout} title={c.resetLayout} onClick={onReset} className={`${btn} border-t`}>
-          <UndoIcon className="h-5 w-5" />
-        </button>
-      ) : null}
     </Panel>
   );
 }
 
-// «Нераспределённые» — не на холсте, а раскрывающийся список справа сверху.
-// Мышь: человека тащат на карточку подразделения (клик — карточка сотрудника).
-// Палец: нажатие открывает выбор подразделения.
+function ThinIcon({ d }: { d: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden>
+      <path d={d} />
+    </svg>
+  );
+}
+
+// «Нераспределённые» — не на холсте, а компактное окно справа сверху. Нет таких людей — окна нет.
+// Компьютер: раскрыто, человека тащат за всю строку на карточку подразделения (клик — карточка сотрудника).
+// Телефон: свёрнуто (счётчик виден), нажатие на человека открывает выбор подразделения.
 function UnassignedList({
   people,
   dnd,
@@ -619,56 +636,85 @@ function UnassignedList({
   onOpenPerson: (userId: string) => void;
   onPick: (m: Member) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const desktop = useSyncExternalStore(subscribeDesktop, isDesktop, () => false);
+  // Пока пользователь сам не открыл или не закрыл — на компьютере раскрыто, на телефоне свёрнуто.
+  const [toggled, setToggled] = useState<boolean | null>(null);
+  const open = toggled ?? desktop;
   const c = t.canvas;
+  if (people.length === 0) return null;
   return (
-    <Panel position="top-right" className="nopan nowheel w-64 max-w-[calc(100vw-2rem)]">
-      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
+    <Panel position="top-right" className="nopan nowheel m-3! w-56 max-w-[calc(100vw-1.5rem)] md:m-4! md:w-60">
+      <div className="overflow-hidden rounded-2xl border border-line bg-white/95 shadow-[0_8px_24px_-12px_rgba(30,30,30,0.25)] backdrop-blur">
         <button
           type="button"
-          onClick={() => setOpen((o) => !o)}
+          onClick={() => setToggled(!open)}
           aria-expanded={open}
-          className="flex h-10 w-full items-center justify-between gap-2 px-3 text-sm font-medium text-ink hover:bg-neutral-50"
+          className="flex h-11 w-full items-center gap-2 px-3.5 text-[14px] font-medium text-ink transition-colors hover:bg-surface md:h-10"
         >
-          <span>
-            {c.unassigned} · {people.length}
+          <span className="min-w-0 flex-1 truncate text-left">{c.unassigned}</span>
+          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-semibold tabular-nums text-white">
+            {people.length}
           </span>
-          <ChevronDownIcon className={`h-4 w-4 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+          <ChevronDownIcon className={`h-4 w-4 shrink-0 text-muted transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
         </button>
         <Collapse open={open}>
-          {people.length === 0 ? (
-            <p className="border-t border-neutral-100 px-3 py-3 text-sm text-ink">{c.unassignedEmpty}</p>
-          ) : (
-            <div className="border-t border-neutral-100">
-              <p className="px-3 pt-2 text-[11px] text-muted">{dnd ? c.dragHint : c.tapHint}</p>
-              <ul className="max-h-72 overflow-y-auto py-1">
-                {people.map((p) => {
-                  const name = fullName(p);
-                  return (
-                    <li key={p.user_id}>
-                      <DraggablePerson
-                        person={p}
-                        fromUnitId={null}
-                        disabled={!dnd}
-                        onClick={() => (dnd ? onOpenPerson(p.user_id) : onPick(p))}
-                        className="flex items-center gap-2 px-3 py-2 hover:bg-neutral-50"
-                      >
-                        <Avatar url={p.avatar_url} name={name} size={28} />
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm text-ink">{name}</span>
-                          {p.position ? <span className="block truncate text-xs text-muted">{p.position}</span> : null}
-                        </span>
-                        {dnd ? <GripIcon /> : null}
-                      </DraggablePerson>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          )}
+          <div className="border-t border-line">
+            <p className="px-3.5 pt-2 text-[11px] leading-snug text-muted">{dnd ? c.dragHint : c.tapHint}</p>
+            <ul className="max-h-64 overflow-y-auto p-1.5">
+              {people.map((p) => {
+                const name = fullName(p);
+                return (
+                  <li key={p.user_id}>
+                    <DraggablePerson
+                      person={p}
+                      fromUnitId={null}
+                      disabled={!dnd}
+                      onClick={() => (dnd ? onOpenPerson(p.user_id) : onPick(p))}
+                      // Тянуть можно за всю строку: курсор «рука», при нажатии строка приподнимается.
+                      className="flex items-center gap-2.5 rounded-xl px-2 py-1.5 transition-[background-color,box-shadow,transform] duration-150 hover:bg-surface active:scale-[1.02] active:bg-white active:shadow-[0_8px_20px_-8px_rgba(30,30,30,0.35)]"
+                    >
+                      <ColorFace person={p} name={name} />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[14px] leading-tight text-ink">{name}</span>
+                        {p.position ? <span className="block truncate text-[12px] leading-tight text-muted">{p.position}</span> : null}
+                      </span>
+                      {dnd ? <GripIcon /> : null}
+                    </DraggablePerson>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         </Collapse>
       </div>
     </Panel>
+  );
+}
+
+const DESKTOP = "(min-width: 768px)";
+function subscribeDesktop(cb: () => void) {
+  const mq = window.matchMedia(DESKTOP);
+  mq.addEventListener("change", cb);
+  return () => mq.removeEventListener("change", cb);
+}
+const isDesktop = () => window.matchMedia(DESKTOP).matches;
+
+// Аватар нераспределённого: фото, а без фото — инициалы на цветном фоне (цвета веток «Структуры»;
+// у человека постоянный цвет — от его id).
+function ColorFace({ person, name }: { person: Member; name: string }) {
+  if (person.avatar_url) return <Avatar url={person.avatar_url} name={name} size={32} />;
+  let h = 0;
+  for (const ch of person.user_id) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const n = (h % 6) + 1;
+  const initials = name.split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? "").join("") || "?";
+  return (
+    <span
+      aria-hidden
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[12px] font-semibold"
+      style={{ background: `var(--branch-${n}-chip)`, color: `var(--branch-${n}-text)` }}
+    >
+      {initials}
+    </span>
   );
 }
 

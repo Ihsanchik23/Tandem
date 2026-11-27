@@ -146,51 +146,57 @@ export function Catalog() {
 
   return (
     <div className="flex min-w-0 flex-col">
-      <div role="tablist" aria-label={c.tabsLabel} className="mb-5 grid grid-cols-2 border-b border-neutral-200">
-        {(["companies", "people"] as const).map((value) => (
-          <button
-            key={value}
-            type="button"
-            role="tab"
-            aria-selected={tab === value}
-            aria-controls="catalog-results"
-            onClick={() => selectTab(value)}
-            className={`relative h-11 text-base font-semibold transition-colors ${tab === value ? "text-ink after:absolute after:inset-x-0 after:bottom-[-1px] after:h-0.5 after:bg-ink" : "text-neutral-500 hover:text-ink"}`}
-          >
-            {value === "people" ? c.people : c.companies}
-          </button>
-        ))}
-      </div>
+      {/* Шапка (вкладки и поиск) на компьютере стоит на месте, результаты прокручиваются под ней. */}
+      <div className="bg-white md:sticky md:top-0 md:z-10">
+        <div role="tablist" aria-label={c.tabsLabel} className="mb-5 grid grid-cols-2 border-b border-neutral-200">
+          {(["companies", "people"] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              role="tab"
+              aria-selected={tab === value}
+              aria-controls="catalog-results"
+              onClick={() => selectTab(value)}
+              className={`relative h-11 text-base font-semibold transition-colors ${tab === value ? "text-ink after:absolute after:inset-x-0 after:bottom-[-1px] after:h-0.5 after:bg-ink" : "text-neutral-500 hover:text-ink"}`}
+            >
+              {value === "people" ? c.people : c.companies}
+            </button>
+          ))}
+        </div>
 
-      <div className="mb-5 flex items-center gap-2">
-        <label className="relative min-w-0 flex-1">
-          <span className="sr-only">{tab === "people" ? c.peoplePlaceholder : c.companiesPlaceholder}</span>
-          <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-500" />
-          <input
-            type="search"
-            enterKeyHint="search"
-            autoCapitalize="none"
-            autoCorrect="off"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder={c.searchPlaceholder}
-            className="h-11 w-full rounded-full border-0 bg-neutral-100 pl-12 pr-4 text-base text-ink placeholder:text-neutral-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent"
-          />
-        </label>
-        {/* Фильтр есть только у компаний: численность ползунком «от–до». */}
-        {tab === "companies" ? (
-          <FilterMenu count={staffOn ? 1 : 0} onReset={() => setStaff([0, LAST])} iconOnly>
-            <FilterSection title={c.staffSize} value={staffText}>
-              <RangeSlider
-                label={c.staffSize}
-                max={LAST}
-                value={staff}
-                onChange={setStaff}
-                format={staffLabel}
-              />
-            </FilterSection>
-          </FilterMenu>
-        ) : null}
+        <div className="mb-5 flex items-center gap-2">
+          <label className="relative min-w-0 flex-1">
+            <span className="sr-only">{tab === "people" ? c.peoplePlaceholder : c.companiesPlaceholder}</span>
+            <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-500" />
+            <input
+              type="search"
+              enterKeyHint="search"
+              autoCapitalize="none"
+              autoCorrect="off"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={c.searchPlaceholder}
+              className="h-11 w-full rounded-full border-0 bg-neutral-100 pl-12 pr-4 text-base text-ink placeholder:text-neutral-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent"
+            />
+          </label>
+          {/* Фильтр есть только у компаний: численность ползунком «от–до». */}
+          {tab === "companies" ? (
+            <FilterMenu count={staffOn ? 1 : 0} onReset={() => setStaff([0, LAST])} iconOnly>
+              <FilterSection title={c.staffSize} value={staffText}>
+                <RangeSlider
+                  label={c.staffSize}
+                  max={LAST}
+                  value={staff}
+                  onChange={setStaff}
+                  format={staffLabel}
+                />
+              </FilterSection>
+            </FilterMenu>
+          ) : (
+            // У людей фильтра нет — держим его место, чтобы строка поиска не меняла ширину.
+            <span aria-hidden className="h-11 w-11 shrink-0" />
+          )}
+        </div>
       </div>
 
       <div id="catalog-results" role="tabpanel" aria-label={tab === "people" ? c.people : c.companies}>
