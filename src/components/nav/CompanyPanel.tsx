@@ -52,8 +52,13 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
   return (
     <div className={`flex h-full flex-col ${PANEL_BG}`}>
       {/* Карточка компании: логотип, название, моя роль. Справа — место под кнопку «свернуть». */}
-      <div className="px-3 pb-1 pt-4">
-        <div className="flex items-center gap-3 rounded-xl bg-white p-2.5 pr-12">
+      {/* Кнопка «свернуть» (WorkPanel) лежит поверх справа отдельным элементом — нажатие на неё сюда не попадает. */}
+      <div className="px-3 pt-4">
+        <Link
+          href="/work"
+          onClick={onNavigate}
+          className="flex items-center gap-3 rounded-xl bg-white p-2.5 pr-12 transition-colors hover:bg-[#f7f7f7] active:bg-[#efefef]"
+        >
           <span className="overflow-hidden rounded-[10px]">
             <Avatar url={company.logoUrl} name={company.name} size={40} />
           </span>
@@ -61,10 +66,14 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
             <span className="block truncate text-[15px] font-semibold leading-tight text-ink">{company.name}</span>
             <span className="block truncate text-[13px] text-muted">{t.company.roles[company.role]}</span>
           </span>
-        </div>
+        </Link>
       </div>
 
-      <nav aria-label={w.menu} className="flex flex-1 flex-col gap-5 overflow-y-auto px-3 pb-3 pt-4">
+      {/* Полоса прокрутки скрыта: не отнимает ширину, правые края всех карточек совпадают. */}
+      <nav
+        aria-label={w.menu}
+        className="flex flex-1 flex-col gap-5 overflow-y-auto px-3 py-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
         <Group
           title={w.menuPages}
           action={
@@ -130,9 +139,9 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
         </Group>
       </nav>
 
-      <div className="px-3 pb-4 pt-2">
+      <div className="px-3 pb-5">
         {company.role === "owner" ? (
-          <p className="px-4 text-[12px] text-muted">{w.ownerCannotLeaveHint}</p>
+          <p className="px-3.5 text-[12px] text-muted">{w.ownerCannotLeaveHint}</p>
         ) : (
           <ConfirmAction
             action={leaveCompany}
@@ -151,7 +160,7 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
 function Group({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
     <section className="flex flex-col gap-1.5">
-      <h2 className="flex h-7 items-center justify-between pl-4 pr-1 text-[12px] font-medium uppercase tracking-[0.04em] text-neutral-500">
+      <h2 className="flex h-7 items-center justify-between pl-3.5 pr-[7px] text-[12px] font-medium uppercase tracking-[0.04em] text-neutral-500">
         {title}
         {action}
       </h2>

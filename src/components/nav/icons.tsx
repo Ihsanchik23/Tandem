@@ -22,10 +22,10 @@ function Svg({ className, children }: { className?: string; children: React.Reac
   );
 }
 
-// ---------- Разделы (Phosphor, стиль Regular; у активного раздела — заливка того же цвета) ----------
+// ---------- Разделы (Phosphor, стиль Regular; активный раздел — заливка фирменным цветом) ----------
 const section = (Icon: PhosphorIcon) =>
   function SectionIcon({ className, active }: IconProps) {
-    return <Icon weight={active ? "fill" : "regular"} className={className} aria-hidden />;
+    return <Icon weight={active ? "fill" : "regular"} className={`${className ?? ""} ${active ? "text-accent" : ""}`} aria-hidden />;
   };
 
 export const HomeIcon = section(House);

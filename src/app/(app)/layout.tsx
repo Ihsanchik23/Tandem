@@ -8,7 +8,7 @@ import { getShellData } from "@/lib/nav/shell";
 // Компьютер: узкое меню из иконок слева (раскрывается при наведении).
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
-    <div className="flex flex-1 flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0 md:pl-16">
+    <div className="flex flex-1 flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0 md:pl-[72px]">
       {children}
       <Suspense fallback={<AppNavView pathname={null} myUsername={null} />}>
         <NavWithUser />

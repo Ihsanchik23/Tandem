@@ -33,8 +33,8 @@ async function Content() {
           photo={PHOTOS.messages}
           alt={t.messages.heroAlt}
           title={t.messages.heroTitle}
-          // Колонка = экран минус меню слева (64px) и список (400px, с 1280px — 460px).
-          sizes="(min-width: 1280px) calc(100vw - 524px), calc(100vw - 464px)"
+          // Колонка = экран минус меню слева (72px) и список (400px, с 1280px — 460px).
+          sizes="(min-width: 1280px) calc(100vw - 532px), calc(100vw - 472px)"
         />
       }
     />
