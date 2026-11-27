@@ -40,7 +40,7 @@ export function MobileHeader({ data }: { data: ShellData | null }) {
           disabled={!data}
           aria-label={n.menu}
           aria-expanded={open}
-          className="flex h-11 w-11 items-center justify-center rounded-xl text-ink hover:bg-neutral-100"
+          className="flex h-11 w-11 items-center justify-center rounded-full text-ink hover:bg-surface"
         >
           <MenuIcon className="h-6 w-6" />
         </button>

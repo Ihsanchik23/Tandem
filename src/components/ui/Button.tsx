@@ -1,10 +1,11 @@
 import type { ButtonHTMLAttributes } from "react";
 
-// Главная кнопка одна на всё приложение: сплошной фирменный цвет #BF4A31, при наведении — #AE3926.
+// Главная кнопка одна на всё приложение: сплошной фирменный цвет #D4442A, при наведении — #BA3A23.
+// Все кнопки — таблетки без рамок, разделение только заливкой.
 // Правила — docs/design.md. Вторая кнопка рядом с главной — нейтральная (SecondaryButton).
 const PRIMARY_FILL =
   "bg-accent text-white hover:bg-accent-hover active:bg-accent-hover disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-white aria-busy:bg-accent! aria-busy:opacity-75";
-const SECONDARY_FILL = "bg-surface text-ink hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-60";
+const SECONDARY_FILL = "bg-surface text-ink hover:bg-line disabled:cursor-not-allowed disabled:opacity-60";
 const FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
 
 /** Размеры: md — в панелях и формах (по умолчанию), sm — внутри групп (подтверждения), xs — в строке (комментарий). */
@@ -40,7 +41,11 @@ export function SecondaryButton({ size = "md", className = "", type = "button", 
   return <button {...rest} type={type} className={`${secondaryButton(size)} ${className}`} />;
 }
 
-// Широкая кнопка на всю ширину (входы, формы на отдельной странице). Заливка — та же, что у PrimaryButton.
+/** Широкая кнопка (h-12) — и для ссылок-кнопок на отдельных страницах. */
+export const wideButton = (variant: "primary" | "secondary" = "primary") =>
+  `inline-flex h-12 items-center justify-center rounded-full px-4 text-base font-medium transition-colors ${variant === "primary" ? PRIMARY_FILL : SECONDARY_FILL} ${FOCUS}`;
+
+// Широкая кнопка на всю ширину (входы, формы на отдельной странице). Заливка — та же, что у PrimaryButton и SecondaryButton.
 export function Button({
   variant = "primary",
   pending = false,
@@ -50,10 +55,8 @@ export function Button({
   disabled,
   ...rest
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "secondary"; pending?: boolean; pendingText?: string }) {
-  const base = `inline-flex h-12 w-full items-center justify-center rounded-xl px-4 text-base font-medium transition-colors ${FOCUS}`;
-  const styles = variant === "primary" ? PRIMARY_FILL : "border border-neutral-300 bg-white text-ink hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-60";
   return (
-    <button {...rest} disabled={disabled || pending} aria-busy={pending || undefined} className={`${base} ${styles} ${className}`}>
+    <button {...rest} disabled={disabled || pending} aria-busy={pending || undefined} className={`${wideButton(variant)} w-full ${className}`}>
       {pending && pendingText ? pendingText : children}
     </button>
   );

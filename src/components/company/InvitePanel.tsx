@@ -100,7 +100,7 @@ export function InvitePanel({ organizationId, organizationName, invites, seats }
           <>
             {/* Ссылка целиком не показывается: обрезанная строка и «копировать». */}
             <div className="group flex items-center gap-2 pl-3.5">
-              <span className="flex min-h-12 min-w-0 flex-1 items-center gap-2 border-b-[0.5px] border-black/[0.09] pr-1.5">
+              <span className="flex min-h-12 min-w-0 flex-1 items-center gap-2 border-b-[0.5px] border-line pr-1.5">
                 <span className="min-w-0 flex-1 truncate text-[14px] text-muted" title={url}>
                   {shortUrl}
                 </span>
@@ -119,7 +119,7 @@ export function InvitePanel({ organizationId, organizationName, invites, seats }
             <button
               type="button"
               onClick={share}
-              className="flex min-h-12 w-full items-center justify-center gap-2 border-b-[0.5px] border-black/[0.09] text-[15px] font-medium text-accent transition-colors hover:bg-black/[0.03] active:bg-black/[0.06]"
+              className="flex min-h-12 w-full items-center justify-center gap-2 border-b-[0.5px] border-line text-[15px] font-medium text-accent transition-colors hover:bg-black/[0.03] active:bg-black/[0.06]"
             >
               <ShareNetwork size={18} />
               {c.inviteShare}
@@ -141,7 +141,7 @@ export function InvitePanel({ organizationId, organizationName, invites, seats }
 
         {/* Подтверждение новой ссылки или отзыва — внутри карточки. */}
         <Collapse open={asking !== null}>
-          <div className="flex flex-col gap-3 border-t-[0.5px] border-black/[0.09] px-3.5 py-3">
+          <div className="flex flex-col gap-3 border-t-[0.5px] border-line px-3.5 py-3">
             <p className="text-[14px] text-ink">{asking === "revoke" ? c.inviteRevokeConfirm : c.inviteNewConfirm}</p>
             <div className="flex justify-end gap-2">
               <button type="button" onClick={() => setAsking(null)} className="h-9 rounded-full px-4 text-[14px] font-medium text-ink hover:bg-black/5">

@@ -246,7 +246,7 @@ export function ChatView({ pageId, me, role, archived, header }: Props) {
             {feed.map((item) =>
               item.kind === "day" ? (
                 <div key={item.key} className="sticky top-2 z-[1] my-3 flex justify-center first:mt-0">
-                  <span className="rounded-full border border-line bg-white/95 px-3 py-1 text-[12px] font-medium text-muted shadow-[0_1px_2px_rgba(0,0,0,0.04)] backdrop-blur">
+                  <span className="rounded-full bg-white/95 px-3 py-1 text-[12px] font-medium text-muted shadow-[0_1px_6px_rgba(30,30,30,0.12)] backdrop-blur">
                     {item.label}
                   </span>
                 </div>
@@ -288,7 +288,7 @@ export function ChatView({ pageId, me, role, archived, header }: Props) {
               toBottom(true);
             }}
             className={`absolute bottom-3 right-4 z-[2] flex h-10 animate-pop-in items-center gap-1.5 rounded-full shadow-lg transition-colors md:right-6 ${
-              unseen ? "bg-accent px-4 text-[14px] font-semibold text-white hover:bg-accent-hover" : "w-10 justify-center border border-line bg-white text-ink hover:bg-surface"
+              unseen ? "bg-accent px-4 text-[14px] font-semibold text-white hover:bg-accent-hover" : "w-10 justify-center bg-white text-ink hover:bg-surface"
             }`}
             aria-label={unseen ? format(c.newMessages, { n: unseen }) : c.toBottom}
           >
@@ -309,7 +309,7 @@ export function ChatView({ pageId, me, role, archived, header }: Props) {
       </div>
 
       {status === "archived" ? (
-        <p className="shrink-0 border-t border-line bg-surface px-4 py-4 text-center text-[15px] text-muted">
+        <p className="shrink-0 bg-surface px-4 py-4 text-center text-[15px] text-muted">
           {c.archived}
         </p>
       ) : (

@@ -43,9 +43,9 @@ export function UnitPicker({ tree, disabled, onPick, autoFocus = false }: Props)
         onChange={(e) => setQuery(e.target.value)}
         placeholder={c.unitPickerSearch}
         aria-label={c.unitPickerSearch}
-        className="h-11 w-full rounded-xl border border-line bg-white px-3.5 text-base text-ink placeholder:text-neutral-400 focus:border-accent focus:outline-none"
+        className="h-11 w-full rounded-full bg-surface px-4 text-base text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-ink/15"
       />
-      <ul className="flex max-h-72 flex-col overflow-y-auto overscroll-contain rounded-xl border border-line p-1" role="listbox" aria-label={c.unitPickerSearch}>
+      <ul className="flex max-h-72 flex-col overflow-y-auto overscroll-contain" role="listbox" aria-label={c.unitPickerSearch}>
         {shown.length === 0 ? <li className="px-3 py-2.5 text-[14px] text-muted">{c.unitPickerNothing}</li> : null}
         {shown.map(({ unit, depth, path }) => {
           const off = disabled?.has(unit.id) ?? false;
@@ -58,7 +58,7 @@ export function UnitPicker({ tree, disabled, onPick, autoFocus = false }: Props)
                 aria-selected={false}
                 disabled={off}
                 onClick={() => onPick(unit.id)}
-                className="flex min-h-10 w-full items-center gap-2.5 rounded-lg py-2 pr-3 text-left text-[14px] text-ink transition-colors enabled:hover:bg-surface disabled:cursor-default disabled:text-muted"
+                className="flex min-h-10 w-full items-center gap-2.5 rounded-xl py-2 pr-3 text-left text-[14px] text-ink transition-colors enabled:hover:bg-surface disabled:cursor-default disabled:text-muted"
                 style={{ paddingLeft: 12 + (q ? 0 : depth * 16) }}
               >
                 <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: color ? `var(--branch-${color}-strong)` : "#a3a3a3" }} aria-hidden />

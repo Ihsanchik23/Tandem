@@ -50,10 +50,10 @@ export const Composer = forwardRef<
     <div className="shrink-0 border-t border-line bg-white px-3 pb-2.5 pt-2.5 md:px-5">
       <div className="mx-auto flex max-w-3xl flex-col gap-2">
         {replyTo ? (
-          <div className="flex animate-fade-in items-center gap-3 rounded-xl bg-surface py-1.5 pl-3 pr-1.5">
-            <ReplyIcon className="h-4 w-4 shrink-0 text-accent" />
-            <div className="min-w-0 flex-1 border-l-[3px] border-accent pl-2.5">
-              <p className="truncate text-[13px] font-semibold text-accent">{replyLabel(replyAuthor?.name || c.unknownAuthor)}</p>
+          <div className="flex animate-fade-in items-center gap-3 rounded-2xl bg-surface py-1.5 pl-3 pr-1.5">
+            <ReplyIcon className="h-4 w-4 shrink-0 text-ink" />
+            <div className="min-w-0 flex-1 border-l-[3px] border-ink pl-2.5">
+              <p className="truncate text-[13px] font-semibold text-ink">{replyLabel(replyAuthor?.name || c.unknownAuthor)}</p>
               <p className="truncate text-[13px] text-muted">{(replyTo.body ?? "").replace(/\s+/g, " ")}</p>
             </div>
             <button
@@ -89,7 +89,7 @@ export const Composer = forwardRef<
                   onCancelReply();
                 }
               }}
-              className={`block w-full resize-none rounded-[22px] border border-transparent bg-surface py-2.5 pl-4 text-base leading-[21px] md:text-[15px] text-ink outline-none transition-colors placeholder:text-muted focus:border-line focus:bg-white ${
+              className={`block w-full resize-none rounded-[22px] bg-surface py-2.5 pl-4 text-base leading-[21px] md:text-[15px] text-ink outline-none transition-colors placeholder:text-muted focus:ring-2 focus:ring-ink/15 ${
                 left !== null ? "pr-14" : "pr-4"
               }`}
             />

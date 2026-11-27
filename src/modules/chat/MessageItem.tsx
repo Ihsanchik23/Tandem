@@ -67,9 +67,9 @@ export const MessageItem = memo(function MessageItem(p: MessageItemProps) {
     ? `rounded-[18px] ${p.last ? "rounded-br-[6px]" : ""}`
     : `rounded-[18px] ${p.last ? "rounded-bl-[6px]" : ""}`;
   const bubbleColor = deleted
-    ? "border border-dashed border-line bg-white text-muted"
+    ? "bg-surface text-muted"
     : p.mine
-      ? "bg-accent text-white"
+      ? "bg-accent text-white" // осознанное исключение из ролей цвета: свои сообщения — акцент (docs/design.md)
       : "bg-surface text-ink";
 
   return (
@@ -94,7 +94,7 @@ export const MessageItem = memo(function MessageItem(p: MessageItemProps) {
           }}
           className={`relative min-w-0 max-w-full px-3.5 py-2 text-[15px] leading-[1.4] transition-[box-shadow,opacity] duration-300 pointer-coarse:select-none [-webkit-touch-callout:none] ${bubbleShape} ${bubbleColor} ${
             m.state === "sending" ? "opacity-70" : ""
-          } ${p.highlighted ? "animate-focus-pulse ring-2 ring-accent-soft/70 ring-offset-2" : ""}`}
+          } ${p.highlighted ? "animate-focus-pulse ring-2 ring-ink/25 ring-offset-2" : ""}`}
         >
           {!p.mine && p.first && !deleted ? (
             <p className="mb-0.5 truncate text-[13px] font-semibold text-ink">{name}</p>
@@ -152,7 +152,7 @@ export const MessageItem = memo(function MessageItem(p: MessageItemProps) {
       {/* Компьютер: действия при наведении (и с клавиатуры). На сенсорных экранах — меню по долгому нажатию. */}
       {hasActions ? (
         <div className="hidden self-center opacity-0 transition-opacity duration-150 group-hover/msg:opacity-100 focus-within:opacity-100 pointer-fine:flex">
-          <div className="flex items-center gap-0.5 rounded-full border border-line bg-white p-0.5 shadow-sm">
+          <div className="flex items-center gap-0.5 rounded-full bg-white p-0.5 shadow-[0_2px_10px_rgba(30,30,30,0.14)]">
             {p.canReply ? (
               <ToolButton label={c.reply} onClick={() => p.onReply(m)}>
                 <ReplyIcon />
@@ -206,7 +206,7 @@ function Body({ text, mine }: { text: string; mine: boolean }) {
             target="_blank"
             rel="noopener noreferrer nofollow"
             onPointerDown={(e) => e.stopPropagation()}
-            className={`underline underline-offset-2 ${mine ? "text-white decoration-white/60" : "text-accent decoration-accent/40"}`}
+            className={`underline underline-offset-2 ${mine ? "text-white decoration-white/60" : "text-accent decoration-accent"}`}
           >
             {part.text}
           </a>
@@ -238,11 +238,11 @@ function Quote({
       onClick={onJump}
       disabled={!quote || deleted}
       className={`mb-1 mt-0.5 flex w-full min-w-0 flex-col rounded-lg border-l-[3px] px-2.5 py-1 text-left text-[13px] leading-snug transition-colors ${
-        mine ? "border-white/70 bg-white/15 hover:bg-white/25" : "border-accent bg-white/70 hover:bg-white"
+        mine ? "border-white/70 bg-white/15 hover:bg-white/25" : "border-ink bg-white/70 hover:bg-white"
       } disabled:cursor-default`}
     >
       {quote && !deleted ? (
-        <span className={`truncate font-semibold ${mine ? "text-white" : "text-accent"}`}>{author?.name || c.unknownAuthor}</span>
+        <span className={`truncate font-semibold ${mine ? "text-white" : "text-ink"}`}>{author?.name || c.unknownAuthor}</span>
       ) : null}
       <span className={`line-clamp-2 break-words [overflow-wrap:anywhere] ${deleted ? "italic" : ""} ${mine ? "text-white/85" : "text-muted"}`}>
         {text}

@@ -80,7 +80,7 @@ export function MessagesScreen({ me, role, hero }: { me: string; role: string | 
                     {chat ? (
                       <Link
                         href={`/work/p/${selected}`}
-                        className="inline-flex h-9 shrink-0 items-center rounded-full border border-line px-3.5 text-[13px] font-medium text-ink hover:bg-surface"
+                        className="inline-flex h-9 shrink-0 items-center rounded-full bg-surface px-3.5 text-[13px] font-medium text-ink hover:bg-line"
                       >
                         {m.openInWork}
                       </Link>

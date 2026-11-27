@@ -50,7 +50,7 @@ export function ActionMenu({
   onClose: () => void;
 }) {
   const c = t.chat;
-  const row = "flex h-12 w-full items-center gap-3 rounded-xl px-3 text-left text-base active:bg-surface";
+  const row = "flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-left text-base active:bg-surface";
   return (
     <Modal label={c.actions} onClose={onClose}>
       <p className="mb-2 line-clamp-3 break-words rounded-2xl bg-surface px-3.5 py-2.5 text-[14px] text-muted [overflow-wrap:anywhere]">
@@ -92,7 +92,7 @@ export function ConfirmDelete({ onConfirm, onClose }: { onConfirm: () => Promise
         <button
           type="button"
           onClick={onClose}
-          className="h-11 rounded-xl border border-line px-4 text-base font-medium text-ink hover:bg-surface"
+          className="h-11 rounded-full bg-surface px-4 text-base font-medium text-ink hover:bg-line"
         >
           {c.cancel}
         </button>
@@ -105,7 +105,7 @@ export function ConfirmDelete({ onConfirm, onClose }: { onConfirm: () => Promise
             await onConfirm();
             setBusy(false);
           }}
-          className="h-11 rounded-xl bg-red-700 px-4 text-base font-medium text-white hover:bg-red-800 disabled:opacity-60"
+          className="h-11 rounded-full bg-red-700 px-4 text-base font-medium text-white hover:bg-red-800 disabled:opacity-60"
         >
           {c.deleteYes}
         </button>

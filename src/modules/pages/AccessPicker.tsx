@@ -61,6 +61,7 @@ export function AccessPicker({
         <div className="px-2 py-2">
           <Segmented
             label={p.accessTitle}
+            onCard
             value={unitsMode ? "units" : "organization"}
             onChange={(v) => onChange({ ...value, organization: v === "organization" })}
             options={[
@@ -82,7 +83,7 @@ export function AccessPicker({
             onClick={() => setOpenUnits((o) => !o)}
           />
           <Collapse open={openUnits}>
-            <div className="flex flex-col gap-1 border-b-[0.5px] border-black/[0.09] px-1.5 pb-2 pt-1">
+            <div className="flex flex-col gap-1 border-b-[0.5px] border-line px-1.5 pb-2 pt-1">
               <UnitTree tree={tree} selected={value.units} allowed={options.allowedUnitIds} onToggle={(id) => toggle("units", id)} />
               {structureLink ? (
                 <Link href="/work/structure" className="w-fit px-2 py-1.5 text-[13px] font-medium text-accent hover:text-accent-hover">
@@ -99,7 +100,7 @@ export function AccessPicker({
             onClick={() => setOpenPeople((o) => !o)}
           />
           <Collapse open={openPeople}>
-            <div className="border-b-[0.5px] border-black/[0.09] px-1.5 pb-2 pt-1">
+            <div className="border-b-[0.5px] border-line px-1.5 pb-2 pt-1">
               <PeoplePick options={options} selected={value.users} onToggle={(id) => toggle("users", id)} />
             </div>
           </Collapse>
@@ -124,7 +125,7 @@ function SearchBox({ value, onChange, placeholder }: { value: string; onChange: 
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-9 w-full rounded-full border-0 bg-white pl-9 pr-4 text-base text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/25 md:text-[14px]"
+        className="h-9 w-full rounded-full border-0 bg-white pl-9 pr-4 text-base text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-ink/15 md:text-[14px]"
       />
     </label>
   );

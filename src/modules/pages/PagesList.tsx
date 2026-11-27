@@ -18,7 +18,7 @@ function sameAsModule(name: string, moduleLabel: string): boolean {
 
 export function NewBadge() {
   return (
-    <span className="animate-fade-in shrink-0 rounded-full bg-brand px-2 py-0.5 text-xs font-semibold text-white">
+    <span className="animate-fade-in shrink-0 rounded-full bg-accent px-2 py-0.5 text-xs font-semibold text-white">
       {t.pages.badgeNew}
     </span>
   );
@@ -49,7 +49,7 @@ export function PagesList({ pages, canCreate, archive = false }: { pages: ListPa
               onClick={(e) => openNewPage(e)}
               aria-label={p.create}
               title={p.create}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-white hover:bg-brand-hover"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-white hover:bg-accent-hover"
             >
               <PlusIcon className="h-5 w-5" />
             </a>
@@ -60,13 +60,13 @@ export function PagesList({ pages, canCreate, archive = false }: { pages: ListPa
       <div className="flex items-center gap-2">
         <label className="relative min-w-0 flex-1">
           <span className="sr-only">{p.searchPlaceholder}</span>
-          <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-500" />
+          <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted" />
           <input
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={p.searchPlaceholder}
-            className="h-11 w-full rounded-full border-0 bg-neutral-100 pl-12 pr-4 text-base text-ink placeholder:text-neutral-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent"
+            className="h-11 w-full rounded-full border-0 bg-surface pl-12 pr-4 text-base text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-ink/15"
           />
         </label>
         <FilterMenu count={module === "all" ? 0 : 1} onReset={() => setModule("all")} iconOnly>
@@ -82,7 +82,7 @@ export function PagesList({ pages, canCreate, archive = false }: { pages: ListPa
       </div>
 
       {shown.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-neutral-300 px-4 py-6 text-center text-base text-ink">
+        <p className="rounded-[20px] bg-surface px-4 py-6 text-center text-base text-ink">
           {inTab.length === 0 ? (archive ? p.emptyArchive : p.empty) : p.emptySearch}
         </p>
       ) : (
@@ -94,9 +94,9 @@ export function PagesList({ pages, canCreate, archive = false }: { pages: ListPa
               <li key={page.id} className="min-w-0">
                 <Link
                   href={`/work/p/${page.id}`}
-                  className="flex h-full items-center gap-3 rounded-2xl border border-line bg-white p-3.5 transition-[background-color,border-color,box-shadow] duration-150 hover:border-neutral-300 hover:bg-surface hover:shadow-[0_4px_16px_-8px_rgba(30,30,30,0.18)]"
+                  className="flex h-full items-center gap-3 rounded-[20px] bg-surface p-3.5 transition-colors duration-150 hover:bg-line"
                 >
-                  <PageIcon moduleKey={page.moduleKey} tile={44} />
+                  <PageIcon moduleKey={page.moduleKey} tile={44} onCard />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center gap-2">
                       <span className="truncate text-base font-medium text-ink">{page.name}</span>

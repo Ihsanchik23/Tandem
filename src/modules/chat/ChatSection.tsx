@@ -39,7 +39,7 @@ export function ChatSection({
             {canManage ? (
               <Link
                 href={`/work/p/${page.id}/settings`}
-                className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-line bg-white px-3.5 text-[13px] font-medium text-ink hover:bg-surface"
+                className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-surface px-3.5 text-[13px] font-medium text-ink hover:bg-line"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-[15px] w-[15px]" aria-hidden>
                   <circle cx="12" cy="12" r="3" />

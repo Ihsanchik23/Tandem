@@ -49,13 +49,13 @@ export function PeopleList({ members, units, unitMembers, showUnassigned, active
     <div className="flex flex-col gap-6">
       <label className="relative block">
         <span className="sr-only">{c.peopleSearch}</span>
-        <MagnifyingGlass size={20} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" aria-hidden />
+        <MagnifyingGlass size={20} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" aria-hidden />
         <input
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={c.peopleSearch}
-          className="h-11 w-full rounded-full border-0 bg-surface pl-12 pr-4 text-base text-ink placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-accent"
+          className="h-11 w-full rounded-full border-0 bg-surface pl-12 pr-4 text-base text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-ink/15"
         />
       </label>
 
@@ -73,7 +73,7 @@ export function PeopleList({ members, units, unitMembers, showUnassigned, active
               aria-expanded={!collapsed}
               aria-label={collapsed ? c.groupExpand : c.groupCollapse}
               title={collapsed ? c.groupExpand : c.groupCollapse}
-              className="flex h-7 w-7 items-center justify-center rounded-full text-ink transition-colors hover:bg-black/5"
+              className="flex h-7 w-7 items-center justify-center rounded-full text-ink transition-colors hover:bg-surface"
             >
               <CaretDown size={16} weight="bold" className={`transition-transform duration-200 ${collapsed ? "-rotate-90" : ""}`} />
             </button>
@@ -103,12 +103,12 @@ function PersonRow({ m, chips, active, onOpen }: { m: Member; chips: UnitChip[];
         type="button"
         onClick={onOpen}
         aria-current={active ? "true" : undefined}
-        className={`flex w-full items-center gap-3 pl-3.5 text-left transition-colors group-first:rounded-t-xl group-last:rounded-b-xl focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent ${
+        className={`flex w-full items-center gap-3 pl-3.5 text-left transition-colors group-first:rounded-t-[20px] group-last:rounded-b-[20px] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent ${
           active ? "bg-black/[0.06]" : "hover:bg-black/[0.03] active:bg-black/[0.06]"
         }`}
       >
         <Avatar url={m.avatar_url} name={name} size={40} />
-        <span className="flex min-w-0 flex-1 items-center gap-2 border-b-[0.5px] border-black/[0.09] py-2.5 pr-3 group-last:border-b-0">
+        <span className="flex min-w-0 flex-1 items-center gap-2 border-b-[0.5px] border-line py-2.5 pr-3 group-last:border-b-0">
           <span className="flex min-w-0 flex-1 flex-col gap-1.5">
             <span className="min-w-0">
               <span className="block truncate text-[15px] text-ink">{name}</span>
@@ -128,7 +128,7 @@ export function UnitChips({ chips }: { chips: UnitChip[] }) {
   if (chips.length === 0) {
     return (
       <span className="flex">
-        <span className="inline-flex h-6 items-center rounded-full border border-dashed border-neutral-300 px-2.5 text-[12px] text-muted">
+        <span className="inline-flex h-6 items-center rounded-full bg-white px-2.5 text-[12px] text-muted">
           {t.company.notAssigned}
         </span>
       </span>

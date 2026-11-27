@@ -3,33 +3,32 @@
 import { useState } from "react";
 import { t } from "@/lib/i18n";
 import type { PagePerson } from "./data";
-import { COLUMN_PAGE, isMine, type Task } from "./logic";
+import { COLUMN_PAGE, type Task } from "./logic";
 import { DueShort, Faces, PriorityBadge, STATUS_DOT } from "./bits";
 
 // Список: таблица со столбцами статус, ответственный, дедлайн, приоритет. Также — вкладка «Архив».
+// Без рамки: шапка — серая таблетка, строки разделены тонкими линиями.
 export function TaskList({
   tasks,
   people,
-  me,
   now,
   onOpen,
 }: {
   tasks: Task[];
   people: Map<string, PagePerson>;
-  me: string;
   now: number | null;
   onOpen: (task: Task) => void;
 }) {
   const s = t.tasks;
   const [limit, setLimit] = useState(COLUMN_PAGE * 2);
-  const th = "px-4 py-3 text-left text-xs font-semibold text-muted";
+  const th = "bg-surface px-4 py-3 text-left text-xs font-semibold text-muted first:rounded-l-full last:rounded-r-full";
 
   return (
     <div className="flex flex-col gap-3">
       <div className="-mx-5 overflow-x-auto px-5 md:mx-0 md:px-0">
-        <table className="w-full min-w-[640px] border-separate border-spacing-0 overflow-hidden rounded-2xl text-sm shadow-[0_0_0_1px_var(--tandem-line)]">
+        <table className="w-full min-w-[640px] border-separate border-spacing-0 text-sm">
           <thead>
-            <tr className="bg-surface">
+            <tr>
               <th className={th}>{s.title}</th>
               <th className={th}>{s.filterStatus}</th>
               <th className={th}>{s.assignee}</th>
@@ -44,7 +43,7 @@ export function TaskList({
                 tabIndex={0}
                 onClick={() => onOpen(task)}
                 onKeyDown={(e) => e.key === "Enter" && onOpen(task)}
-                className={`cursor-pointer bg-white hover:bg-surface/60 focus-visible:outline-2 focus-visible:outline-accent ${isMine(task, me) ? "bg-accent/5!" : ""}`}
+                className="cursor-pointer bg-white hover:bg-surface focus-visible:outline-2 focus-visible:outline-accent [&:first-child>td]:border-t-0"
               >
                 <td className="max-w-72 border-t border-line px-4 py-3 font-medium text-ink">
                   <span className="line-clamp-2 break-words">{task.title}</span>
@@ -73,7 +72,7 @@ export function TaskList({
         <button
           type="button"
           onClick={() => setLimit((l) => l + COLUMN_PAGE * 2)}
-          className="h-11 rounded-xl text-sm font-medium text-muted hover:bg-surface"
+          className="h-11 rounded-full bg-surface text-sm font-medium text-ink hover:bg-line"
         >
           {s.showMore} ({tasks.length - limit})
         </button>

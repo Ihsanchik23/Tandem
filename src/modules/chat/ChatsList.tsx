@@ -66,9 +66,9 @@ export function ChatsList({
               href={`/messages?chat=${chat.pageId}`}
               onClick={(e) => onOpen(chat.pageId, e)}
               aria-current={active ? "true" : undefined}
-              className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors ${active ? "bg-surface" : "hover:bg-neutral-50 active:bg-surface"}`}
+              className={`flex items-center gap-3 rounded-[20px] px-3 py-2.5 transition-colors ${active ? "bg-surface" : "hover:bg-surface"}`}
             >
-              <PageIcon moduleKey="chat" tile={48} />
+              <PageIcon moduleKey="chat" tile={48} onCard={active} />
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="flex items-baseline gap-2">
                   <span className={`min-w-0 flex-1 truncate text-[15px] text-ink ${unread ? "font-semibold" : "font-medium"}`}>{chat.name}</span>
@@ -126,8 +126,8 @@ function EmptyList() {
         <path d="M18 48 14 60l14-12" fill="#fff" stroke="#e8e4de" strokeWidth="2" strokeLinejoin="round" />
         <rect x="18" y="22" width="30" height="4" rx="2" fill="#e8e4de" />
         <rect x="18" y="31" width="20" height="4" rx="2" fill="#e8e4de" />
-        <rect x="38" y="30" width="52" height="34" rx="13" fill="#bf4a31" />
-        <path d="M78 64l6 10-14-10" fill="#bf4a31" />
+        <rect x="38" y="30" width="52" height="34" rx="13" className="fill-accent" />
+        <path d="M78 64l6 10-14-10" className="fill-accent" />
         <circle cx="52" cy="47" r="3" fill="#fff" />
         <circle cx="64" cy="47" r="3" fill="#fff" opacity="0.8" />
         <circle cx="76" cy="47" r="3" fill="#fff" opacity="0.6" />

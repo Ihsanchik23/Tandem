@@ -16,14 +16,13 @@ import { useRef, useState, useSyncExternalStore } from "react";
 import { format, t } from "@/lib/i18n";
 import { PlusIcon } from "@/components/nav/icons";
 import type { PagePerson } from "./data";
-import { COLUMN_PAGE, groupByStatus, isMine, TASK_STATUSES, type Task, type TaskStatus } from "./logic";
+import { COLUMN_PAGE, groupByStatus, TASK_STATUSES, type Task, type TaskStatus } from "./logic";
 import { COLUMN, CommentIcon, DueShort, Faces, PriorityBadge } from "./bits";
 import { formatDueShort } from "./time";
 
 type Props = {
   tasks: Task[]; // уже отфильтрованные и отсортированные
   people: Map<string, PagePerson>;
-  me: string;
   now: number | null;
   readOnly: boolean;
   canMove: (task: Task) => boolean;
@@ -48,11 +47,11 @@ function useWide(): boolean {
 
 const TAB_PREFIX = "tab:";
 
-// Доска (ТЗ, раздел 12): у каждого статуса своя цветная колонка. Перетаскивание сразу сохраняет статус
+// Доска (ТЗ, раздел 12): колонки серые (bg-surface), статус — цветная точка у заголовка. Перетаскивание сразу сохраняет статус
 // (оптимистично; при ошибке карточка возвращается — это делает onMove). На телефоне — после удержания
 // ~200 мс, чтобы список можно было листать; бросить карточку можно на вкладку другого статуса.
 export function Kanban(props: Props) {
-  const { tasks, people, me, now, canMove, onMove, onOpen } = props;
+  const { tasks, people, now, canMove, onMove, onOpen } = props;
   const wide = useWide();
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
@@ -86,14 +85,14 @@ export function Kanban(props: Props) {
     return (
       <>
         {list.slice(0, limit).map((task) => (
-          <DraggableCard key={task.id} task={task} people={people} me={me} now={now} disabled={!canMove(task)} onOpen={open} />
+          <DraggableCard key={task.id} task={task} people={people} now={now} disabled={!canMove(task)} onOpen={open} />
         ))}
         {list.length === 0 ? <p className="px-2 py-6 text-center text-[13px] text-muted">{t.tasks.columnEmpty}</p> : null}
         {list.length > limit ? (
           <button
             type="button"
             onClick={() => setLimits((l) => ({ ...l, [status]: l[status] + COLUMN_PAGE }))}
-            className="h-9 rounded-full text-[13px] font-medium text-ink hover:bg-white/60"
+            className="h-9 rounded-full text-[13px] font-medium text-ink hover:bg-line"
           >
             {t.tasks.showMore} · {list.length - limit}
           </button>
@@ -126,14 +125,14 @@ export function Kanban(props: Props) {
               />
             ))}
           </div>
-          <div className="flex flex-col gap-2.5 rounded-[28px] p-2.5" style={{ background: COLUMN[props.mobileStatus].bg }}>
+          <div className="flex flex-col gap-2.5 rounded-[20px] bg-surface p-2.5">
             {cards(props.mobileStatus)}
           </div>
           {!props.readOnly && tasks.length > 0 ? <p className="text-center text-[11px] text-muted">{t.tasks.dragHintTabs}</p> : null}
         </div>
       )}
       <DragOverlay dropAnimation={null}>
-        {dragging ? <CardBody task={dragging} people={people} me={me} now={now} lifted /> : null}
+        {dragging ? <CardBody task={dragging} people={people} now={now} lifted /> : null}
       </DragOverlay>
     </DndContext>
   );
@@ -146,8 +145,8 @@ function Column({ status, count, children }: { status: TaskStatus; count: number
     <section
       ref={setNodeRef}
       aria-label={t.tasks.status[status]}
-      className={`flex min-w-0 flex-col gap-2.5 rounded-[28px] p-3 transition-shadow ${isOver ? "ring-2 ring-offset-2" : ""}`}
-      style={{ background: c.bg, ["--tw-ring-color" as string]: c.strong }}
+      // Карточку несут над колонкой — колонка чуть темнеет (только заливка, без рамок).
+      className={`flex min-w-0 flex-col gap-2.5 rounded-[20px] p-3 transition-colors ${isOver ? "bg-line" : "bg-surface"}`}
     >
       <h3 className="flex items-center gap-2 px-1.5 pb-1 pt-1">
         <span className="h-2 w-2 rounded-full" style={{ background: c.strong }} aria-hidden />
@@ -161,16 +160,14 @@ function Column({ status, count, children }: { status: TaskStatus; count: number
   );
 }
 
-// Пунктирная кнопка внизу колонки: задача создаётся сразу в этом статусе.
+// Серая таблетка внизу колонки: задача создаётся сразу в этом статусе.
 function AddButton({ status, onAdd }: { status: TaskStatus; onAdd: (status: TaskStatus) => void }) {
-  const c = COLUMN[status];
   return (
     <button
       type="button"
       onClick={() => onAdd(status)}
       aria-label={format(t.tasks.addInColumn, { status: t.tasks.status[status] })}
-      className="flex h-11 items-center justify-center gap-1.5 rounded-2xl border-[1.5px] border-dashed bg-white/40 text-[13px] font-medium transition-colors hover:bg-white/70"
-      style={{ borderColor: c.line, color: c.text }}
+      className="flex h-11 items-center justify-center gap-1.5 rounded-full bg-line text-[13px] font-medium text-ink transition-colors hover:bg-neutral-300/70"
     >
       <PlusIcon className="h-4 w-4" />
       {t.tasks.addTask}
@@ -178,7 +175,7 @@ function AddButton({ status, onAdd }: { status: TaskStatus; onAdd: (status: Task
   );
 }
 
-// Вкладка статуса на телефоне: в цвете своей колонки; на неё же можно бросить карточку.
+// Вкладка статуса на телефоне: выбранная — чёрная (docs/design.md); на неё же можно бросить карточку.
 function StatusTab({ status, count, active, onSelect }: { status: TaskStatus; count: number; active: boolean; onSelect: () => void }) {
   const { setNodeRef, isOver } = useDroppable({ id: `${TAB_PREFIX}${status}` });
   const c = COLUMN[status];
@@ -189,17 +186,13 @@ function StatusTab({ status, count, active, onSelect }: { status: TaskStatus; co
       role="tab"
       aria-selected={active}
       onClick={onSelect}
-      className={`flex h-[54px] flex-col items-center justify-center gap-0.5 rounded-2xl transition-[box-shadow,background-color] ${
-        active ? "shadow-[inset_0_0_0_2px_var(--tab-strong)]" : ""
-      } ${isOver ? "ring-2 ring-offset-2" : ""}`}
-      style={{
-        background: active ? c.bg : "var(--tandem-surface)",
-        ["--tab-strong" as string]: c.strong,
-        ["--tw-ring-color" as string]: c.strong,
-      }}
+      className={`flex h-[54px] flex-col items-center justify-center gap-0.5 rounded-2xl transition-colors ${
+        active ? "bg-ink text-white" : isOver ? "bg-line text-ink" : "bg-surface text-ink"
+      }`}
     >
-      <span className="text-[17px] font-semibold leading-none text-ink">{count}</span>
-      <span className="text-[11px] font-medium" style={{ color: active ? c.text : "var(--tandem-muted)" }}>
+      <span className="text-[17px] font-semibold leading-none">{count}</span>
+      <span className={`flex items-center gap-1 text-[11px] font-medium ${active ? "text-white" : "text-muted"}`}>
+        <span className="h-1.5 w-1.5 rounded-full" style={{ background: c.strong }} aria-hidden />
         {t.tasks.statusShort[status]}
       </span>
     </button>
@@ -209,14 +202,12 @@ function StatusTab({ status, count, active, onSelect }: { status: TaskStatus; co
 function DraggableCard({
   task,
   people,
-  me,
   now,
   disabled,
   onOpen,
 }: {
   task: Task;
   people: Map<string, PagePerson>;
-  me: string;
   now: number | null;
   disabled: boolean;
   onOpen: (task: Task) => void;
@@ -238,42 +229,37 @@ function DraggableCard({
         }
       }}
       // Без выделения текста и системного меню при удержании пальцем.
-      className={`rounded-[20px] touch-manipulation select-none [-webkit-touch-callout:none] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
-        isDragging ? "border-2 border-dashed border-white bg-white/30" : ""
+      className={`rounded-2xl touch-manipulation select-none [-webkit-touch-callout:none] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+        isDragging ? "bg-line" : ""
       }`}
     >
-      {/* Пока карточку тащат, на её месте — пунктирная «лунка» того же размера. */}
+      {/* Пока карточку тащат, на её месте — серая «лунка» того же размера. */}
       <div className={isDragging ? "invisible" : ""}>
-        <CardBody task={task} people={people} me={me} now={now} />
+        <CardBody task={task} people={people} now={now} />
       </div>
     </div>
   );
 }
 
 // Карточка задачи: сверху мелко приоритет и дедлайн, крупнее — название, внизу люди и комментарии.
-// «Готово» — зачёркнутое название и дата выполнения. Свои задачи — с тёплой обводкой.
+// «Готово» — зачёркнутое название и дата выполнения. Белая на серой колонке, без теней (тень — только у поднятой).
 export function CardBody({
   task,
   people,
-  me,
   now,
   lifted = false,
 }: {
   task: Task;
   people: Map<string, PagePerson>;
-  me: string;
   now: number | null;
   lifted?: boolean;
 }) {
   const s = t.tasks;
-  const mine = isMine(task, me);
   const done = task.status === "done";
   const ids = [...(task.assigneeId ? [task.assigneeId] : []), ...task.coassignees];
   return (
     <article
-      className={`flex cursor-pointer flex-col gap-2 rounded-[20px] bg-white p-3.5 text-left transition-[box-shadow,transform] duration-200 hover:-translate-y-px hover:shadow-[0_8px_20px_rgba(0,0,0,0.08)] ${
-        mine ? "shadow-[0_0_0_1.5px_#f3b39c,0_2px_8px_rgba(234,95,53,0.10)]" : "shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
-      } ${lifted ? "rotate-2 shadow-[0_18px_40px_rgba(0,0,0,0.18)]!" : ""}`}
+      className={`flex cursor-pointer flex-col gap-2 rounded-2xl bg-white p-3.5 text-left ${lifted ? "rotate-2 shadow-[0_18px_40px_rgba(0,0,0,0.18)]" : ""}`}
     >
       <div className="flex items-center justify-between gap-2">
         <PriorityBadge priority={task.priority} />

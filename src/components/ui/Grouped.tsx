@@ -6,7 +6,7 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { InfoTip } from "./InfoTip";
 
 // Grouped list (как настройки iOS/WhatsApp) — правила в docs/design.md.
-// Экран и панели — белые, карточка группы — светло-серая (#F8F6F4, bg-surface), без рамки, скругление 12px.
+// Экран и панели — белые, карточка группы — светло-серая (bg-surface), без рамки, скругление 20px.
 // Боковое меню — исключение: серый фон, белые карточки (оборачивается в OnGrayBackground).
 
 const OnGray = createContext(false);
@@ -48,15 +48,15 @@ export function Section({
 export function SectionCard({ children }: { children: React.ReactNode }) {
   const onGray = useContext(OnGray);
   // Без overflow-hidden: списки выбора (PopoverRow) выходят за край карточки. Углы подсветки строк скругляют сами строки.
-  return <div className={`rounded-xl ${onGray ? "bg-white" : "bg-surface"}`}>{children}</div>;
+  return <div className={`rounded-[20px] ${onGray ? "bg-white" : "bg-surface"}`}>{children}</div>;
 }
 
 /** Строка без своей заливки: подсветка при наведении и нажатии — затемнением, видна на любом фоне. */
 const press = "hover:bg-black/[0.03] active:bg-black/[0.06]";
 /** Скругление подсветки у первой и последней строки карточки (сама строка — :first/:last). */
-const corners = "first:rounded-t-xl last:rounded-b-xl";
+const corners = "first:rounded-t-[20px] last:rounded-b-[20px]";
 /** Тонкий разделитель от начала текста; у последней строки карточки его нет. */
-const line = "border-b-[0.5px] border-black/[0.09] group-last:border-b-0";
+const line = "border-b-[0.5px] border-line group-last:border-b-0";
 
 type RowContent = {
   icon?: React.ReactNode;
@@ -72,6 +72,7 @@ type RowContent = {
   danger?: boolean;
   /** Действие (добавить, выдать) — текст фирменного цвета. */
   accent?: boolean;
+  /** Выбранная строка (раздел меню): чёрная, текст и иконка белые. */
   active?: boolean;
   /** Раскрыта ли связанная секция (шеврон поворачивается вниз). */
   expanded?: boolean;
@@ -79,30 +80,43 @@ type RowContent = {
   top?: boolean;
 };
 
-function rowClass({ danger, accent, active, interactive }: { danger?: boolean; accent?: boolean; active?: boolean; interactive: boolean }) {
+function rowClass({
+  danger,
+  accent,
+  active,
+  pressed,
+  interactive,
+}: {
+  danger?: boolean;
+  accent?: boolean;
+  active?: boolean;
+  /** Открыт список под строкой — подсветка как при нажатии. */
+  pressed?: boolean;
+  interactive: boolean;
+}) {
   return `flex w-full items-center gap-3 pl-3.5 text-left transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent ${
-    active ? "bg-black/[0.06]" : interactive ? press : ""
-  } ${danger ? "text-red-700" : accent ? "text-accent" : "text-ink"}`;
+    active ? "rounded-2xl bg-ink text-white" : `${pressed ? "bg-black/[0.06]" : interactive ? press : ""} ${danger ? "text-red-700" : accent ? "text-accent" : "text-ink"}`
+  }`;
 }
 
 function RowBody({ icon, label, sub, value, right, chevron, active, expanded, top }: RowContent) {
   return (
     <>
       {icon ? <span className={`flex h-6 w-6 shrink-0 items-center justify-center ${top ? "self-start mt-3" : ""}`}>{icon}</span> : null}
-      <span className={`flex min-h-12 min-w-0 flex-1 gap-2 py-2 pr-3 ${top ? "items-start" : "items-center"} ${line}`}>
+      <span className={`flex min-h-12 min-w-0 flex-1 gap-2 py-2 pr-3 ${top ? "items-start" : "items-center"} ${active ? "border-b-0" : line}`}>
         <span className={`min-w-0 flex-1 ${top ? "pt-[3px]" : ""}`}>
           <span className={`block truncate text-[15px] ${active ? "font-medium" : ""}`}>{label}</span>
-          {sub ? <span className="block truncate text-[13px] text-muted">{sub}</span> : null}
+          {sub ? <span className={`block truncate text-[13px] ${active ? "text-white" : "text-muted"}`}>{sub}</span> : null}
         </span>
         {value !== undefined && value !== null ? (
-          <span className="flex min-w-0 max-w-[60%] items-center justify-end truncate text-right text-[15px] text-muted">{value}</span>
+          <span className={`flex min-w-0 max-w-[60%] items-center justify-end truncate text-right text-[15px] ${active ? "text-white" : "text-muted"}`}>{value}</span>
         ) : null}
         {right}
         {chevron ? (
           <CaretRight
             size={16}
             weight="bold"
-            className={`shrink-0 text-neutral-400 transition-transform duration-150 ${expanded ? "rotate-90" : ""} ${top ? "mt-1" : ""}`}
+            className={`shrink-0 ${active ? "text-white" : "text-neutral-400"} transition-transform duration-150 ${expanded ? "rotate-90" : ""} ${top ? "mt-1" : ""}`}
             aria-hidden
           />
         ) : null}
@@ -174,7 +188,7 @@ export function PopoverRow({
         aria-haspopup="dialog"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className={`group-first:rounded-t-xl group-last:rounded-b-xl ${rowClass({ ...content, active: open, interactive: true })}`}
+        className={`group-first:rounded-t-[20px] group-last:rounded-b-[20px] ${rowClass({ ...content, pressed: open, interactive: true })}`}
       >
         <RowBody {...content} chevron expanded={open} />
       </button>
@@ -182,7 +196,7 @@ export function PopoverRow({
         <div
           role="dialog"
           aria-label={popoverLabel}
-          className="absolute left-2 right-2 top-full z-30 -mt-1 origin-top animate-pop-in rounded-2xl border border-line bg-white p-2 shadow-[0_16px_40px_-12px_rgba(30,30,30,0.25)]"
+          className="absolute left-2 right-2 top-full z-30 -mt-1 origin-top animate-pop-in rounded-2xl bg-white p-2 shadow-[0_16px_40px_-12px_rgba(30,30,30,0.28)]"
         >
           {children(() => setOpen(false))}
         </div>
@@ -290,7 +304,7 @@ export function CheckRow({
 }) {
   return (
     <label
-      className={`flex min-h-11 items-center gap-3 rounded-lg py-1.5 pr-2 text-[15px] text-ink ${disabled ? "cursor-not-allowed opacity-40" : `cursor-pointer ${press}`}`}
+      className={`flex min-h-11 items-center gap-3 rounded-xl py-1.5 pr-2 text-[15px] text-ink ${disabled ? "cursor-not-allowed opacity-40" : `cursor-pointer ${press}`}`}
       style={{ paddingLeft: 8 + indent }}
     >
       <input type="checkbox" className="h-[18px] w-[18px] shrink-0 accent-accent" disabled={disabled} checked={checked} onChange={onChange} />

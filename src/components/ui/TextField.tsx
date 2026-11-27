@@ -8,8 +8,9 @@ type Common = {
   aside?: ReactNode; // например, счётчик символов справа от подписи
 };
 
+// Поле — таблетка без рамки на заливке bg-surface (docs/design.md). Фокус — мягкое кольцо, ошибка — красное.
 const fieldClass =
-  "w-full rounded-xl border bg-white px-4 text-base text-ink placeholder:text-neutral-400 focus:outline-none focus:ring-1";
+  "w-full border-0 bg-surface px-5 text-base text-ink placeholder:text-muted transition-shadow focus:outline-none focus:ring-2";
 
 function Frame({ id, label, hint, error, aside, children }: Common & { id: string; children: ReactNode }) {
   return (
@@ -35,9 +36,7 @@ function Frame({ id, label, hint, error, aside, children }: Common & { id: strin
 }
 
 function stateClass(error?: string | null) {
-  return error
-    ? "border-red-400 focus:border-red-500 focus:ring-red-500"
-    : "border-neutral-300 focus:border-accent focus:ring-accent";
+  return error ? "ring-2 ring-red-400 focus:ring-red-500" : "focus:ring-ink/15";
 }
 
 export function TextField({
@@ -59,7 +58,7 @@ export function TextField({
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
         // 16px — чтобы iPhone не увеличивал страницу при вводе.
-        className={`h-12 ${fieldClass} ${stateClass(error)} ${className}`}
+        className={`h-12 rounded-full ${fieldClass} ${stateClass(error)} ${className}`}
         {...rest}
       />
     </Frame>
@@ -84,7 +83,7 @@ export function TextAreaField({
         name={name}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
-        className={`min-h-28 py-3 ${fieldClass} ${stateClass(error)} ${className}`}
+        className={`min-h-28 rounded-[20px] py-3 ${fieldClass} ${stateClass(error)} ${className}`}
         {...rest}
       />
     </Frame>

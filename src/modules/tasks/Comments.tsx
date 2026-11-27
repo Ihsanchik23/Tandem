@@ -86,7 +86,7 @@ export function Comments({
 
           {canComment ? (
             /* Одно поле ввода внизу группы: растёт по мере набора, «Отправить» — справа в той же строке. */
-            <div className="flex items-end gap-2 rounded-[22px] bg-white py-1.5 pl-4 pr-1.5 transition-shadow focus-within:shadow-[0_0_0_2px_rgba(191,74,49,0.25)]">
+            <div className="flex items-end gap-2 rounded-[22px] bg-white py-1.5 pl-4 pr-1.5 transition-shadow focus-within:shadow-[0_0_0_2px_rgba(30,30,30,0.15)]">
               <textarea
                 value={body}
                 onChange={(e) => setBody(e.target.value)}

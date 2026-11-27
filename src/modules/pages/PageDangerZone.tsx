@@ -31,7 +31,7 @@ export function PageDangerZone({ pageId, archived }: { pageId: string; archived:
           <>
             <Row danger label={p.archiveShort} expanded={asking} onClick={() => setAsking((a) => !a)} />
             <Collapse open={asking}>
-              <div className="flex flex-col gap-3 border-t-[0.5px] border-black/[0.09] px-3.5 py-3">
+              <div className="flex flex-col gap-3 border-t-[0.5px] border-line px-3.5 py-3">
                 <p className="text-[14px] text-ink">{p.archiveConfirm}</p>
                 <div className="flex justify-end gap-2">
                   <button

@@ -31,13 +31,13 @@ export function ConfirmAction({ action, fields = {}, label, confirmText, yesLabe
         <button
           type="button"
           onClick={() => setAsking(true)}
-          className="inline-flex h-12 w-full items-center justify-center rounded-xl border border-red-200 bg-white px-4 text-base font-medium text-red-700 hover:bg-red-50"
+          className="inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-4 text-base font-medium text-red-700 hover:bg-red-50"
         >
           {label}
         </button>
       </Collapse>
       <Collapse open={asking}>
-        <form action={formAction} className="flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 p-4">
+        <form action={formAction} className="flex flex-col gap-3 rounded-[20px] bg-red-50 p-4">
           {Object.entries(fields).map(([name, value]) => (
             <input key={name} type="hidden" name={name} value={value} />
           ))}

@@ -63,7 +63,7 @@ export function AppNavView({ pathname, myUsername, isGuest = false, unread = fal
       <nav
         aria-label={t.nav.label}
         onMouseLeave={() => setClosed(false)}
-        className={`group/nav fixed inset-y-0 left-0 z-40 hidden w-[72px] flex-col gap-8 overflow-hidden border-r-[0.5px] border-neutral-300 bg-white px-3 py-6 transition-[width,box-shadow] duration-200 ease-out md:flex ${open} ${isGuest ? "lg:hidden" : ""}`}
+        className={`group/nav fixed inset-y-0 left-0 z-40 hidden w-[72px] flex-col gap-8 overflow-hidden border-r-[0.5px] border-line bg-white px-3 py-6 transition-[width,box-shadow] duration-200 ease-out md:flex ${open} ${isGuest ? "lg:hidden" : ""}`}
       >
         <Link href="/" onClick={onPick} className="flex h-10 items-center gap-4 px-2 text-xl font-semibold tracking-tight text-ink">
           <BrandMark size={32} className="h-8 w-8 shrink-0" />
@@ -79,7 +79,7 @@ export function AppNavView({ pathname, myUsername, isGuest = false, unread = fal
                   onClick={onPick}
                   aria-current={active ? "page" : undefined}
                   aria-label={name}
-                  className="flex h-12 items-center gap-4 rounded-xl px-2 text-base text-ink hover:bg-neutral-100"
+                  className="flex h-12 items-center gap-4 rounded-full px-2 text-base text-ink hover:bg-surface"
                 >
                   <span className="relative shrink-0">
                     <Icon active={active} className="h-6 w-6" />

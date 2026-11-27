@@ -21,10 +21,10 @@ export function PanelHeader({ title, onClose, children }: { title: React.ReactNo
   );
 }
 
-/** Низ панели, закреплён: «Отмена» и главная кнопка справа. */
+/** Низ панели, закреплён: «Отмена» и главная кнопка справа. Без линии — панель и так белая. */
 export function PanelFooter({ children }: { children: React.ReactNode }) {
   return (
-    <footer className="flex shrink-0 items-center justify-end gap-2 border-t-[0.5px] border-black/[0.09] bg-white px-5 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+    <footer className="flex shrink-0 items-center justify-end gap-2 bg-white px-5 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
       {children}
     </footer>
   );

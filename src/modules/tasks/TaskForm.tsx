@@ -23,7 +23,7 @@ export const PROP_ICON = 20;
 
 // Дата и время — белые «пилюли» в строке «Дедлайн»; календарь и часы открываются по клику (системные).
 const pill =
-  "h-8 min-w-0 rounded-lg border-0 bg-white px-2 text-base text-ink transition-shadow md:text-[14px] focus:outline-none focus:ring-2 focus:ring-accent/30";
+  "h-8 min-w-0 rounded-full border-0 bg-white px-3 text-base text-ink transition-shadow md:text-[14px] focus:outline-none focus:ring-2 focus:ring-ink/15";
 
 function FieldError({ children }: { children: React.ReactNode }) {
   return <p className="animate-fade-in px-3.5 text-[13px] text-red-700">{children}</p>;
@@ -31,7 +31,7 @@ function FieldError({ children }: { children: React.ReactNode }) {
 
 function CheckMark({ on }: { on: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" className={`ml-auto h-4 w-4 shrink-0 text-accent ${on ? "" : "opacity-0"}`} aria-hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" className={`ml-auto h-4 w-4 shrink-0 text-ink ${on ? "" : "opacity-0"}`} aria-hidden>
       <path d="m5 12.5 4.5 4.5L19 7.5" />
     </svg>
   );
@@ -47,13 +47,13 @@ function Search({ value, onChange }: { value: string; onChange: (v: string) => v
       placeholder={s.coassigneesSearch}
       aria-label={s.coassigneesSearch}
       autoFocus
-      className="mb-1 h-9 w-full rounded-lg bg-surface px-3 text-base text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 md:text-[13px]"
+      className="mb-1 h-9 w-full rounded-full bg-surface px-4 text-base text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-ink/15 md:text-[13px]"
     />
   );
 }
 
 const rowClass = (on: boolean) =>
-  `flex min-h-10 w-full items-center gap-2.5 rounded-xl px-2.5 text-left text-[14px] text-ink transition-colors ${on ? "bg-accent/[0.08] font-medium" : "hover:bg-surface"}`;
+  `flex min-h-10 w-full items-center gap-2.5 rounded-xl px-2.5 text-left text-[14px] text-ink transition-colors ${on ? "bg-surface font-medium" : "hover:bg-surface"}`;
 
 const match = (p: PagePerson, q: string) => `${p.name} ${p.username} ${p.position ?? ""}`.toLowerCase().includes(q);
 

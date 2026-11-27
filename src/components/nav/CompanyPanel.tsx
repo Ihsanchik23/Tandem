@@ -68,7 +68,7 @@ function PanelContent({ data, onNavigate }: { data: ShellData; onNavigate?: () =
         <Link
           href="/work"
           onClick={onNavigate}
-          className="flex items-center gap-3 rounded-xl bg-white p-2.5 pr-12 transition-colors hover:bg-[#f7f7f7] active:bg-[#efefef]"
+          className="flex items-center gap-3 rounded-[20px] bg-white p-2.5 pr-12 transition-colors hover:bg-[#f7f7f7] active:bg-[#efefef]"
         >
           <span className="overflow-hidden rounded-[10px]">
             <Avatar url={company.logoUrl} name={company.name} size={40} />

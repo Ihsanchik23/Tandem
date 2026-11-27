@@ -4,11 +4,10 @@ import { ArrowRightIcon } from "@/components/nav/icons";
 import { canCreatePage } from "@/modules/pages/logic";
 import { PagesList, type ListPage } from "@/modules/pages/PagesList";
 import type { MyCompany, QuickStartState } from "@/lib/company/queries";
+import { wideButton } from "@/components/ui/Button";
 
-const btnPrimary =
-  "inline-flex h-12 items-center justify-center rounded-xl bg-brand px-4 text-base font-medium text-white hover:bg-brand-hover";
-const btnSecondary =
-  "inline-flex h-12 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-base font-medium text-ink hover:bg-neutral-50";
+const btnPrimary = wideButton("primary");
+const btnSecondary = wideButton("secondary");
 
 // «Работа», если компании нет (ТЗ, раздел 15).
 export function NoCompany({ canCreate }: { canCreate: boolean }) {
@@ -62,7 +61,7 @@ function QuickStart({ state }: { state: QuickStartState }) {
   ].filter((s) => !s.done);
   if (steps.length === 0) return null;
   const item =
-    "flex items-center justify-between rounded-2xl border border-line px-4 py-3 text-base font-medium text-ink transition-colors hover:bg-surface";
+    "flex items-center justify-between rounded-[20px] bg-surface px-4 py-3 text-base font-medium text-ink transition-colors hover:bg-line";
   return (
     <section className="flex flex-col gap-2">
       <h2 className="text-sm font-medium text-ink">{w.quickStartTitle}</h2>

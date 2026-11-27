@@ -299,7 +299,7 @@ export function TaskCard({ open, taskId, task, people, peopleById, me, readOnly,
       {!task ? (
         <p className="text-base text-ink">{taskId ? s.notFound : null}</p>
       ) : askClose ? (
-        <div className="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+        <div className="flex flex-col gap-3 rounded-[20px] bg-amber-50 p-4">
           <p className="text-base font-semibold text-ink">{s.unsavedTitle}</p>
           <p className="text-base text-ink">{s.unsavedText}</p>
           <Button type="button" onClick={() => setAskClose(false)}>

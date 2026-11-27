@@ -2,15 +2,15 @@
 
 /* Только светлая тема (тёмной в MVP нет). Фирменная палитра Tandem — только через эти токены. */
 :root {
-  --tandem-accent: #bf4a31; /* фирменный цвет: только акценты (ссылки, выбранное, счётчики) */
-  --tandem-accent-hover: #ae3926; /* наведение, нажатие */
-  --tandem-accent-soft: #d86750; /* светлый оттенок — редко */
-  --tandem-ink: #1e1e1e; /* основной текст — весь текст чёрный */
+  /* Роли цветов — docs/design.md. Акцент — только чистый, без оттенков и прозрачностей. */
+  --tandem-accent: #d4442a; /* действие и внимание: главная кнопка, счётчики, «Новая», радио */
+  --tandem-accent-hover: #ba3a23; /* только наведение и нажатие */
+  --tandem-ink: #1e1e1e; /* текст и выбор: выбранный сегмент, вкладка, чип, строка меню */
   --tandem-canvas: #ffffff; /* фон страниц */
-  --tandem-surface: #f8f6f4; /* тёплый серый фон досок и панелей */
-  --tandem-muted: #5d5852; /* второстепенный текст (контраст 7:1 на белом) */
-  --tandem-line: #e8e4de; /* тонкие линии и рамки */
-  /* Градиент бренда: кнопки, логотип, выбранные элементы и иконки. */
+  --tandem-surface: #f5f5f5; /* группы, поля, поиск, второстепенные кнопки, колонки доски */
+  --tandem-muted: #74706b; /* второстепенный текст (контраст 4.9:1 на белом) */
+  --tandem-line: #e8e8e8; /* разделители — на тон темнее surface; рамок нет */
+  /* Градиент бренда — только логотип и экраны, ещё не переведённые на docs/design.md. */
   --tandem-grad-1: #f58560;
   --tandem-grad-2: #ea5f35;
   --tandem-grad-3: #d44d27;
@@ -36,7 +36,6 @@
 @theme inline {
   --color-accent: var(--tandem-accent);
   --color-accent-hover: var(--tandem-accent-hover);
-  --color-accent-soft: var(--tandem-accent-soft);
   --color-ink: var(--tandem-ink);
   --color-canvas: var(--tandem-canvas);
   --color-surface: var(--tandem-surface);
@@ -85,7 +84,7 @@
   margin-top: 1px;
   border-radius: 999px;
   background: #fff;
-  border: 2px solid var(--tandem-accent);
+  border: 2px solid var(--tandem-ink);
   box-shadow: 0 1px 4px rgba(30, 30, 30, 0.2);
   cursor: grab;
 }
@@ -95,12 +94,12 @@
   height: 18px;
   border-radius: 999px;
   background: #fff;
-  border: 2px solid var(--tandem-accent);
+  border: 2px solid var(--tandem-ink);
   box-shadow: 0 1px 4px rgba(30, 30, 30, 0.2);
   cursor: grab;
 }
 .range-dual input:focus-visible::-webkit-slider-thumb {
-  box-shadow: 0 0 0 4px rgba(191, 74, 49, 0.25);
+  box-shadow: 0 0 0 4px rgba(30, 30, 30, 0.15);
 }
 /* Шторка снизу на телефоне. */
 @keyframes tandem-sheet-up {
@@ -120,16 +119,16 @@
   }
 }
 
-/* Новая карточка на «Структуре»: короткая подсветка, чтобы её было видно. */
+/* Новая карточка на «Структуре», сообщение по ссылке из ответа: короткая нейтральная подсветка. */
 @keyframes tandem-focus-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(234, 95, 53, 0.55);
+    box-shadow: 0 0 0 0 rgba(30, 30, 30, 0.3);
   }
   60% {
-    box-shadow: 0 0 0 14px rgba(234, 95, 53, 0);
+    box-shadow: 0 0 0 14px rgba(30, 30, 30, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(234, 95, 53, 0);
+    box-shadow: 0 0 0 0 rgba(30, 30, 30, 0);
   }
 }
 

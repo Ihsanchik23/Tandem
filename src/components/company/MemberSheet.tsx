@@ -184,7 +184,7 @@ export function MemberSheet({ open, member, tree, pages, organizationId, me, myR
             {m.position ? <p className="truncate text-[14px] text-muted">{m.position}</p> : null}
             <Link
               href={`/@${m.username}`}
-              className="mt-1 inline-flex h-8 w-fit items-center gap-1.5 rounded-full bg-surface px-3 text-[13px] font-medium text-ink transition-colors hover:bg-neutral-200"
+              className="mt-1 inline-flex h-8 w-fit items-center gap-1.5 rounded-full bg-surface px-3 text-[13px] font-medium text-ink transition-colors hover:bg-line"
             >
               {c.openProfile}
               <ArrowUpRight size={14} />
@@ -323,7 +323,7 @@ export function MemberSheet({ open, member, tree, pages, organizationId, me, myR
               </Collapse>
               <Collapse open={mode?.kind === "askAddOrMove"}>
                 {mode?.kind === "askAddOrMove" ? (
-                  <div className="m-2 flex flex-col gap-3 rounded-xl bg-white p-4">
+                  <div className="m-2 flex flex-col gap-3 rounded-2xl bg-white p-4">
                     <p className="text-[14px] text-ink">
                       {format(c.addOrMove, { name, units: myUnits.map((id) => `«${path(id)}»`).join(", "), unit: path(mode.unitId) })}
                     </p>
@@ -453,7 +453,7 @@ export function MemberSheet({ open, member, tree, pages, organizationId, me, myR
               onClick={() => setMode(mode?.kind === "removeMember" ? null : { kind: "removeMember" })}
             />
             <Collapse open={mode?.kind === "removeMember"}>
-              <div className="flex flex-col gap-3 border-t-[0.5px] border-black/[0.09] px-3.5 py-3">
+              <div className="flex flex-col gap-3 border-t-[0.5px] border-line px-3.5 py-3">
                 <p className="text-[14px] text-ink">{format(c.removeConfirm, { name })}</p>
                 <div className="flex justify-end gap-2">
                   <button
@@ -498,7 +498,7 @@ function Dot({ color, label }: { color: number | null; label: string }) {
 // Выбор внутри группы (подразделение, страница): белый блок с заголовком и крестиком.
 function PickerBox({ title, onCancel, children }: { title: string; onCancel: () => void; children: React.ReactNode }) {
   return (
-    <div className="m-2 flex flex-col gap-2 rounded-xl bg-white p-3">
+    <div className="m-2 flex flex-col gap-2 rounded-2xl bg-white p-3">
       <div className="flex items-center gap-2">
         <p className="min-w-0 flex-1 truncate pl-1 text-[13px] font-medium text-ink">{title}</p>
         <IconButton label={t.company.cancel} tip="end" onClick={onCancel} className="h-8! w-8!">
@@ -528,7 +528,7 @@ function Confirm({
   onNo: () => void;
 }) {
   return (
-    <div className="m-2 flex flex-col gap-3 rounded-xl bg-white p-4">
+    <div className="m-2 flex flex-col gap-3 rounded-2xl bg-white p-4">
       <p className={`text-[14px] ${danger ? "text-red-900" : "text-ink"}`}>{text}</p>
       {note ? <p className="-mt-1 text-[12px] text-muted">{note}</p> : null}
       <div className="flex flex-wrap justify-end gap-2">
@@ -561,7 +561,7 @@ function PositionEditor({ initial, pending, onSave }: { initial: string; pending
         onChange={(e) => setValue(e.target.value)}
         placeholder={c.positionPlaceholder}
         aria-label={c.positionLabel}
-        className="h-11 w-full rounded-xl border border-line bg-white px-3 text-base text-ink placeholder:text-neutral-400 focus:border-accent focus:outline-none"
+        className="h-11 w-full rounded-full bg-surface px-4 text-base text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-ink/15"
       />
       <PrimaryButton type="submit" size="sm" disabled={pending}>
         {c.save}
@@ -585,13 +585,13 @@ function PagePicker({ pages, onPick }: { pages: PageInfo[]; onPick: (pageId: str
         onChange={(e) => setQuery(e.target.value)}
         placeholder={c.grantSearch}
         aria-label={c.grantSearch}
-        className="h-11 w-full rounded-xl border border-line bg-white px-3.5 text-base text-ink placeholder:text-neutral-400 focus:border-accent focus:outline-none"
+        className="h-11 w-full rounded-full bg-surface px-4 text-base text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-ink/15"
       />
-      <ul className="flex max-h-72 flex-col overflow-y-auto overscroll-contain rounded-xl border border-line bg-white p-1">
+      <ul className="flex max-h-72 flex-col overflow-y-auto overscroll-contain">
         {shown.length === 0 ? <li className="px-3 py-2.5 text-[14px] text-muted">{c.unitPickerNothing}</li> : null}
         {shown.map((p) => (
           <li key={p.id}>
-            <button type="button" onClick={() => onPick(p.id)} className="flex min-h-11 w-full items-center gap-3 rounded-lg px-2 text-left text-[14px] text-ink hover:bg-surface">
+            <button type="button" onClick={() => onPick(p.id)} className="flex min-h-11 w-full items-center gap-3 rounded-xl px-2 text-left text-[14px] text-ink hover:bg-surface">
               <PageBadge moduleKey={p.moduleKey} locked={false} />
               <span className="min-w-0 flex-1 truncate">{p.name}</span>
             </button>
@@ -603,9 +603,9 @@ function PagePicker({ pages, onPick }: { pages: PageInfo[]; onPick: (pageId: str
 }
 
 function PageBadge({ moduleKey, locked }: { moduleKey: string; locked: boolean }) {
-  if (!locked) return <PageIcon moduleKey={moduleKey} tile={32} />;
+  if (!locked) return <PageIcon moduleKey={moduleKey} tile={32} onCard />;
   return (
-    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-surface text-ink" aria-hidden>
+    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[14px] bg-white text-ink" aria-hidden>
       <LockIcon className="h-4 w-4" />
     </span>
   );

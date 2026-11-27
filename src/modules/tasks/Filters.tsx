@@ -7,8 +7,8 @@ import type { PagePerson } from "./data";
 import { EMPTY_FILTERS, TASK_PRIORITIES, TASK_STATUSES, type TaskFilters, type TaskPriority, type TaskStatus } from "./logic";
 
 const chip = (on: boolean) =>
-  `inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-medium transition-colors ${
-    on ? "border-ink bg-ink text-white" : "border-line bg-white text-ink hover:bg-surface"
+  `inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-medium transition-colors ${
+    on ? "bg-ink text-white" : "bg-surface text-ink hover:bg-line"
   }`;
 
 function SearchIcon() {
@@ -61,7 +61,7 @@ export function Filters({
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-2">
       <div className="flex min-w-0 items-center gap-2">
-        <label className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full border border-line bg-white px-3.5 text-muted focus-within:border-accent md:max-w-xs">
+        <label className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full bg-surface px-4 text-muted focus-within:ring-2 focus-within:ring-ink/15 md:max-w-xs">
           <SearchIcon />
           <input
             type="search"

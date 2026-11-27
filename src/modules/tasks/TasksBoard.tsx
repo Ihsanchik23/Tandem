@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { format, t } from "@/lib/i18n";
 import type { ErrorKey } from "@/lib/i18n/ru";
 import { PlusIcon } from "@/components/nav/icons";
+import { PrimaryButton } from "@/components/ui/Button";
 import { FormMessage } from "@/components/ui/FormMessage";
 import { subscribeLive } from "@/lib/supabase/realtime";
 import { setStatus, supabase } from "./api";
@@ -177,7 +178,7 @@ export function TasksBoard({ pageId, me, role, readOnly, initialTasks, people }:
             aria-selected={tab === key}
             onClick={() => setTab(key)}
             className={`flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full px-4 text-[13px] font-medium transition-colors md:flex-none ${
-              tab === key ? "bg-ink text-white" : "text-ink hover:bg-white/70"
+              tab === key ? "bg-ink text-white" : "text-ink hover:bg-line"
             }`}
           >
             <Icon />
@@ -190,25 +191,21 @@ export function TasksBoard({ pageId, me, role, readOnly, initialTasks, people }:
       <div className="flex items-start gap-2">
         <Filters value={filters} onChange={setFilters} people={people} withStatus={tab === "list"} overdueCount={overdueCount} />
         {!readOnly ? (
-          <button
-            type="button"
-            onClick={() => setCreating("todo")}
-            className="hidden h-10 shrink-0 items-center gap-1.5 rounded-full bg-brand px-4 text-[13px] font-semibold text-white shadow-[0_6px_16px_rgba(234,95,53,0.28)] hover:bg-brand-hover md:inline-flex"
-          >
+          <PrimaryButton size="sm" onClick={() => setCreating("todo")} className="hidden gap-1.5 md:inline-flex">
             <PlusIcon className="h-4 w-4" />
             {s.create}
-          </button>
+          </PrimaryButton>
         ) : null}
       </div>
 
-      {readOnly ? <p className="rounded-2xl border border-line bg-surface px-4 py-3 text-sm text-ink">{s.readOnly}</p> : null}
+      {readOnly ? <p className="rounded-2xl bg-surface px-4 py-3 text-sm text-ink">{s.readOnly}</p> : null}
 
       <div aria-live="polite" className="empty:hidden">
         {error ? <FormMessage kind="error">{t.errors[error]}</FormMessage> : notice ? <FormMessage kind="notice">{notice}</FormMessage> : null}
       </div>
 
       {inTab.length === 0 && tab !== "board" ? (
-        <div className="flex flex-col items-center gap-3 rounded-3xl bg-surface px-4 py-12 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-[20px] bg-surface px-4 py-12 text-center">
           <p className="text-base font-medium text-ink">{tab === "archive" ? s.emptyArchive : s.empty}</p>
           {tab !== "archive" && !readOnly ? (
             <button type="button" onClick={() => setCreating("todo")} className="text-base font-medium text-accent underline underline-offset-4">
@@ -217,12 +214,11 @@ export function TasksBoard({ pageId, me, role, readOnly, initialTasks, people }:
           ) : null}
         </div>
       ) : shown.length === 0 && filtered && tab !== "board" ? (
-        <p className="rounded-3xl bg-surface px-4 py-10 text-center text-base text-ink">{s.emptyFiltered}</p>
+        <p className="rounded-[20px] bg-surface px-4 py-10 text-center text-base text-ink">{s.emptyFiltered}</p>
       ) : tab === "board" ? (
         <Kanban
           tasks={shown}
           people={peopleById}
-          me={me}
           now={now}
           readOnly={readOnly}
           canMove={(task) => !readOnly && canWorkTask(task, me, role)}
@@ -233,7 +229,7 @@ export function TasksBoard({ pageId, me, role, readOnly, initialTasks, people }:
           onMobileStatus={setMobileStatus}
         />
       ) : (
-        <TaskList tasks={shown} people={peopleById} me={me} now={now} onOpen={openTask} />
+        <TaskList tasks={shown} people={peopleById} now={now} onOpen={openTask} />
       )}
 
       {/* Телефон: кнопка «+» всегда под пальцем, создаёт задачу в открытой вкладке статуса. */}
@@ -242,7 +238,7 @@ export function TasksBoard({ pageId, me, role, readOnly, initialTasks, people }:
           type="button"
           onClick={() => setCreating(tab === "board" ? mobileStatus : "todo")}
           aria-label={s.create}
-          className="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white shadow-[0_10px_24px_rgba(234,95,53,0.4)] md:hidden"
+          className="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-white shadow-[0_10px_24px_rgba(30,30,30,0.25)] hover:bg-accent-hover md:hidden"
         >
           <PlusIcon className="h-6 w-6" />
         </button>

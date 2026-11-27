@@ -23,7 +23,7 @@ function setCollapsed(v: boolean) {
 export function WorkPanel({ data }: { data: ShellData }) {
   const collapsed = useSyncExternalStore(subscribe, () => localStorage.getItem(KEY) === "1", () => false);
   const n = t.nav;
-  const btn = "absolute z-10 flex items-center justify-center rounded-xl text-ink transition-opacity duration-200 hover:bg-black/5";
+  const btn = "absolute z-10 flex items-center justify-center rounded-full text-ink transition-opacity duration-200 hover:bg-black/5";
 
   return (
     <aside

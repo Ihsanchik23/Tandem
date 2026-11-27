@@ -21,7 +21,7 @@ export function PriorityBadge({ priority }: { priority: TaskPriority }) {
   );
 }
 
-// Цвета колонок статусов (пастельная палитра из globals.css): фон, точка и кнопки, пунктир, подписи.
+// Цвета статусов (палитра из globals.css): на доске — только точка у заголовка колонки и в карточке задачи.
 const columnOf = (n: number) => ({
   bg: `var(--branch-${n}-bg)`,
   strong: `var(--branch-${n}-strong)`,
@@ -109,7 +109,7 @@ export function Faces({ ids, people, size = 24 }: { ids: string[]; people: Map<s
       ))}
       {rest > 0 ? (
         <span
-          className="-ml-1.5 flex items-center justify-center rounded-full bg-brand text-[10px] font-semibold text-white ring-2 ring-white"
+          className="-ml-1.5 flex items-center justify-center rounded-full bg-surface text-[10px] font-semibold text-ink ring-2 ring-white"
           style={{ width: size, height: size }}
           aria-label={format(t.tasks.peopleMore, { n: rest })}
         >

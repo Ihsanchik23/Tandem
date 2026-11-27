@@ -38,7 +38,7 @@ export function InfoTip({ label, children, align = "left" }: { label: string; ch
         <span
           id={id}
           role="tooltip"
-          className={`absolute top-full z-30 mt-1.5 w-64 animate-pop-in rounded-2xl border border-line bg-white p-3 text-[13px] font-normal leading-snug text-ink shadow-[0_12px_32px_-12px_rgba(30,30,30,0.3)] ${
+          className={`absolute top-full z-30 mt-1.5 w-64 animate-pop-in rounded-2xl bg-white p-3 text-[13px] font-normal leading-snug text-ink shadow-[0_12px_32px_-10px_rgba(30,30,30,0.3)] ${
             align === "left" ? "left-0 origin-top-left" : "right-0 origin-top-right"
           }`}
         >

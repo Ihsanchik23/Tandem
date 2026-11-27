@@ -62,7 +62,7 @@ export function FilterMenu({
           aria-label={f.title}
           title={f.title}
           className={`relative flex h-11 w-11 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-            count > 0 ? "bg-ink text-white" : "bg-neutral-100 text-ink hover:bg-neutral-200"
+            count > 0 ? "bg-ink text-white" : "bg-surface text-ink hover:bg-line"
           }`}
         >
           <FilterIcon className="h-5 w-5" />
@@ -76,9 +76,9 @@ export function FilterMenu({
           aria-expanded={open}
           aria-controls={panelId}
           aria-label={count > 0 ? `${f.title}: ${count}` : f.title}
-          className={`inline-flex items-center gap-2 rounded-full border px-3 ${large ? "h-11 min-w-11 justify-center" : "h-10"} text-[13px] font-medium text-ink transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
+          className={`inline-flex items-center gap-2 rounded-full px-3 ${large ? "h-11 min-w-11 justify-center" : "h-10"} text-[13px] font-medium text-ink transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/20 ${
             compact ? "" : "md:px-3.5"
-          } ${open ? "border-ink/80 bg-white" : "border-line bg-white hover:border-neutral-300 hover:bg-surface"}`}
+          } ${open ? "bg-line" : "bg-surface hover:bg-line"}`}
         >
           <FilterIcon className="h-[18px] w-[18px] shrink-0" />
           <span className={compact ? "sr-only md:not-sr-only" : ""}>{f.title}</span>
@@ -98,7 +98,7 @@ export function FilterMenu({
             id={panelId}
             role="dialog"
             aria-label={f.title}
-            className={`fixed inset-x-0 bottom-0 z-50 flex max-h-[85dvh] animate-sheet-up flex-col rounded-t-[28px] bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-12px_40px_rgba(0,0,0,0.18)] md:absolute md:inset-x-auto md:bottom-auto md:top-full md:mt-2 md:max-h-[min(34rem,75dvh)] md:w-[22rem] md:animate-pop-in md:rounded-[22px] md:border md:border-line md:pb-0 md:shadow-[0_18px_48px_-12px_rgba(30,30,30,0.22)] ${
+            className={`fixed inset-x-0 bottom-0 z-50 flex max-h-[85dvh] animate-sheet-up flex-col rounded-t-[28px] bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-12px_40px_rgba(0,0,0,0.18)] md:absolute md:inset-x-auto md:bottom-auto md:top-full md:mt-2 md:max-h-[min(34rem,75dvh)] md:w-[22rem] md:animate-pop-in md:rounded-[20px] md:pb-0 md:shadow-[0_18px_48px_-12px_rgba(30,30,30,0.22)] ${
               align === "right" ? "md:right-0 md:origin-top-right" : "md:left-0 md:origin-top-left"
             }`}
           >
@@ -109,7 +109,7 @@ export function FilterMenu({
                 <button
                   type="button"
                   onClick={onReset}
-                  className="h-8 rounded-full px-3 text-[13px] font-medium text-accent transition-colors hover:bg-accent/10"
+                  className="h-8 rounded-full px-3 text-[13px] font-medium text-ink transition-colors hover:bg-surface"
                 >
                   {f.reset}
                 </button>
@@ -118,7 +118,7 @@ export function FilterMenu({
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label={t.ui.close}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-surface text-ink transition-colors hover:bg-neutral-200"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-surface text-ink transition-colors hover:bg-line"
               >
                 <CloseIcon className="h-4 w-4" />
               </button>
@@ -170,7 +170,7 @@ export function ChoiceChips<T extends string>({
             aria-checked={on}
             onClick={() => onChange(o.value)}
             className={`inline-flex h-9 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-medium transition-colors ${
-              on ? "bg-ink text-white" : "bg-surface text-ink hover:bg-neutral-200/70"
+              on ? "bg-ink text-white" : "bg-surface text-ink hover:bg-line"
             }`}
           >
             {o.leading}
@@ -220,7 +220,7 @@ export function OptionList<T extends string>({
   return (
     <div className="flex flex-col gap-2">
       {searchable ? (
-        <label className="flex h-10 items-center gap-2 rounded-xl bg-surface px-3 text-muted focus-within:ring-2 focus-within:ring-accent/30">
+        <label className="flex h-10 items-center gap-2 rounded-full bg-surface px-4 text-muted focus-within:ring-2 focus-within:ring-ink/15">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-4 w-4 shrink-0" aria-hidden>
             <circle cx="11" cy="11" r="7" />
             <path d="M20 20l-3.5-3.5" />
@@ -238,7 +238,7 @@ export function OptionList<T extends string>({
       <div role="listbox" aria-label={label} className="-mx-1.5 flex max-h-56 flex-col gap-0.5 overflow-y-auto overscroll-contain px-0.5">
         {freeText && q && !exact ? (
           <Row selected={false} onClick={() => { onChange(freeText(query.trim())); setQuery(""); }}>
-            <span className="truncate font-medium text-accent">{format(f.searchFor, { q: query.trim() })}</span>
+            <span className="truncate font-medium text-ink">{format(f.searchFor, { q: query.trim() })}</span>
           </Row>
         ) : null}
         {shown.map((o) => (
@@ -264,11 +264,11 @@ function Row({ selected, onClick, children }: { selected: boolean; onClick: () =
       aria-selected={selected}
       onClick={onClick}
       className={`flex min-h-11 w-full shrink-0 items-center gap-2.5 rounded-xl px-2.5 text-left text-[14px] text-ink transition-colors ${
-        selected ? "bg-accent/[0.08] font-medium" : "hover:bg-surface"
+        selected ? "bg-surface font-medium" : "hover:bg-surface"
       }`}
     >
       {children}
-      <CheckIcon className={`ml-auto h-4 w-4 shrink-0 text-accent ${selected ? "opacity-100" : "opacity-0"}`} />
+      <CheckIcon className={`ml-auto h-4 w-4 shrink-0 text-ink ${selected ? "opacity-100" : "opacity-0"}`} />
     </button>
   );
 }
@@ -281,7 +281,7 @@ export function FilterSwitch({ label, hint, checked, onChange }: { label: string
         <span className="block text-[14px] font-medium text-ink">{label}</span>
         {hint ? <span className="block text-[12px] text-muted">{hint}</span> : null}
       </span>
-      <span className={`relative h-6 w-10 shrink-0 rounded-full transition-colors duration-200 ${checked ? "bg-accent" : "bg-neutral-300"}`}>
+      <span className={`relative h-6 w-10 shrink-0 rounded-full transition-colors duration-200 ${checked ? "bg-ink" : "bg-neutral-300"}`}>
         <span
           className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.25)] transition-transform duration-200 ease-out ${
             checked ? "translate-x-[18px]" : "translate-x-0.5"
@@ -313,7 +313,7 @@ export function ActiveFilters({ items, onResetAll }: { items: { key: string; lab
         </button>
       ))}
       {onResetAll && items.length > 1 ? (
-        <button type="button" onClick={onResetAll} className="h-8 rounded-full px-2.5 text-[12px] font-medium text-accent hover:bg-accent/10">
+        <button type="button" onClick={onResetAll} className="h-8 rounded-full px-2.5 text-[12px] font-medium text-ink hover:bg-surface">
           {f.resetAll}
         </button>
       ) : null}
@@ -345,7 +345,7 @@ export function RangeSlider({
         <span aria-hidden className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-neutral-200" />
         <span
           aria-hidden
-          className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-accent"
+          className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-ink"
           style={{ left: `${pct(lo)}%`, right: `${100 - pct(hi)}%` }}
         />
         <input
