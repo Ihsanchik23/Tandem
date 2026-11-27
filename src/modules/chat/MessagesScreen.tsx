@@ -5,7 +5,8 @@ import { useSearchParams } from "next/navigation";
 import { useRef, useSyncExternalStore } from "react";
 import { ListDetailLayout } from "@/components/layout/ListDetailLayout";
 import { t } from "@/lib/i18n";
-import { ModuleIcon } from "@/modules/pages/PagesList";
+import { MobileScreen } from "@/components/layout/MobileScreen";
+import { PageIcon } from "@/components/ui/PageIcon";
 import { ChatsList } from "./ChatsList";
 import { ChatView } from "./ChatView";
 import { useMyChats } from "./chats";
@@ -56,50 +57,9 @@ export function MessagesScreen({ me, role, hero }: { me: string; role: string | 
   }
 
   const title = chat?.name ?? "";
-  const view = (mobile: boolean) =>
+  const chatView = (header?: React.ReactNode) =>
     selected ? (
-      <ChatView
-        key={selected}
-        pageId={selected}
-        me={me}
-        role={role}
-        archived={chat?.archived ?? false}
-        header={
-          <header
-            className={`flex shrink-0 items-center gap-3 border-b border-line bg-white ${
-              mobile ? "h-14 px-2 pt-[env(safe-area-inset-top)]" : "px-6 py-4"
-            }`}
-          >
-            {mobile ? (
-              <button
-                type="button"
-                onClick={back}
-                aria-label={m.back}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-ink hover:bg-neutral-100"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6" aria-hidden>
-                  <path d="m15 18-6-6 6-6" />
-                </svg>
-              </button>
-            ) : (
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-surface text-ink">
-                <ModuleIcon moduleKey="chat" className="h-5 w-5" />
-              </span>
-            )}
-            <h2 className={`min-w-0 flex-1 truncate font-semibold text-ink ${mobile ? "text-base" : "text-[20px] tracking-[-0.01em]"}`}>{title}</h2>
-            {chat ? (
-              <Link
-                href={`/work/p/${selected}`}
-                className={`shrink-0 rounded-full text-[13px] font-medium text-ink hover:bg-surface ${
-                  mobile ? "px-3 py-2 text-muted" : "inline-flex h-9 items-center border border-line px-3.5"
-                }`}
-              >
-                {mobile ? t.nav.work : m.openInWork}
-              </Link>
-            ) : null}
-          </header>
-        }
-      />
+      <ChatView key={selected} pageId={selected} me={me} role={role} archived={chat?.archived ?? false} header={header} />
     ) : null;
 
   return (
@@ -109,11 +69,47 @@ export function MessagesScreen({ me, role, hero }: { me: string; role: string | 
         detailLabel={m.detailLabel}
         list={<ChatsList chats={chats} failed={failed} me={me} selected={desktop ? selected : null} onOpen={open} />}
         // Чату нужна точная высота колонки: лента прокручивается сама, поле ввода прижато к низу.
-        detail={selected ? desktop ? <div className="flex h-dvh min-w-0 flex-1 flex-col">{view(false)}</div> : null : hero}
+        detail={
+          selected ? (
+            desktop ? (
+              <div className="flex h-dvh min-w-0 flex-1 flex-col">
+                {chatView(
+                  <header className="flex shrink-0 items-center gap-3 border-b border-line bg-white px-6 py-4">
+                    <PageIcon moduleKey="chat" />
+                    <h2 className="min-w-0 flex-1 truncate text-[20px] font-semibold tracking-[-0.01em] text-ink">{title}</h2>
+                    {chat ? (
+                      <Link
+                        href={`/work/p/${selected}`}
+                        className="inline-flex h-9 shrink-0 items-center rounded-full border border-line px-3.5 text-[13px] font-medium text-ink hover:bg-surface"
+                      >
+                        {m.openInWork}
+                      </Link>
+                    ) : null}
+                  </header>,
+                )}
+              </div>
+            ) : null
+          ) : (
+            hero
+          )
+        }
       />
-      {/* Телефон: чат поверх списка и нижней панели. Монтируется только один экземпляр чата. */}
+      {/* Телефон: чат на весь экран поверх списка и нижней панели. Монтируется только один экземпляр чата. */}
       {selected && desktop === false ? (
-        <div className="fixed inset-0 z-30 flex animate-fade-in flex-col bg-white pb-[env(safe-area-inset-bottom)]">{view(true)}</div>
+        <MobileScreen
+          title={title}
+          onBack={back}
+          scroll={false}
+          right={
+            chat ? (
+              <Link href={`/work/p/${selected}`} className="rounded-full px-3 py-2 text-[13px] font-medium text-muted hover:bg-surface">
+                {t.nav.work}
+              </Link>
+            ) : null
+          }
+        >
+          {chatView()}
+        </MobileScreen>
       ) : null}
     </>
   );

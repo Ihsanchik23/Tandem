@@ -1,10 +1,10 @@
 // Плотные белые пиктограммы для цветных кругов панели «Работа».
-// Используются только здесь: остальные иконки приложения сохраняют свой контурный стиль.
+// Используются здесь и в общей иконке рабочей страницы (components/ui/PageIcon.tsx).
 export type SidebarGlyphKind = "tasks" | "chat" | "profile" | "structure" | "people" | "archive";
 
-export function SidebarGlyph({ kind, cutout }: { kind: SidebarGlyphKind; cutout: string }) {
+export function SidebarGlyph({ kind, cutout, className = "h-7 w-7" }: { kind: SidebarGlyphKind; cutout: string; className?: string }) {
   return (
-    <svg viewBox="0 0 32 32" fill="none" aria-hidden focusable="false" className="h-7 w-7">
+    <svg viewBox="0 0 32 32" fill="none" aria-hidden focusable="false" className={className}>
       {kind === "tasks" && (
         <>
           <rect x="5" y="7" width="19" height="21" rx="3.5" fill="white" opacity=".45" />

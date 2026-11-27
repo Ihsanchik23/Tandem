@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { t } from "@/lib/i18n";
 import { MarkSeen } from "@/modules/pages/MarkSeen";
-import { ModuleIcon } from "@/modules/pages/PagesList";
+import { PageIcon } from "@/components/ui/PageIcon";
 import type { PageRow } from "@/modules/pages/queries";
 import { ChatView } from "./ChatView";
 
 // Рабочая страница «Чат» в «Работе». Лента на всю высоту экрана; поле ввода прижато к низу.
-// Телефон: название и «Настройки» уже в верхней шапке (MobileHeader), снизу — панель разделов.
+// Телефон: на весь экран (MobileScreen на странице): вверху «Назад», название и «Настройки».
 export function ChatSection({
   page,
   canManage,
@@ -20,7 +20,7 @@ export function ChatSection({
 }) {
   const p = t.pages;
   return (
-    <main className="flex h-[calc(100dvh-3.5rem-env(safe-area-inset-top)-4rem-env(safe-area-inset-bottom))] min-h-0 flex-col md:h-dvh">
+    <main className="flex min-h-0 flex-1 flex-col md:h-dvh">
       <MarkSeen pageId={page.id} />
       <ChatView
         pageId={page.id}
@@ -29,9 +29,7 @@ export function ChatSection({
         archived={page.archived}
         header={
           <header className="hidden shrink-0 items-center gap-4 border-b border-line px-6 py-4 md:flex">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-surface text-ink">
-              <ModuleIcon moduleKey="chat" className="h-5 w-5" />
-            </span>
+            <PageIcon moduleKey="chat" />
             <div className="min-w-0 flex-1">
               <h1 data-page-title className="truncate text-[20px] font-semibold leading-tight tracking-[-0.01em] text-ink">
                 {page.name}

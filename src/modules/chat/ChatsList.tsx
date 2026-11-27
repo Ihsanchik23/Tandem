@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { format, t } from "@/lib/i18n";
-import { ModuleIcon } from "@/modules/pages/PagesList";
+import { PageIcon } from "@/components/ui/PageIcon";
 import { cachedAuthor } from "./api";
 import { refreshChats, type ChatSummary } from "./chats";
 import { badgeText, chatPreview, listTime } from "./logic";
@@ -49,7 +49,7 @@ export function ChatsList({
 
   const words = { today: t.chat.today, yesterday: t.chat.yesterday };
   return (
-    <ul aria-label={m.listLabel} className="-mx-3 flex flex-col gap-0.5">
+    <ul aria-label={m.listLabel} className="flex min-w-0 flex-col gap-0.5 overflow-x-hidden">
       {chats.map((chat) => {
         const active = chat.pageId === selected;
         const unread = chat.unread > 0;
@@ -68,11 +68,7 @@ export function ChatsList({
               aria-current={active ? "true" : undefined}
               className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors ${active ? "bg-surface" : "hover:bg-neutral-50 active:bg-surface"}`}
             >
-              <span
-                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${chat.archived ? "bg-neutral-100 text-muted" : active ? "bg-white text-ink" : "bg-surface text-ink"}`}
-              >
-                <ModuleIcon moduleKey="chat" className="h-6 w-6" />
-              </span>
+              <PageIcon moduleKey="chat" size={48} />
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="flex items-baseline gap-2">
                   <span className={`min-w-0 flex-1 truncate text-[15px] text-ink ${unread ? "font-semibold" : "font-medium"}`}>{chat.name}</span>

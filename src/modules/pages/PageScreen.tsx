@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { t } from "@/lib/i18n";
 import { MarkSeen } from "./MarkSeen";
-import { ModuleIcon } from "./PagesList";
+import { PageIcon } from "@/components/ui/PageIcon";
 import type { PageRow } from "./queries";
 
 // Экран рабочей страницы. Порядок сверху вниз: о странице (название, описание, у кого доступ),
@@ -28,9 +28,7 @@ export function PageScreen({
         {/* На телефоне название уже в верхней шапке, а «Настройки» — шестерёнкой там же: блок не нужен. */}
         <header className="hidden md:flex md:items-center md:gap-6">
           <div className="flex min-w-0 flex-1 items-center gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-surface text-ink">
-              <ModuleIcon moduleKey={page.moduleKey} className="h-[22px] w-[22px]" />
-            </span>
+            <PageIcon moduleKey={page.moduleKey} size={44} />
             <div className="min-w-0">
               <h1 data-page-title className="break-words text-[26px] font-semibold leading-tight tracking-[-0.02em] text-ink">
                 {page.name}

@@ -10,6 +10,7 @@ import { ConfirmAction } from "@/components/ui/ConfirmAction";
 import { canCreatePage, isNewPage } from "@/modules/pages/logic";
 import { NewBadge } from "@/modules/pages/PagesList";
 import { useSeenPages } from "@/modules/pages/seen";
+import { PageIcon } from "@/components/ui/PageIcon";
 import { PlusIcon } from "./icons";
 import { SidebarGlyph, type SidebarGlyphKind } from "./SidebarGlyph";
 
@@ -84,7 +85,7 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
           ) : (
             pages.map((p) => (
               <Link key={p.id} href={`/work/p/${p.id}`} onClick={onNavigate} className={item(pathname.startsWith(`/work/p/${p.id}`))}>
-                <RoundIcon tone="pages" kind={p.moduleKey === "chat" ? "chat" : "tasks"} />
+                <PageIcon moduleKey={p.moduleKey} />
                 <span className="min-w-0 flex-1 truncate">{p.name}</span>
                 {seen && isNewPage(p, seen) ? <NewBadge /> : null}
               </Link>
@@ -128,7 +129,6 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
 }
 
 const tones = {
-  pages: "var(--branch-1-line)",
   company: "var(--branch-3-line)",
   other: "var(--branch-2-line)",
 } as const;

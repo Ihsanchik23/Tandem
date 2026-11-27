@@ -89,7 +89,7 @@ export const Composer = forwardRef<
                   onCancelReply();
                 }
               }}
-              className={`block w-full resize-none rounded-[22px] border border-transparent bg-surface py-2.5 pl-4 text-[15px] leading-[21px] text-ink outline-none transition-colors placeholder:text-muted focus:border-line focus:bg-white ${
+              className={`block w-full resize-none rounded-[22px] border border-transparent bg-surface py-2.5 pl-4 text-base leading-[21px] md:text-[15px] text-ink outline-none transition-colors placeholder:text-muted focus:border-line focus:bg-white ${
                 left !== null ? "pr-14" : "pr-4"
               }`}
             />

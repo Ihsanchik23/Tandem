@@ -3,14 +3,15 @@
 import Link from "next/link";
 import { useState } from "react";
 import { t } from "@/lib/i18n";
-import { ChatPageIcon, PlusIcon, TasksPageIcon } from "@/components/nav/icons";
+import { PlusIcon } from "@/components/nav/icons";
+import { PageIcon } from "@/components/ui/PageIcon";
 import { filterPages, isNewPage, PAGE_MODULES, sortPages, type ModuleKey } from "./logic";
 import { useSeenPages } from "./seen";
 
 export type ListPage = { id: string; name: string; description: string | null; moduleKey: ModuleKey; createdAt: string; archived: boolean };
 
-export function ModuleIcon({ moduleKey, className = "h-6 w-6" }: { moduleKey: string; className?: string }) {
-  return moduleKey === "chat" ? <ChatPageIcon className={className} /> : <TasksPageIcon className={className} />;
+function sameAsModule(name: string, moduleLabel: string): boolean {
+  return name.trim().toLocaleLowerCase("ru") === moduleLabel.trim().toLocaleLowerCase("ru");
 }
 
 export function NewBadge() {
@@ -80,15 +81,16 @@ export function PagesList({ pages, canCreate, archive = false }: { pages: ListPa
           {shown.map((page) => (
             <li key={page.id}>
               <Link href={`/work/p/${page.id}`} className="flex items-center gap-3 rounded-xl px-2 py-3 hover:bg-neutral-50">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-ink">
-                  <ModuleIcon moduleKey={page.moduleKey} />
-                </span>
+                <PageIcon moduleKey={page.moduleKey} size={44} />
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2">
                     <span className="truncate text-base font-medium text-ink">{page.name}</span>
                     {seen && !archive && isNewPage(page, seen) ? <NewBadge /> : null}
                   </span>
-                  <span className="block truncate text-sm text-ink">{page.description || p.modules[page.moduleKey]}</span>
+                  {/* Тип модуля под названием не повторяем, если название и есть тип («Задачи / Задачи»). */}
+                  {page.description || !sameAsModule(page.name, p.modules[page.moduleKey]) ? (
+                    <span className="block truncate text-sm text-ink">{page.description || p.modules[page.moduleKey]}</span>
+                  ) : null}
                 </span>
               </Link>
             </li>

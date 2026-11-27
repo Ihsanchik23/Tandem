@@ -2,12 +2,14 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { WorkPageSkeleton } from "@/components/ui/Skeletons";
+import { MobileScreen } from "@/components/layout/MobileScreen";
 import { StubPage } from "@/components/layout/StubPage";
 import { getUserId } from "@/lib/auth/session";
 import { getMyCompany } from "@/lib/company/queries";
 import { t } from "@/lib/i18n";
 import { canManagePage } from "@/modules/pages/logic";
 import { PageScreen } from "@/modules/pages/PageScreen";
+import { PageSettingsLink } from "@/modules/pages/PageSettingsLink";
 import { getPage } from "@/modules/pages/queries";
 import { TasksSection } from "@/modules/tasks/TasksSection";
 import { ChatSection } from "@/modules/chat/ChatSection";
@@ -42,11 +44,21 @@ async function Content({ params }: { params: PageProps<"/work/p/[id]">["params"]
     );
   }
   const canManage = canManagePage(company.role, page.createdBy, userId);
-  if (page.moduleKey === "tasks") {
-    return <TasksSection page={page} canManage={canManage} orgId={company.org.id} me={userId} role={company.role} />;
-  }
-  if (page.moduleKey === "chat") {
-    return <ChatSection page={page} canManage={canManage} me={userId} role={company.role} />;
-  }
-  return <PageScreen page={page} canManage={canManage} />;
+  // Телефон: страница на весь экран — без нижней навигации, вверху «Назад» и название.
+  return (
+    <MobileScreen
+      title={page.name}
+      backFallback="/work"
+      scroll={page.moduleKey !== "chat"}
+      right={canManage ? <PageSettingsLink pageId={page.id} /> : null}
+    >
+      {page.moduleKey === "tasks" ? (
+        <TasksSection page={page} canManage={canManage} orgId={company.org.id} me={userId} role={company.role} />
+      ) : page.moduleKey === "chat" ? (
+        <ChatSection page={page} canManage={canManage} me={userId} role={company.role} />
+      ) : (
+        <PageScreen page={page} canManage={canManage} />
+      )}
+    </MobileScreen>
+  );
 }

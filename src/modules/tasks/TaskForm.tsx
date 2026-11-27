@@ -20,7 +20,7 @@ export type TaskFormValue = {
 
 // Дата и время — мягкие «пилюли» без рамки; календарь и часы открываются по клику (системные).
 const pill =
-  "h-9 min-w-0 rounded-lg border-0 bg-surface px-2 text-[14px] text-ink transition-shadow focus:outline-none focus:ring-2 focus:ring-accent/30";
+  "h-9 min-w-0 rounded-lg border-0 bg-surface px-2 text-base text-ink transition-shadow md:text-[14px] focus:outline-none focus:ring-2 focus:ring-accent/30";
 
 function FieldError({ children }: { children: React.ReactNode }) {
   return <p className="mt-1 text-[12px] text-red-700">{children}</p>;

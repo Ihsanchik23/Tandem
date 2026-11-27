@@ -117,6 +117,7 @@ export const ru = {
   ui: {
     close: "Закрыть",
     more: "Ещё",
+    back: "Назад",
     // Общий фильтр (components/ui/filters): каталог, задачи.
     filters: {
       title: "Фильтры",
@@ -626,7 +627,6 @@ export const ru = {
     noMessages: "Сообщений пока нет",
     archived: "В архиве",
     unread: "Непрочитанных: {n}",
-    back: "Назад",
     openInWork: "Открыть в «Работе»",
   },
 
