@@ -75,7 +75,7 @@ export function MessagesScreen({ me, role, hero }: { me: string; role: string | 
               <div className="flex h-dvh min-w-0 flex-1 flex-col">
                 {chatView(
                   <header className="flex shrink-0 items-center gap-3 border-b border-line bg-white px-6 py-4">
-                    <PageIcon moduleKey="chat" />
+                    <PageIcon moduleKey="chat" tile={40} />
                     <h2 className="min-w-0 flex-1 truncate text-[20px] font-semibold tracking-[-0.01em] text-ink">{title}</h2>
                     {chat ? (
                       <Link

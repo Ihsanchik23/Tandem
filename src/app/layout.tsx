@@ -1,14 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
-import { Geist } from "next/font/google";
 import { t } from "@/lib/i18n";
 import { INTRO_SCRIPT, IntroGate } from "@/components/ui/Intro";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin", "cyrillic"],
-});
 
 export const metadata: Metadata = {
   title: t.app.name,
@@ -27,7 +21,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     // suppressHydrationWarning: скрипт ниже до загрузки React ставит html[data-intro].
-    <html lang="ru" className={`${geistSans.variable} h-full antialiased`} suppressHydrationWarning>
+    <html lang="ru" className="h-full antialiased" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: INTRO_SCRIPT }} />
       </head>

@@ -5,7 +5,6 @@ import { useState } from "react";
 import { t } from "@/lib/i18n";
 import { BrandMark } from "@/components/ui/BrandMark";
 import { UnreadBadge } from "@/modules/chat/UnreadBadge";
-import { IconGradientDefs } from "./icons";
 import { NAV_ITEMS } from "./items";
 
 // isGuest — без входа: на компьютере (от 1024px) гость видит только экран входа, боковое меню не нужно.
@@ -33,7 +32,6 @@ export function AppNavView({ pathname, myUsername, isGuest = false, unread = fal
 
   return (
     <>
-      <IconGradientDefs />
       <nav
         aria-label={t.nav.label}
         className="fixed inset-x-0 bottom-0 z-20 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-6px_20px_-8px_rgba(0,0,0,0.15)] backdrop-blur md:hidden"
@@ -51,7 +49,7 @@ export function AppNavView({ pathname, myUsername, isGuest = false, unread = fal
                   className="flex h-16 items-center justify-center text-ink"
                 >
                   <span className="relative">
-                    <Icon active={active} className="h-7 w-7" />
+                    <Icon active={active} className="h-6 w-6" />
                     {unread && href === "/messages" ? <UnreadBadge className="absolute -right-2.5 -top-1.5" /> : null}
                   </span>
                 </Link>
@@ -84,7 +82,7 @@ export function AppNavView({ pathname, myUsername, isGuest = false, unread = fal
                   className="flex h-12 items-center gap-4 rounded-xl px-2 text-base text-ink hover:bg-neutral-100"
                 >
                   <span className="relative shrink-0">
-                    <Icon active={active} className="h-7 w-7" />
+                    <Icon active={active} className="h-6 w-6" />
                     {unread && href === "/messages" ? <UnreadBadge className="absolute -right-2.5 -top-1.5" /> : null}
                   </span>
                   <span className={`whitespace-nowrap opacity-0 transition-opacity duration-200 ${label} ${active ? "font-semibold" : ""}`}>

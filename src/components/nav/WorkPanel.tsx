@@ -3,8 +3,8 @@
 import { useSyncExternalStore } from "react";
 import { t } from "@/lib/i18n";
 import type { ShellData } from "@/lib/nav/shell";
-import { CompanyPanel } from "./CompanyPanel";
-import { PanelCloseIcon, PanelOpenIcon } from "./icons";
+import { SidebarSimple } from "@phosphor-icons/react";
+import { CompanyPanel, PANEL_BG } from "./CompanyPanel";
 
 // Свёрнута ли панель — запоминаем в браузере.
 const KEY = "tandem.workPanel.collapsed";
@@ -23,11 +23,11 @@ function setCollapsed(v: boolean) {
 export function WorkPanel({ data }: { data: ShellData }) {
   const collapsed = useSyncExternalStore(subscribe, () => localStorage.getItem(KEY) === "1", () => false);
   const n = t.nav;
-  const btn = "absolute z-10 flex items-center justify-center rounded-xl text-muted transition-opacity duration-200 hover:bg-neutral-100 hover:text-ink";
+  const btn = "absolute z-10 flex items-center justify-center rounded-xl text-ink transition-opacity duration-200 hover:bg-black/5";
 
   return (
     <aside
-      className={`sticky top-0 hidden h-dvh shrink-0 overflow-hidden border-r-[0.5px] border-line bg-white transition-[width] duration-300 ease-out md:block ${
+      className={`sticky top-0 hidden h-dvh shrink-0 overflow-hidden border-r-[0.5px] border-line ${PANEL_BG} transition-[width] duration-300 ease-out md:block ${
         collapsed ? "w-[72px]" : "w-72"
       }`}
     >
@@ -46,7 +46,7 @@ export function WorkPanel({ data }: { data: ShellData }) {
         title={n.collapsePanel}
         className={`${btn} right-5 top-[26px] h-9 w-9 ${collapsed ? "pointer-events-none opacity-0" : "opacity-100"}`}
       >
-        <PanelCloseIcon className="h-5 w-5" />
+        <SidebarSimple size={22} />
       </button>
       <button
         type="button"
@@ -56,7 +56,7 @@ export function WorkPanel({ data }: { data: ShellData }) {
         title={n.expandPanel}
         className={`${btn} left-3.5 top-5 h-11 w-11 ${collapsed ? "opacity-100" : "pointer-events-none opacity-0"}`}
       >
-        <PanelOpenIcon className="h-5 w-5" />
+        <SidebarSimple size={22} />
       </button>
     </aside>
   );

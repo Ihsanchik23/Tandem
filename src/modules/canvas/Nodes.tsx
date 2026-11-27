@@ -8,7 +8,8 @@ import { format, pluralRu, t } from "@/lib/i18n";
 import type { ErrorKey } from "@/lib/i18n/ru";
 import { Avatar } from "@/components/profile/Avatar";
 import { Collapse } from "@/components/ui/Collapse";
-import { ChatPageIcon, ChevronDownIcon, LockIcon, PlusIcon, TasksPageIcon } from "@/components/nav/icons";
+import { ChevronDownIcon, LockIcon, PlusIcon } from "@/components/nav/icons";
+import { PageIcon } from "@/components/ui/PageIcon";
 import { DraggablePerson, useUnitDrop } from "./PeopleDnd";
 
 // Размеры карточек для раскладки (layout.ts). Высоты — с запасом, чтобы карточки не наезжали.
@@ -125,7 +126,7 @@ function UnitIcon({ className }: { className?: string }) {
   );
 }
 
-function PageIcon({ className }: { className?: string }) {
+function NewPageGlyph({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
       <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
@@ -215,7 +216,7 @@ function AddButton({ data, tint, label, dark = false }: { data: AddMenu; tint: T
                 onClick={data.onPickPage}
                 className="flex h-11 items-center gap-2.5 rounded-xl px-3 text-sm font-medium text-ink hover:bg-neutral-100"
               >
-                <PageIcon className="h-[18px] w-[18px]" />
+                <NewPageGlyph className="h-[18px] w-[18px]" />
                 {c.menuPage}
               </Link>
             </div>
@@ -408,10 +409,8 @@ export function PageNode({ data, selected }: NodeProps<PageNodeType>) {
   const { tint } = data;
   const icon = data.locked ? (
     <LockIcon className="h-4 w-4" />
-  ) : data.moduleKey === "chat" ? (
-    <ChatPageIcon className="h-4 w-4" />
   ) : (
-    <TasksPageIcon className="h-4 w-4" />
+    <PageIcon moduleKey={data.moduleKey} size={16} />
   );
   return (
     <div className="group relative" style={{ width: PAGE_W }}>

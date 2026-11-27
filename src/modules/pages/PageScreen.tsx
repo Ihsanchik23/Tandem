@@ -28,7 +28,7 @@ export function PageScreen({
         {/* На телефоне название уже в верхней шапке, а «Настройки» — шестерёнкой там же: блок не нужен. */}
         <header className="hidden md:flex md:items-center md:gap-6">
           <div className="flex min-w-0 flex-1 items-center gap-3">
-            <PageIcon moduleKey={page.moduleKey} size={44} />
+            <PageIcon moduleKey={page.moduleKey} tile={44} />
             <div className="min-w-0">
               <h1 data-page-title className="break-words text-[26px] font-semibold leading-tight tracking-[-0.02em] text-ink">
                 {page.name}

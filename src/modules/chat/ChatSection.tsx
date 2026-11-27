@@ -29,7 +29,7 @@ export function ChatSection({
         archived={page.archived}
         header={
           <header className="hidden shrink-0 items-center gap-4 border-b border-line px-6 py-4 md:flex">
-            <PageIcon moduleKey="chat" />
+            <PageIcon moduleKey="chat" tile={40} />
             <div className="min-w-0 flex-1">
               <h1 data-page-title className="truncate text-[20px] font-semibold leading-tight tracking-[-0.01em] text-ink">
                 {page.name}

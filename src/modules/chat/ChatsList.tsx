@@ -68,7 +68,7 @@ export function ChatsList({
               aria-current={active ? "true" : undefined}
               className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors ${active ? "bg-surface" : "hover:bg-neutral-50 active:bg-surface"}`}
             >
-              <PageIcon moduleKey="chat" size={48} />
+              <PageIcon moduleKey="chat" tile={48} />
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="flex items-baseline gap-2">
                   <span className={`min-w-0 flex-1 truncate text-[15px] text-ink ${unread ? "font-semibold" : "font-medium"}`}>{chat.name}</span>

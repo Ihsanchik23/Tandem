@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
+import { useScrollLock } from "./useScrollLock";
 
 // Панель поверх экрана: на компьютере — справа, на телефоне — на весь экран.
 // from="bottom" (по умолчанию): на телефоне выезжает снизу; from="right" — справа на любом экране
@@ -24,6 +25,8 @@ export function Sheet({
   footer?: React.ReactNode;
   children: React.ReactNode;
 }) {
+  // Открыта — страница под ней не прокручивается (карточка задачи, сотрудника, новая страница).
+  useScrollLock(open);
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -79,7 +82,7 @@ export function Sheet({
             </button>
           </header>
         )}
-        <div className={`flex-1 overflow-y-auto px-5 pt-3 ${footer ? "pb-6" : "pb-[calc(2rem+env(safe-area-inset-bottom))]"}`}>{children}</div>
+        <div className={`flex-1 overflow-y-auto overscroll-contain px-5 pt-3 ${footer ? "pb-6" : "pb-[calc(2rem+env(safe-area-inset-bottom))]"}`}>{children}</div>
         {footer ? (
           <footer className="flex shrink-0 items-center justify-end gap-2 border-t border-line bg-white px-5 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
             {footer}

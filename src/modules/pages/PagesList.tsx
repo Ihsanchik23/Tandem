@@ -96,7 +96,7 @@ export function PagesList({ pages, canCreate, archive = false }: { pages: ListPa
                   href={`/work/p/${page.id}`}
                   className="flex h-full items-center gap-3 rounded-2xl border border-line bg-white p-3.5 transition-[background-color,border-color,box-shadow] duration-150 hover:border-neutral-300 hover:bg-surface hover:shadow-[0_4px_16px_-8px_rgba(30,30,30,0.18)]"
                 >
-                  <PageIcon moduleKey={page.moduleKey} size={44} />
+                  <PageIcon moduleKey={page.moduleKey} tile={44} />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center gap-2">
                       <span className="truncate text-base font-medium text-ink">{page.name}</span>

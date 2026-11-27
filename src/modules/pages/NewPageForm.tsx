@@ -76,22 +76,27 @@ export function NewPageForm({
   return (
     <form id={NEW_PAGE_FORM_ID} onSubmit={submit} noValidate className="flex flex-col gap-7 pb-2">
       {/* Модуль */}
-      <fieldset className="flex flex-col gap-2.5">
+      <fieldset className="flex flex-col">
         <legend className="mb-2.5 text-[13px] font-semibold uppercase tracking-[0.06em] text-muted">{p.moduleLabel}</legend>
-        <div className="grid grid-cols-2 gap-2.5">
+        {/* Список строк в одной карточке: иконка, название, описание, справа отметка (или лимит). */}
+        <div className="overflow-hidden rounded-2xl border border-line bg-white">
           {MODULES.map((m) => {
             const count = used[m.key] ?? 0;
             const available = moduleAvailable(m, count);
             const checked = module === m.key;
+            const side =
+              m.status === "soon"
+                ? p.moduleSoon
+                : m.limit !== null
+                  ? available
+                    ? format(p.moduleCount, { n: count, max: m.limit })
+                    : p.moduleLimit
+                  : null;
             return (
               <label
                 key={m.key}
-                className={`relative flex flex-col gap-2 rounded-2xl border p-3.5 transition-[border-color,background-color,box-shadow] duration-150 ${
-                  !available
-                    ? "cursor-not-allowed border-line opacity-55"
-                    : checked
-                      ? "cursor-pointer border-accent bg-accent/[0.04] shadow-[0_0_0_1px_var(--color-accent)]"
-                      : "cursor-pointer border-line hover:border-neutral-300 hover:bg-surface"
+                className={`group flex items-center gap-3 pl-3.5 transition-colors ${
+                  available ? "cursor-pointer hover:bg-black/[0.03] active:bg-black/[0.06] has-[:focus-visible]:bg-black/[0.05]" : "cursor-not-allowed opacity-50"
                 }`}
               >
                 <input
@@ -101,21 +106,24 @@ export function NewPageForm({
                   checked={checked}
                   disabled={!available}
                   onChange={() => setModule(m.key)}
-                  className="sr-only"
+                  className="peer sr-only"
                 />
-                <span className="flex items-center justify-between gap-2">
-                  <PageIcon moduleKey={m.key} size={36} />
-                  {m.status === "soon" ? (
-                    <span className="rounded-full bg-surface px-2 py-0.5 text-[11px] font-semibold text-muted">{p.moduleSoon}</span>
-                  ) : null}
-                </span>
-                <span className="text-[15px] font-semibold text-ink">{m.name}</span>
-                <span className="line-clamp-2 text-[12px] leading-snug text-muted">{m.description}</span>
-                {m.limit !== null && m.status === "active" ? (
-                  <span className={`text-[12px] font-medium ${available ? "text-muted" : "text-accent"}`}>
-                    {available ? format(p.moduleCount, { n: count, max: m.limit }) : p.moduleLimit}
+                <PageIcon moduleKey={m.key} size={24} />
+                <span className="flex min-h-16 min-w-0 flex-1 items-center gap-3 border-b-[0.5px] border-neutral-200 py-2.5 pr-3.5 group-last:border-b-0">
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[15px] font-medium text-ink">{m.name}</span>
+                    <span className="block truncate text-[13px] text-muted">{m.description}</span>
                   </span>
-                ) : null}
+                  {side ? <span className="shrink-0 text-[13px] text-muted">{side}</span> : null}
+                  <span
+                    aria-hidden
+                    className={`flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+                      checked ? "border-accent bg-accent" : "border-neutral-300 bg-white"
+                    }`}
+                  >
+                    {checked ? <span className="h-2 w-2 rounded-full bg-white" /> : null}
+                  </span>
+                </span>
               </label>
             );
           })}

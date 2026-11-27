@@ -17,7 +17,8 @@ import { FormMessage } from "@/components/ui/FormMessage";
 import { IconButton, LinkIcon, TrashIcon, XIcon } from "@/components/ui/IconButton";
 import { MoreMenu } from "@/components/ui/MoreMenu";
 import { Sheet } from "@/components/ui/Sheet";
-import { ChatPageIcon, LockIcon, TasksPageIcon } from "@/components/nav/icons";
+import { LockIcon } from "@/components/nav/icons";
+import { PageIcon } from "@/components/ui/PageIcon";
 import { addUnitMembers, moveUnitMember, removeUnitMember, type UnitResult } from "@/modules/canvas/actions";
 import { branchColors, unitPath, type Tree } from "@/modules/canvas/tree";
 import { grantPageUser, revokePageUser } from "@/modules/pages/actions";
@@ -636,10 +637,10 @@ function PagePicker({ pages, onPick }: { pages: PageInfo[]; onPick: (pageId: str
 }
 
 function PageBadge({ moduleKey, locked }: { moduleKey: string; locked: boolean }) {
-  const Icon = locked ? LockIcon : moduleKey === "chat" ? ChatPageIcon : TasksPageIcon;
+  if (!locked) return <PageIcon moduleKey={moduleKey} tile={32} />;
   return (
     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-surface text-ink" aria-hidden>
-      <Icon className="h-4 w-4" />
+      <LockIcon className="h-4 w-4" />
     </span>
   );
 }
