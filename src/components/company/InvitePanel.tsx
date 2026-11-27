@@ -1,11 +1,14 @@
 "use client";
 
-import { useActionState, useState, useSyncExternalStore } from "react";
+import { Copy, Check, ShareNetwork } from "@phosphor-icons/react";
+import { startTransition, useActionState, useState, useSyncExternalStore } from "react";
 import { createInvite, revokeInvite, type ActionState } from "@/lib/company/actions";
 import { invitePath, type InviteRow } from "@/lib/company/invite";
 import { format, t } from "@/lib/i18n";
-import { Button } from "@/components/ui/Button";
+import { Collapse } from "@/components/ui/Collapse";
 import { FormMessage } from "@/components/ui/FormMessage";
+import { Group, Row } from "@/components/ui/Grouped";
+import { MoreMenu } from "@/components/ui/MoreMenu";
 
 type Props = {
   organizationId: string;
@@ -20,51 +23,33 @@ function useOrigin(): string {
   return useSyncExternalStore(noop, () => window.location.origin, () => "");
 }
 
-// «Пригласить людей» (Owner/Admin): одна действующая ссылка на 3 дня.
+type Asking = "new" | "revoke" | null;
+
+// «Пригласить людей» (Owner/Admin) — одна компактная карточка: ссылка (обрезанная), копировать,
+// «Поделиться», срок. «Создать новую ссылку» и «Отозвать» — в меню «⋯», с подтверждением.
 export function InvitePanel({ organizationId, organizationName, invites, seats }: Props) {
-  const [state, action, pending] = useActionState<ActionState, FormData>(createInvite, {});
   const c = t.company;
-  const current = invites[0];
-
-  return (
-    <section className="flex flex-col gap-3 rounded-2xl border border-neutral-200 p-4">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-base font-medium text-ink">{c.inviteTitle}</h2>
-        <p className="text-sm text-ink">{c.inviteHint}</p>
-        {seats ? (
-          <p className="text-sm text-ink">{format(c.seats, { used: seats.used, seats: seats.total })}</p>
-        ) : null}
-      </div>
-
-      {invites.map((inv) => (
-        <InviteLink key={inv.id} invite={inv} organizationName={organizationName} />
-      ))}
-      {!current ? <p className="text-sm text-ink">{c.inviteNone}</p> : null}
-
-      {state.error ? <FormMessage kind="error">{t.errors[state.error]}</FormMessage> : null}
-      <form action={action} className="flex flex-col gap-1">
-        <input type="hidden" name="organization_id" value={organizationId} />
-        <Button type="submit" variant={current ? "secondary" : "primary"} pending={pending} pendingText={c.inviteCreating}>
-          {current ? c.inviteNew : c.inviteCreate}
-        </Button>
-        {current ? <p className="text-center text-xs text-ink">{c.inviteNewHint}</p> : null}
-      </form>
-    </section>
-  );
-}
-
-function InviteLink({ invite, organizationName }: { invite: InviteRow; organizationName: string }) {
+  const current = invites[0] ?? null;
   const origin = useOrigin();
+  const [createState, create, creating] = useActionState<ActionState, FormData>(createInvite, {});
+  const [revokeState, revoke, revoking] = useActionState<ActionState, FormData>(revokeInvite, {});
+  const [asking, setAsking] = useState<Asking>(null);
   const [copied, setCopied] = useState(false);
-  const [state, revoke, revoking] = useActionState<ActionState, FormData>(revokeInvite, {});
-  const c = t.company;
-  const url = `${origin}${invitePath(invite.token)}`;
-  const until = new Date(invite.expires_at).toLocaleString("ru-RU", {
-    day: "numeric",
-    month: "long",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+
+  const url = current ? `${origin}${invitePath(current.token)}` : "";
+  const shortUrl = url.replace(/^https?:\/\//, "");
+  const until = current
+    ? new Date(current.expires_at).toLocaleString("ru-RU", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })
+    : "";
+  const error = createState.error ?? revokeState.error;
+
+  function run(kind: "new" | "revoke") {
+    const fd = new FormData();
+    if (kind === "new") fd.set("organization_id", organizationId);
+    else if (current) fd.set("invite_id", current.id);
+    setAsking(null);
+    startTransition(() => (kind === "new" ? create(fd) : revoke(fd)));
+  }
 
   async function copy() {
     try {
@@ -72,16 +57,16 @@ function InviteLink({ invite, organizationName }: { invite: InviteRow; organizat
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Буфер обмена недоступен — ссылку видно на экране, её можно выделить вручную.
+      // Буфер обмена недоступен — поможет «Поделиться».
     }
   }
-
+  // Телефон — системное меню «Поделиться»; компьютер без него — копирование.
   async function share() {
-    if (typeof navigator.share === "function") {
+    if (typeof navigator.share === "function" && window.matchMedia("(pointer: coarse)").matches) {
       try {
         await navigator.share({ title: "Tandem", text: format(c.inviteShareText, { name: organizationName }), url });
       } catch {
-        // Человек закрыл меню «Поделиться» — ничего не делаем.
+        // Закрыли меню «Поделиться».
       }
     } else {
       await copy();
@@ -89,30 +74,93 @@ function InviteLink({ invite, organizationName }: { invite: InviteRow; organizat
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl bg-neutral-50 p-3">
-      <p className="select-all break-all text-sm font-medium text-ink">{url}</p>
-      <p className="text-xs text-ink" suppressHydrationWarning>
-        {format(c.inviteValidUntil, { date: until })}
-      </p>
-      <div className="grid grid-cols-2 gap-2">
-        <Button type="button" onClick={share}>
-          {c.inviteShare}
-        </Button>
-        <Button type="button" variant="secondary" onClick={copy}>
-          {copied ? c.inviteCopied : c.inviteCopy}
-        </Button>
-      </div>
-      {state.error ? <FormMessage kind="error">{t.errors[state.error]}</FormMessage> : null}
-      <form action={revoke}>
-        <input type="hidden" name="invite_id" value={invite.id} />
-        <button
-          type="submit"
-          disabled={revoking}
-          className="text-sm font-medium text-red-700 underline underline-offset-4 disabled:opacity-60"
-        >
-          {revoking ? c.inviteRevoking : c.inviteRevoke}
-        </button>
-      </form>
+    <div className="flex flex-col gap-2">
+      <Group
+        title={c.inviteTitle}
+        info={c.inviteHint}
+        infoLabel={t.pages.info}
+        action={
+          current ? (
+            <MoreMenu
+              size="sm"
+              tip="end"
+              items={[
+                { key: "new", label: c.inviteNew, onSelect: () => setAsking("new") },
+                { key: "revoke", label: c.inviteRevoke, tone: "danger", onSelect: () => setAsking("revoke") },
+              ]}
+            />
+          ) : null
+        }
+      >
+        <Row
+          label={c.inviteByLink}
+          value={seats ? format(c.seats, { used: seats.used, seats: seats.total }) : undefined}
+        />
+        {current ? (
+          <>
+            {/* Ссылка целиком не показывается: обрезанная строка и «копировать». */}
+            <div className="group flex items-center gap-2 pl-3.5">
+              <span className="flex min-h-12 min-w-0 flex-1 items-center gap-2 border-b-[0.5px] border-neutral-200 pr-1.5">
+                <span className="min-w-0 flex-1 truncate text-[14px] text-muted" title={url}>
+                  {shortUrl}
+                </span>
+                <button
+                  type="button"
+                  onClick={copy}
+                  aria-label={copied ? c.inviteCopied : c.inviteCopyLink}
+                  title={copied ? c.inviteCopied : c.inviteCopyLink}
+                  className={`flex h-9 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium transition-colors hover:bg-black/5 ${copied ? "text-emerald-700" : "text-ink"}`}
+                >
+                  {copied ? <Check size={18} weight="bold" /> : <Copy size={18} />}
+                  {copied ? c.inviteCopied : null}
+                </button>
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={share}
+              className="flex min-h-12 w-full items-center justify-center gap-2 border-b-[0.5px] border-neutral-200 text-[15px] font-medium text-accent transition-colors hover:bg-black/[0.03] active:bg-black/[0.06]"
+            >
+              <ShareNetwork size={18} />
+              {c.inviteShare}
+            </button>
+            <p className="px-3.5 py-2.5 text-[12px] text-muted" suppressHydrationWarning>
+              {format(c.inviteValidUntil, { date: until })}
+            </p>
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={() => run("new")}
+            disabled={creating}
+            className="flex min-h-12 w-full items-center justify-center text-[15px] font-medium text-accent transition-colors hover:bg-black/[0.03] disabled:opacity-60"
+          >
+            {creating ? c.inviteCreating : c.inviteCreate}
+          </button>
+        )}
+
+        {/* Подтверждение новой ссылки или отзыва — внутри карточки. */}
+        <Collapse open={asking !== null}>
+          <div className="flex flex-col gap-3 border-t-[0.5px] border-neutral-200 px-3.5 py-3">
+            <p className="text-[14px] text-ink">{asking === "revoke" ? c.inviteRevokeConfirm : c.inviteNewConfirm}</p>
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setAsking(null)} className="h-9 rounded-full px-4 text-[14px] font-medium text-ink hover:bg-black/5">
+                {t.pages.cancel}
+              </button>
+              <button
+                type="button"
+                onClick={() => asking && run(asking)}
+                className={`h-9 rounded-full px-4 text-[14px] font-semibold text-white ${asking === "revoke" ? "bg-red-700 hover:bg-red-800" : "bg-accent hover:bg-accent-hover"}`}
+              >
+                {asking === "revoke" ? c.inviteRevoke : c.inviteNew}
+              </button>
+            </div>
+          </div>
+        </Collapse>
+      </Group>
+      {creating || revoking ? <p className="px-3.5 text-[13px] text-muted">{creating ? c.inviteCreating : c.inviteRevoking}</p> : null}
+      {error ? <FormMessage kind="error">{t.errors[error]}</FormMessage> : null}
+      {!current && !creating ? <p className="px-3.5 text-[13px] text-muted">{c.inviteNone}</p> : null}
     </div>
   );
 }

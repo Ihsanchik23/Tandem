@@ -240,6 +240,12 @@ export const ru = {
     inviteShare: "Поделиться",
     inviteShareText: "Присоединяйтесь к компании «{name}» в Tandem",
     inviteRevoke: "Отозвать",
+    inviteByLink: "Пригласить по ссылке",
+    inviteCopyLink: "Скопировать ссылку",
+    inviteRevokeConfirm: "Ссылка перестанет работать: по ней больше нельзя будет вступить в компанию.",
+    inviteNewConfirm: "Старая ссылка перестанет работать — разошлите новую.",
+    groupCollapse: "Свернуть",
+    groupExpand: "Развернуть",
     inviteRevoking: "Отзываем…",
     seats: "Занято {used} из {seats} мест",
 
@@ -448,6 +454,9 @@ export const ru = {
     settingsShort: "Настройки",
     scopeConfirmYes: "Да, изменить",
     // Блок «Доступ» в настройках страницы
+    general: "Основное",
+    dangerZone: "Опасная зона",
+    archiveShort: "В архив",
     accessTitle: "Доступ",
     accessHint: "Кто видит страницу. Владелец и администраторы видят все страницы всегда.",
     viaStructure: "Через структуру",

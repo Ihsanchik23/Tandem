@@ -1,10 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { CaretDown, CaretRight, MagnifyingGlass } from "@phosphor-icons/react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { t } from "@/lib/i18n";
 import type { Member } from "@/lib/company/queries";
 import { fullName, personMatches, unitChipsByUser, type UnitChip } from "@/lib/company/people";
 import { Avatar } from "@/components/profile/Avatar";
+import { Collapse } from "@/components/ui/Collapse";
+import { InfoTip } from "@/components/ui/InfoTip";
 import { buildTree, type UnitMemberRow, type UnitRow } from "@/modules/canvas/tree";
 
 type Props = {
@@ -16,10 +19,23 @@ type Props = {
   onOpen: (userId: string) => void;
 };
 
+// «Нераспределённые» свёрнуты или нет — запоминаем в браузере.
+const COLLAPSED_KEY = "tandem.people.unassignedCollapsed";
+const listeners = new Set<() => void>();
+function subscribe(cb: () => void) {
+  listeners.add(cb);
+  return () => listeners.delete(cb);
+}
+function setCollapsed(v: boolean) {
+  localStorage.setItem(COLLAPSED_KEY, v ? "1" : "0");
+  listeners.forEach((l) => l());
+}
+
 // Сотрудники компании с поиском по имени, должности и подразделению (в пилоте до ~100 человек — фильтруем на месте).
-// В строке видно, где человек состоит; сверху (для Owner/Admin) — «Нераспределённые».
+// Белые карточки со строками; сверху (для Owner/Admin) — те же строки группой «Нераспределённые».
 export function PeopleList({ members, units, unitMembers, showUnassigned, activeId = null, onOpen }: Props) {
   const [query, setQuery] = useState("");
+  const collapsed = useSyncExternalStore(subscribe, () => localStorage.getItem(COLLAPSED_KEY) === "1", () => false);
   const chips = useMemo(() => unitChipsByUser(buildTree(units, unitMembers), unitMembers), [units, unitMembers]);
   const found = members.filter((m) => personMatches(m, chips.get(m.user_id) ?? [], query));
   const free = showUnassigned ? found.filter((m) => !chips.has(m.user_id)) : [];
@@ -30,63 +46,82 @@ export function PeopleList({ members, units, unitMembers, showUnassigned, active
   );
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
       <label className="relative block">
-        <SearchIcon />
+        <span className="sr-only">{c.peopleSearch}</span>
+        <MagnifyingGlass size={20} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" aria-hidden />
         <input
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={c.peopleSearch}
-          aria-label={c.peopleSearch}
-          className="h-12 w-full rounded-2xl border border-line bg-white pl-11 pr-4 text-base text-ink placeholder:text-neutral-400 focus:border-accent focus:outline-none"
+          className="h-11 w-full rounded-full border-0 bg-white pl-12 pr-4 text-base text-ink placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-accent"
         />
       </label>
 
-      {found.length === 0 ? <p className="text-base text-muted">{c.peopleEmpty}</p> : null}
+      {found.length === 0 ? <p className="px-3.5 text-base text-muted">{c.peopleEmpty}</p> : null}
 
       {free.length > 0 ? (
-        <section className="flex flex-col rounded-2xl bg-surface px-2 pb-1 pt-3">
-          <h2 className="px-2 text-[15px] font-semibold text-ink">
-            {c.unassigned} · {free.length}
+        <section className="flex flex-col gap-1.5">
+          <h2 className="flex min-h-7 items-center gap-1 pl-3.5 pr-[7px] text-[12px] font-medium uppercase tracking-[0.04em] text-neutral-500">
+            <span className="min-w-0 flex-1 truncate">
+              {c.unassigned} · {free.length}
+            </span>
+            <InfoTip label={t.pages.info} align="right">
+              {c.unassignedHint}
+            </InfoTip>
+            <button
+              type="button"
+              onClick={() => setCollapsed(!collapsed)}
+              aria-expanded={!collapsed}
+              aria-label={collapsed ? c.groupExpand : c.groupCollapse}
+              title={collapsed ? c.groupExpand : c.groupCollapse}
+              className="flex h-7 w-7 items-center justify-center rounded-full text-ink transition-colors hover:bg-black/5"
+            >
+              <CaretDown size={16} weight="bold" className={`transition-transform duration-200 ${collapsed ? "-rotate-90" : ""}`} />
+            </button>
           </h2>
-          <p className="px-2 text-[13px] text-muted">{c.unassignedHint}</p>
-          <ul className="mt-1 flex flex-col">{free.map(row)}</ul>
+          <Collapse open={!collapsed}>
+            <ul className="overflow-hidden rounded-xl bg-white">{free.map(row)}</ul>
+          </Collapse>
         </section>
       ) : null}
 
       {found.length > 0 ? (
-        <section className="flex flex-col">
-          <h2 className="px-2 text-[13px] font-medium text-muted">
+        <section className="flex flex-col gap-1.5">
+          <h2 className="flex min-h-7 items-center pl-3.5 text-[12px] font-medium uppercase tracking-[0.04em] text-neutral-500">
             {c.allPeople} · {found.length}
           </h2>
-          <ul className="mt-1 flex flex-col">{found.map(row)}</ul>
+          <ul className="overflow-hidden rounded-xl bg-white">{found.map(row)}</ul>
         </section>
       ) : null}
     </div>
   );
 }
 
-// Строка: аватар, имя, должность и чипы подразделений. Нажатие открывает карточку сотрудника.
+// Строка: аватар, имя, должность серым, чипы подразделений, шеврон. Разделитель — от текста.
 function PersonRow({ m, chips, active, onOpen }: { m: Member; chips: UnitChip[]; active: boolean; onOpen: () => void }) {
   const name = fullName(m);
   return (
-    <li>
+    <li className="group">
       <button
         type="button"
         onClick={onOpen}
         aria-current={active ? "true" : undefined}
-        className={`flex w-full items-start gap-3 rounded-2xl px-2 py-2.5 text-left transition-colors hover:bg-black/[0.03] focus-visible:outline-2 focus-visible:outline-accent ${
-          active ? "bg-black/[0.04]" : ""
+        className={`flex w-full items-center gap-3 pl-3.5 text-left transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent ${
+          active ? "bg-black/[0.06]" : "hover:bg-black/[0.03] active:bg-black/[0.06]"
         }`}
       >
-        <Avatar url={m.avatar_url} name={name} size={44} />
-        <span className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <span className="min-w-0">
-            <span className="block truncate text-[15px] font-medium text-ink">{name}</span>
-            {m.position ? <span className="block truncate text-[13px] text-muted">{m.position}</span> : null}
+        <Avatar url={m.avatar_url} name={name} size={40} />
+        <span className="flex min-w-0 flex-1 items-center gap-2 border-b-[0.5px] border-neutral-200 py-2.5 pr-3 group-last:border-b-0">
+          <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+            <span className="min-w-0">
+              <span className="block truncate text-[15px] text-ink">{name}</span>
+              {m.position ? <span className="block truncate text-[13px] text-muted">{m.position}</span> : null}
+            </span>
+            <UnitChips chips={chips} />
           </span>
-          <UnitChips chips={chips} />
+          <CaretRight size={16} weight="bold" className="shrink-0 text-neutral-300" aria-hidden />
         </span>
       </button>
     </li>
@@ -122,14 +157,5 @@ export function UnitChipView({ chip, children }: { chip: UnitChip; children?: Re
       <span className="truncate">{chip.label}</span>
       {children}
     </span>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" aria-hidden>
-      <circle cx="11" cy="11" r="6.5" />
-      <path d="m16 16 4 4" />
-    </svg>
   );
 }

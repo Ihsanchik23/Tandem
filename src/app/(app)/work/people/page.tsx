@@ -14,7 +14,7 @@ import { getCompanyPages } from "@/modules/pages/queries";
 // «Моя компания → Сотрудники». Видят все сотрудники компании (ТЗ, раздел 6).
 export default function PeoplePage() {
   return (
-    <StubPage title={t.company.peopleTitle}>
+    <StubPage title={t.company.peopleTitle} grouped>
       <Suspense fallback={<RowsSkeleton rows={6} />}>
         <PeopleContent />
       </Suspense>
