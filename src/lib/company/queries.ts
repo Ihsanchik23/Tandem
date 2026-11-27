@@ -111,3 +111,16 @@ export async function getSeats(orgId: string): Promise<number | null> {
     .maybeSingle();
   return data?.seats ?? null;
 }
+
+export type QuickStartState = { hasUnits: boolean; hasPeople: boolean; hasPages: boolean };
+
+// «Быстрый старт» владельца: есть ли подразделения, люди кроме владельца, страницы.
+export async function getQuickStartState(orgId: string, ownerId: string): Promise<QuickStartState> {
+  const supabase = await createClient();
+  const [units, people, pages] = await Promise.all([
+    supabase.from("units").select("id", { count: "exact", head: true }).eq("organization_id", orgId),
+    supabase.from("memberships").select("user_id", { count: "exact", head: true }).eq("organization_id", orgId).neq("user_id", ownerId),
+    supabase.from("pages").select("id", { count: "exact", head: true }).eq("organization_id", orgId),
+  ]);
+  return { hasUnits: (units.count ?? 0) > 0, hasPeople: (people.count ?? 0) > 0, hasPages: (pages.count ?? 0) > 0 };
+}

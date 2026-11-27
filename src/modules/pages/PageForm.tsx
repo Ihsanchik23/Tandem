@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { format, t } from "@/lib/i18n";
 import type { ErrorKey } from "@/lib/i18n/ru";
 import { ChatPageIcon, TasksPageIcon } from "@/components/nav/icons";
@@ -35,6 +35,38 @@ export function PageForm(props: CreateProps | EditProps) {
   const [formError, setFormError] = useState<ErrorKey | null>(null);
   const [saved, setSaved] = useState(false);
   const [pending, start] = useTransition();
+
+  // Новая страница — всегда с чистой формы и доступом из адреса (?unit=, ?scope=).
+  // Next (cacheComponents) не уничтожает форму при уходе со страницы, а прячет и потом показывает
+  // снова с прежним состоянием — без сброса доступ оставался от прошлой созданной страницы.
+  const initialKey = isCreate ? JSON.stringify(props.initialSelection) : "";
+  const reset = (key: string) => {
+    setModule("tasks");
+    setName(p.modules.tasks);
+    setNameTouched(false);
+    setDescription("");
+    setSelection(JSON.parse(key) as ScopeSelection);
+    setErrors({});
+    setFormError(null);
+    setSaved(false);
+  };
+  // Другой адрес (другое подразделение) — та же форма получает новые данные: сбросить сразу.
+  const [shownKey, setShownKey] = useState(initialKey);
+  if (isCreate && shownKey !== initialKey) {
+    setShownKey(initialKey);
+    reset(initialKey);
+  }
+  // Форму спрятали (ушли со страницы) — сбросить, чтобы при следующем открытии она была чистой.
+  // Сбрасываем к последнему адресу (ref): эффект живёт, пока форма видна, и не пересоздаётся при смене адреса.
+  const latest = useRef({ reset, key: initialKey });
+  useEffect(() => {
+    latest.current = { reset, key: initialKey };
+  });
+  useEffect(() => {
+    return () => {
+      if (latest.current.key) latest.current.reset(latest.current.key);
+    };
+  }, []);
 
   function pickModule(m: ModuleKey) {
     setModule(m);

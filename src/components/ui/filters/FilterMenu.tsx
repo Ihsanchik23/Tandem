@@ -61,11 +61,13 @@ export function FilterMenu({
           aria-controls={panelId}
           aria-label={f.title}
           title={f.title}
-          className={`flex h-11 w-11 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+          className={`relative flex h-11 w-11 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
             count > 0 ? "bg-ink text-white" : "bg-neutral-100 text-ink hover:bg-neutral-200"
           }`}
         >
           <FilterIcon className="h-5 w-5" />
+          {/* Фильтр выбран — точка на значке. */}
+          {count > 0 ? <span aria-hidden className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-accent ring-2 ring-white" /> : null}
         </button>
       ) : (
         <button

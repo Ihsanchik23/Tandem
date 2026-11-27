@@ -396,6 +396,7 @@ export const ru = {
     creating: "Создаём…",
     searchPlaceholder: "Поиск по названию",
     filterAll: "Все",
+    filterModule: "Тип страницы",
     archiveTitle: "Архив",
     archiveIntro: "Рабочие страницы, отправленные в архив. Их можно открыть для чтения, а восстановить — в настройках страницы.",
     badgeNew: "Новая",

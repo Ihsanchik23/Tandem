@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: `${t.pages.archiveTitle} — ${t.app.
 // Раньше это была вкладка на «Работе»; права те же — список отдаёт база (RLS + page_access).
 export default function ArchivePage() {
   return (
-    <StubPage title={t.pages.archiveTitle}>
+    <StubPage title={t.pages.archiveTitle} wide>
       <Suspense fallback={<FormFallback />}>
         <ArchiveContent />
       </Suspense>

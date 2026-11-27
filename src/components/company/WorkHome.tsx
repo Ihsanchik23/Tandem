@@ -3,7 +3,7 @@ import { t } from "@/lib/i18n";
 import { ArrowRightIcon } from "@/components/nav/icons";
 import { canCreatePage } from "@/modules/pages/logic";
 import { PagesList, type ListPage } from "@/modules/pages/PagesList";
-import type { MyCompany } from "@/lib/company/queries";
+import type { MyCompany, QuickStartState } from "@/lib/company/queries";
 
 const btnPrimary =
   "inline-flex h-12 items-center justify-center rounded-xl bg-brand px-4 text-base font-medium text-white hover:bg-brand-hover";
@@ -42,32 +42,35 @@ export function NoCompany({ canCreate }: { canCreate: boolean }) {
 
 // «Работа», если компания есть: быстрый старт для Owner и рабочие страницы.
 // Компания и меню — в панели слева (компьютер) и в выдвижном меню из шапки (телефон).
-export function WorkHome({ company, pages }: { company: MyCompany; pages: ListPage[] }) {
+// quickStart — только у владельца (null у остальных).
+export function WorkHome({ company, pages, quickStart }: { company: MyCompany; pages: ListPage[]; quickStart: QuickStartState | null }) {
   return (
     <div className="flex flex-col gap-8">
-      {company.role === "owner" ? <QuickStart /> : null}
+      {quickStart ? <QuickStart state={quickStart} /> : null}
       <PagesList pages={pages} canCreate={canCreatePage(company.role)} />
     </div>
   );
 }
 
-// Панель быстрого старта для Owner (ТЗ, раздел 9).
-function QuickStart() {
+// Быстрый старт владельца (ТЗ, раздел 9): сделанный пункт исчезает, всё сделано — нет и блока.
+function QuickStart({ state }: { state: QuickStartState }) {
   const w = t.work;
-  const ready =
-    "flex items-center justify-between rounded-xl border border-neutral-300 px-4 py-3 text-base font-medium text-ink hover:bg-neutral-50";
+  const steps = [
+    { done: state.hasUnits, href: "/work/structure", label: w.quickStructure },
+    { done: state.hasPeople, href: "/work/people", label: w.quickInvite },
+    { done: state.hasPages, href: "/work/pages/new", label: w.quickPage },
+  ].filter((s) => !s.done);
+  if (steps.length === 0) return null;
+  const item =
+    "flex items-center justify-between rounded-2xl border border-line px-4 py-3 text-base font-medium text-ink transition-colors hover:bg-surface";
   return (
     <section className="flex flex-col gap-2">
       <h2 className="text-sm font-medium text-ink">{w.quickStartTitle}</h2>
-      <Link href="/work/structure" className={ready}>
-        {w.quickStructure} <ArrowRightIcon className="h-5 w-5" />
-      </Link>
-      <Link href="/work/people" className={ready}>
-        {w.quickInvite} <ArrowRightIcon className="h-5 w-5" />
-      </Link>
-      <Link href="/work/pages/new" className={ready}>
-        {w.quickPage} <ArrowRightIcon className="h-5 w-5" />
-      </Link>
+      {steps.map((s) => (
+        <Link key={s.href} href={s.href} className={item}>
+          {s.label} <ArrowRightIcon className="h-5 w-5" />
+        </Link>
+      ))}
     </section>
   );
 }

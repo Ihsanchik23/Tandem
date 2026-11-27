@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { t } from "@/lib/i18n";
-import { PlusIcon } from "@/components/nav/icons";
+import { PlusIcon, SearchIcon } from "@/components/nav/icons";
+import { ChoiceChips, FilterMenu, FilterSection } from "@/components/ui/filters/FilterMenu";
 import { PageIcon } from "@/components/ui/PageIcon";
 import { filterPages, isNewPage, PAGE_MODULES, sortPages, type ModuleKey } from "./logic";
 import { useSeenPages } from "./seen";
@@ -22,7 +23,7 @@ export function NewBadge() {
   );
 }
 
-// «Рабочие страницы»: только доступные, новые сверху, поиск, фильтр по модулю.
+// «Рабочие страницы»: только доступные, новые сверху, поиск и фильтр по модулю (общий FilterMenu).
 // archive — список на странице «Архив» (раздел «Прочее»): только архивные, без заголовка и «+».
 export function PagesList({ pages, canCreate, archive = false }: { pages: ListPage[]; canCreate: boolean; archive?: boolean }) {
   const p = t.pages;
@@ -35,8 +36,6 @@ export function PagesList({ pages, canCreate, archive = false }: { pages: ListPa
   // при сборке на сервере — просто свежие раньше старых.
   const sorted = seen ? sortPages(inTab, seen) : [...inTab].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const shown = filterPages(sorted, query, module);
-  const chip = (active: boolean) =>
-    `h-9 rounded-full px-4 text-sm font-medium transition-colors ${active ? "bg-ink text-white" : "bg-neutral-100 text-ink hover:bg-neutral-200"}`;
 
   return (
     <section className="flex flex-col gap-4">
@@ -56,20 +55,28 @@ export function PagesList({ pages, canCreate, archive = false }: { pages: ListPa
         </div>
       )}
 
-      <input
-        type="search"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder={p.searchPlaceholder}
-        aria-label={p.searchPlaceholder}
-        className="h-11 w-full rounded-xl border border-neutral-300 bg-white px-4 text-base text-ink placeholder:text-neutral-400 focus:border-accent focus:outline-none"
-      />
-      <div className="flex gap-2">
-        {(["all", ...PAGE_MODULES] as const).map((m) => (
-          <button key={m} type="button" onClick={() => setModule(m)} className={chip(module === m)}>
-            {m === "all" ? p.filterAll : p.modules[m]}
-          </button>
-        ))}
+      <div className="flex items-center gap-2">
+        <label className="relative min-w-0 flex-1">
+          <span className="sr-only">{p.searchPlaceholder}</span>
+          <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-500" />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={p.searchPlaceholder}
+            className="h-11 w-full rounded-full border-0 bg-neutral-100 pl-12 pr-4 text-base text-ink placeholder:text-neutral-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent"
+          />
+        </label>
+        <FilterMenu count={module === "all" ? 0 : 1} onReset={() => setModule("all")} iconOnly>
+          <FilterSection title={p.filterModule} value={module === "all" ? p.filterAll : p.modules[module]}>
+            <ChoiceChips
+              label={p.filterModule}
+              value={module}
+              onChange={setModule}
+              options={(["all", ...PAGE_MODULES] as const).map((m) => ({ value: m, label: m === "all" ? p.filterAll : p.modules[m] }))}
+            />
+          </FilterSection>
+        </FilterMenu>
       </div>
 
       {shown.length === 0 ? (
@@ -77,24 +84,29 @@ export function PagesList({ pages, canCreate, archive = false }: { pages: ListPa
           {inTab.length === 0 ? (archive ? p.emptyArchive : p.empty) : p.emptySearch}
         </p>
       ) : (
-        <ul className="flex flex-col">
-          {shown.map((page) => (
-            <li key={page.id}>
-              <Link href={`/work/p/${page.id}`} className="flex items-center gap-3 rounded-xl px-2 py-3 hover:bg-neutral-50">
-                <PageIcon moduleKey={page.moduleKey} size={44} />
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-center gap-2">
-                    <span className="truncate text-base font-medium text-ink">{page.name}</span>
-                    {seen && !archive && isNewPage(page, seen) ? <NewBadge /> : null}
+        // Карточки: на компьютере в две колонки, на телефоне — одна.
+        <ul className="grid grid-cols-1 gap-2.5 md:grid-cols-2 md:gap-3">
+          {shown.map((page) => {
+            const type = p.modules[page.moduleKey];
+            return (
+              <li key={page.id} className="min-w-0">
+                <Link
+                  href={`/work/p/${page.id}`}
+                  className="flex h-full items-center gap-3 rounded-2xl border border-line bg-white p-3.5 transition-[background-color,border-color,box-shadow] duration-150 hover:border-neutral-300 hover:bg-surface hover:shadow-[0_4px_16px_-8px_rgba(30,30,30,0.18)]"
+                >
+                  <PageIcon moduleKey={page.moduleKey} size={44} />
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center gap-2">
+                      <span className="truncate text-base font-medium text-ink">{page.name}</span>
+                      {seen && !archive && isNewPage(page, seen) ? <NewBadge /> : null}
+                    </span>
+                    {/* Тип модуля не повторяем, если название и есть тип («Задачи / Задачи»). */}
+                    {!sameAsModule(page.name, type) ? <span className="block truncate text-sm text-muted">{type}</span> : null}
                   </span>
-                  {/* Тип модуля под названием не повторяем, если название и есть тип («Задачи / Задачи»). */}
-                  {page.description || !sameAsModule(page.name, p.modules[page.moduleKey]) ? (
-                    <span className="block truncate text-sm text-ink">{page.description || p.modules[page.moduleKey]}</span>
-                  ) : null}
-                </span>
-              </Link>
-            </li>
-          ))}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>

@@ -7,7 +7,7 @@ import { FormMessage } from "@/components/ui/FormMessage";
 import { PHOTOS } from "@/components/guest/photos";
 import { HeroPanel } from "@/components/ui/HeroPanel";
 import { getUserId } from "@/lib/auth/session";
-import { getMyCompany, hasFreeSubscription } from "@/lib/company/queries";
+import { getMyCompany, getQuickStartState, hasFreeSubscription } from "@/lib/company/queries";
 import { t } from "@/lib/i18n";
 import { getCompanyPages } from "@/modules/pages/queries";
 
@@ -41,11 +41,16 @@ async function WorkContent({ searchParams }: { searchParams: SearchParams }) {
   if (company) {
     // В список — только доступные мне страницы (метаданные компании видят все, доступ — по page_access).
     // Архивные — на отдельной странице «Прочее → Архив» (/work/archive).
-    const pages = (await getCompanyPages(company.org.id, userId)).filter((p) => p.hasAccess && !p.archived);
+    // «Быстрый старт» — только владельцу, пока компания не настроена.
+    const [allPages, quickStart] = await Promise.all([
+      getCompanyPages(company.org.id, userId),
+      company.role === "owner" ? getQuickStartState(company.org.id, userId) : null,
+    ]);
+    const pages = allPages.filter((p) => p.hasAccess && !p.archived);
     return (
-      <StubPage title={t.work.title}>
+      <StubPage title={t.work.title} wide>
         {notice}
-        <WorkHome company={company} pages={pages} />
+        <WorkHome company={company} pages={pages} quickStart={quickStart} />
       </StubPage>
     );
   }

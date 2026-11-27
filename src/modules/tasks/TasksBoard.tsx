@@ -242,7 +242,7 @@ export function TasksBoard({ pageId, me, role, readOnly, initialTasks, people }:
           type="button"
           onClick={() => setCreating(tab === "board" ? mobileStatus : "todo")}
           aria-label={s.create}
-          className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-30 flex h-14 w-14 items-center justify-center rounded-[18px] bg-brand text-white shadow-[0_10px_24px_rgba(234,95,53,0.4)] md:hidden"
+          className="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white shadow-[0_10px_24px_rgba(234,95,53,0.4)] md:hidden"
         >
           <PlusIcon className="h-6 w-6" />
         </button>
