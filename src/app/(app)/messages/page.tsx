@@ -1,29 +1,34 @@
 import type { Metadata } from "next";
-import { ListDetailLayout } from "@/components/layout/ListDetailLayout";
+import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { PHOTOS } from "@/components/guest/photos";
 import { HeroPanel } from "@/components/ui/HeroPanel";
+import { getUserId } from "@/lib/auth/session";
+import { getMyCompany } from "@/lib/company/queries";
 import { t } from "@/lib/i18n";
+import { MessagesScreen } from "@/modules/chat/MessagesScreen";
 
 export const metadata: Metadata = { title: `${t.messages.title} — ${t.app.name}` };
 
-// «Сообщения» (ТЗ, раздел 13). Раскладка как у «Поиска»: слева список, справа фото.
-// Список чатов появится в день 6; пока слева — пустое состояние.
+// «Сообщения» (ТЗ, раздел 13): список доступных чатов компании; справа — выбранный чат
+// или фото, пока чат не выбран. Создать чат отсюда нельзя.
 export default function MessagesPage() {
   return (
-    <ListDetailLayout
-      title={t.messages.title}
-      detailLabel={t.messages.detailLabel}
-      list={
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-neutral-300 px-6 py-12 text-center">
-          <span className="text-ink">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-              <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12Z" />
-            </svg>
-          </span>
-          <p className="text-base text-ink">{t.messages.empty}</p>
-        </div>
-      }
-      detail={
+    <Suspense fallback={null}>
+      <Content />
+    </Suspense>
+  );
+}
+
+async function Content() {
+  const userId = await getUserId();
+  if (!userId) redirect("/login");
+  const company = await getMyCompany(userId);
+  return (
+    <MessagesScreen
+      me={userId}
+      role={company?.role ?? null}
+      hero={
         <HeroPanel
           photo={PHOTOS.messages}
           alt={t.messages.heroAlt}
