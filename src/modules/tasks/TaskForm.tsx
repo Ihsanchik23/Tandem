@@ -1,12 +1,13 @@
 "use client";
 
+import { CalendarBlank, Flag, User, Users } from "@phosphor-icons/react";
 import { useState } from "react";
 import { format, t } from "@/lib/i18n";
 import { Avatar } from "@/components/profile/Avatar";
-import { CalendarIcon, PersonChip, PriorityBadge } from "./bits";
+import { FieldRow, fieldInput, PopoverRow, Row, Section } from "@/components/ui/Grouped";
+import { PersonChip, PriorityBadge } from "./bits";
 import type { PagePerson } from "./data";
 import { TASK_LIMITS, TASK_PRIORITIES, type TaskFieldErrors, type TaskPriority } from "./logic";
-import { FieldPopover, FlagIcon, Prop, TextIcon, UserIcon, UsersIcon } from "./parts";
 
 export type TaskFormValue = {
   title: string;
@@ -18,12 +19,14 @@ export type TaskFormValue = {
   coassignees: string[];
 };
 
-// Дата и время — мягкие «пилюли» без рамки; календарь и часы открываются по клику (системные).
+export const PROP_ICON = 20;
+
+// Дата и время — белые «пилюли» в строке «Дедлайн»; календарь и часы открываются по клику (системные).
 const pill =
-  "h-9 min-w-0 rounded-lg border-0 bg-surface px-2 text-base text-ink transition-shadow md:text-[14px] focus:outline-none focus:ring-2 focus:ring-accent/30";
+  "h-8 min-w-0 rounded-lg border-0 bg-white px-2 text-base text-ink transition-shadow md:text-[14px] focus:outline-none focus:ring-2 focus:ring-accent/30";
 
 function FieldError({ children }: { children: React.ReactNode }) {
-  return <p className="mt-1 text-[12px] text-red-700">{children}</p>;
+  return <p className="animate-fade-in px-3.5 text-[13px] text-red-700">{children}</p>;
 }
 
 function CheckMark({ on }: { on: boolean }) {
@@ -54,8 +57,8 @@ const rowClass = (on: boolean) =>
 
 const match = (p: PagePerson, q: string) => `${p.name} ${p.username} ${p.position ?? ""}`.toLowerCase().includes(q);
 
-// Поля задачи — той же сеткой, что карточка просмотра. Логика и проверки прежние.
-// При создании себя ответственным выбрать нельзя (ТЗ, раздел 12) — в списке вас нет.
+// Поля задачи: крупный заголовок, группа «Свойства» строками, описание — своей группой.
+// При создании себя ответственным выбрать нельзя (ТЗ, раздел 12) — в списке вас нет, пояснение — в самом списке.
 export function TaskForm({
   value,
   onChange,
@@ -81,7 +84,7 @@ export function TaskForm({
   return (
     <div className="flex flex-col gap-6">
       {/* Заголовок — крупное поле без рамки, как заголовок в просмотре. */}
-      <div>
+      <div className="px-1">
         <textarea
           name="task-title"
           value={value.title}
@@ -94,36 +97,37 @@ export function TaskForm({
           aria-invalid={errors.title ? true : undefined}
           className="block w-full resize-none bg-transparent text-[26px] font-semibold leading-[1.15] tracking-[-0.025em] text-ink [field-sizing:content] placeholder:text-neutral-300 focus:outline-none"
         />
-        {err("title") ? <FieldError>{err("title")}</FieldError> : null}
+        {err("title") ? <p className="mt-1 text-[13px] text-red-700">{err("title")}</p> : null}
       </div>
 
-      <dl className="grid grid-cols-[minmax(0,8.5rem)_minmax(0,1fr)] items-center gap-x-3 gap-y-1 text-[14px]">
-        <Prop icon={<CalendarIcon className="h-[17px] w-[17px]" />} label={s.due} top={Boolean(errors.due)}>
-          <div className="flex min-w-0 flex-col py-1">
-            <div className="flex flex-wrap gap-1.5">
-              <input
-                type="date"
-                aria-label={s.dueDate}
-                value={value.dueDate}
-                onChange={(e) => set("dueDate", e.target.value)}
-                aria-invalid={errors.due ? true : undefined}
-                className={`${pill} min-w-[8.75rem] flex-1 ${errors.due ? "ring-2 ring-red-300" : ""}`}
-              />
-              <input
-                type="time"
-                aria-label={s.dueTime}
-                value={value.dueTime}
-                onChange={(e) => set("dueTime", e.target.value)}
-                aria-invalid={errors.due ? true : undefined}
-                className={`${pill} w-[6.25rem] flex-none ${errors.due ? "ring-2 ring-red-300" : ""}`}
-              />
-            </div>
-            {errors.due ? <FieldError>{t.errors[errors.due]}</FieldError> : null}
-          </div>
-        </Prop>
+      <div className="flex flex-col gap-2">
+        <Section title={s.properties}>
+          <Row
+            icon={<CalendarBlank size={PROP_ICON} />}
+            label={s.due}
+            right={
+              <span className="flex shrink-0 gap-1.5">
+                <input
+                  type="date"
+                  aria-label={s.dueDate}
+                  value={value.dueDate}
+                  onChange={(e) => set("dueDate", e.target.value)}
+                  aria-invalid={errors.due ? true : undefined}
+                  className={`${pill} w-[8.75rem] ${errors.due ? "ring-2 ring-red-300" : ""}`}
+                />
+                <input
+                  type="time"
+                  aria-label={s.dueTime}
+                  value={value.dueTime}
+                  onChange={(e) => set("dueTime", e.target.value)}
+                  aria-invalid={errors.due ? true : undefined}
+                  className={`${pill} w-[5.25rem] ${errors.due ? "ring-2 ring-red-300" : ""}`}
+                />
+              </span>
+            }
+          />
 
-        <Prop icon={<FlagIcon />} label={s.filterPriority}>
-          <FieldPopover label={s.filterPriority} value={<PriorityBadge priority={value.priority} />}>
+          <PopoverRow popoverLabel={s.filterPriority} icon={<Flag size={PROP_ICON} />} label={s.filterPriority} value={<PriorityBadge priority={value.priority} />}>
             {(close) => (
               <div role="listbox" aria-label={s.filterPriority} className="flex flex-col gap-0.5">
                 {TASK_PRIORITIES.map((p) => (
@@ -144,86 +148,81 @@ export function TaskForm({
                 ))}
               </div>
             )}
-          </FieldPopover>
-        </Prop>
+          </PopoverRow>
 
-        <Prop icon={<UserIcon />} label={s.assignee} top={Boolean(errors.assignee) || mode === "create"}>
-          <div className="flex min-w-0 flex-1 flex-col py-0.5">
-            <FieldPopover
-              label={s.assignee}
-              value={assignee ? <PersonChip person={assignee} size={22} /> : <span className="text-muted">{s.assigneeNone}</span>}
-            >
-              {(close) => (
-                <AssigneeList
-                  people={assigneeOptions}
-                  selected={value.assigneeId}
-                  onPick={(id) => {
-                    onChange({ ...value, assigneeId: id, coassignees: value.coassignees.filter((c) => c !== id) });
-                    close();
-                  }}
-                />
-              )}
-            </FieldPopover>
-            {errors.assignee ? (
-              <FieldError>{t.errors[errors.assignee]}</FieldError>
-            ) : mode === "create" ? (
-              <p className="mt-0.5 text-[12px] text-muted">{s.assigneeSelfHint}</p>
-            ) : null}
-          </div>
-        </Prop>
+          <PopoverRow
+            popoverLabel={s.assignee}
+            icon={<User size={PROP_ICON} />}
+            label={s.assignee}
+            value={assignee ? <PersonChip person={assignee} size={22} /> : s.assigneeNone}
+          >
+            {(close) => (
+              <AssigneeList
+                people={assigneeOptions}
+                selected={value.assigneeId}
+                note={mode === "create" ? s.assigneeSelfHint : null}
+                onPick={(id) => {
+                  onChange({ ...value, assigneeId: id, coassignees: value.coassignees.filter((c) => c !== id) });
+                  close();
+                }}
+              />
+            )}
+          </PopoverRow>
 
-        <Prop icon={<UsersIcon />} label={s.coassignees}>
-          <FieldPopover
+          <PopoverRow
+            popoverLabel={s.coassignees}
+            icon={<Users size={PROP_ICON} />}
             label={s.coassignees}
-            value={
-              value.coassignees.length === 0 ? (
-                <span className="text-muted">{s.coassigneesAdd}</span>
-              ) : (
-                <CoassigneeSummary ids={value.coassignees} people={people} />
-              )
-            }
+            value={value.coassignees.length === 0 ? s.coassigneesAdd : <CoassigneeSummary ids={value.coassignees} people={people} />}
           >
             {() => <CoassigneeList people={coPeople} selected={value.coassignees} onChange={(ids) => set("coassignees", ids)} />}
-          </FieldPopover>
-        </Prop>
-      </dl>
+          </PopoverRow>
+        </Section>
+        {errors.due ? <FieldError>{t.errors[errors.due]}</FieldError> : null}
+        {errors.assignee ? <FieldError>{t.errors[errors.assignee]}</FieldError> : null}
+      </div>
 
-      {/* Описание — в мягкой плашке, как в просмотре. */}
-      <section className="flex flex-col gap-2">
-        <h3 className="flex items-center gap-2 text-[13px] font-medium text-muted">
-          <TextIcon />
-          {s.description}
-          {value.description.length > TASK_LIMITS.description * 0.8 ? (
-            <span className="ml-auto text-[12px] font-normal tabular-nums">
-              {format(s.counter, { n: value.description.length, max: TASK_LIMITS.description })}
-            </span>
-          ) : null}
-        </h3>
-        <textarea
-          name="task-description"
-          value={value.description}
-          onChange={(e) => set("description", e.target.value)}
-          placeholder={s.descriptionPlaceholder}
-          aria-label={s.description}
-          maxLength={TASK_LIMITS.description}
-          aria-invalid={errors.description ? true : undefined}
-          className={`block min-h-28 w-full resize-none rounded-2xl bg-surface px-4 py-3.5 text-base leading-relaxed text-ink [field-sizing:content] placeholder:text-muted focus:outline-none focus:ring-2 md:text-[15px] ${
-            errors.description ? "ring-2 ring-red-300 focus:ring-red-300" : "focus:ring-accent/30"
-          }`}
-        />
-        {err("description") ? <FieldError>{err("description")}</FieldError> : null}
-      </section>
+      <Section>
+        <FieldRow
+          label={s.description}
+          htmlFor="task-description"
+          aside={value.description.length > TASK_LIMITS.description * 0.8 ? format(s.counter, { n: value.description.length, max: TASK_LIMITS.description }) : null}
+          error={err("description")}
+        >
+          <textarea
+            id="task-description"
+            name="task-description"
+            value={value.description}
+            onChange={(e) => set("description", e.target.value)}
+            placeholder={s.descriptionPlaceholder}
+            maxLength={TASK_LIMITS.description}
+            aria-invalid={errors.description ? true : undefined}
+            className={`min-h-24 resize-none leading-relaxed [field-sizing:content] ${fieldInput}`}
+          />
+        </FieldRow>
+      </Section>
     </div>
   );
 }
 
-function AssigneeList({ people, selected, onPick }: { people: PagePerson[]; selected: string | null; onPick: (id: string | null) => void }) {
+function AssigneeList({
+  people,
+  selected,
+  note,
+  onPick,
+}: {
+  people: PagePerson[];
+  selected: string | null;
+  note: string | null;
+  onPick: (id: string | null) => void;
+}) {
   const s = t.tasks;
   const [query, setQuery] = useState("");
   const q = query.trim().toLowerCase();
   const shown = people.filter((p) => match(p, q));
   return (
     <div className="flex flex-col">
+      {note ? <p className="px-2.5 pb-1.5 pt-0.5 text-[12px] text-muted">{note}</p> : null}
       {people.length > 6 ? <Search value={query} onChange={setQuery} /> : null}
       <div role="listbox" aria-label={s.assignee} className="flex max-h-64 flex-col gap-0.5 overflow-y-auto overscroll-contain">
         {!q ? (
@@ -257,15 +256,15 @@ function CoassigneeSummary({ ids, people }: { ids: string[]; people: PagePerson[
   });
   const first = known[0];
   return (
-    <span className="inline-flex min-w-0 items-center gap-2">
+    <span className="inline-flex min-w-0 items-center gap-2 text-ink">
       <span className="flex shrink-0">
         {known.slice(0, 3).map((p, i) => (
-          <span key={p.userId} className="rounded-full ring-2 ring-white" style={{ marginLeft: i === 0 ? 0 : -6 }}>
+          <span key={p.userId} className="rounded-full ring-2 ring-surface" style={{ marginLeft: i === 0 ? 0 : -6 }}>
             <Avatar url={p.avatarUrl} name={p.name} size={22} />
           </span>
         ))}
       </span>
-      <span className="truncate">
+      <span className="truncate text-sm">
         {first ? first.name : s.formerMember}
         {ids.length > 1 ? <span className="text-muted"> {format(s.peopleMore, { n: ids.length - 1 })}</span> : null}
       </span>

@@ -4,7 +4,9 @@ import { useState, useTransition } from "react";
 import { format, t } from "@/lib/i18n";
 import type { ErrorKey } from "@/lib/i18n/ru";
 import { Avatar } from "@/components/profile/Avatar";
+import { dangerButton, PrimaryButton } from "@/components/ui/Button";
 import { FormMessage } from "@/components/ui/FormMessage";
+import { Section } from "@/components/ui/Grouped";
 import { IconButton, PencilIcon, TrashIcon } from "@/components/ui/IconButton";
 import { MoreMenu } from "@/components/ui/MoreMenu";
 import { addComment, deleteComment, editComment } from "./api";
@@ -56,66 +58,58 @@ export function Comments({
   const shown = comments ? comments.slice(hidden) : [];
 
   return (
-    <section className="flex flex-col gap-3">
-      <h3 className="flex items-center gap-2 text-[15px] font-semibold text-ink">
-        {s.comments}
-        {total > 0 ? <span className="rounded-full bg-surface px-2 py-0.5 text-[12px] font-medium tabular-nums text-muted">{total}</span> : null}
-      </h3>
+    <div className="flex flex-col gap-2">
+      <Section title={total > 0 ? `${s.comments} · ${total}` : s.comments}>
+        <div className="flex flex-col gap-2 px-3.5 py-3">
+          {comments === null ? (
+            <p className="text-sm text-muted">{s.loading}</p>
+          ) : comments.length === 0 ? (
+            <p className="text-sm text-muted">{s.commentsEmpty}</p>
+          ) : (
+            <div className="flex flex-col">
+              {hidden > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setLimit((n) => n + STEP)}
+                  className="mb-1 self-start pl-11 text-[13px] font-medium text-accent hover:text-accent-hover"
+                >
+                  {s.showMore} <span className="font-normal text-muted">· {format(s.hiddenCount, { n: hidden })}</span>
+                </button>
+              ) : null}
+              <ul className="flex flex-col">
+                {shown.map((c) => (
+                  <CommentItem key={c.id} comment={c} mine={c.authorId === me} canChange={canComment} now={now} onChanged={onChanged} />
+                ))}
+              </ul>
+            </div>
+          )}
 
-      {comments === null ? (
-        <p className="text-sm text-muted">{s.loading}</p>
-      ) : comments.length === 0 ? (
-        <p className="text-sm text-muted">{s.commentsEmpty}</p>
-      ) : (
-        <div className="flex flex-col">
-          {hidden > 0 ? (
-            <button
-              type="button"
-              onClick={() => setLimit((n) => n + STEP)}
-              className="mb-1 self-start pl-11 text-[13px] font-medium text-accent hover:text-accent-hover"
-            >
-              {s.showMore} <span className="font-normal text-muted">· {format(s.hiddenCount, { n: hidden })}</span>
-            </button>
-          ) : null}
-          <ul className="flex flex-col">
-            {shown.map((c) => (
-              <CommentItem key={c.id} comment={c} mine={c.authorId === me} canChange={canComment} now={now} onChanged={onChanged} />
-            ))}
-          </ul>
+          {canComment ? (
+            /* Одно поле ввода внизу группы: растёт по мере набора, «Отправить» — справа в той же строке. */
+            <div className="flex items-end gap-2 rounded-[22px] bg-white py-1.5 pl-4 pr-1.5 transition-shadow focus-within:shadow-[0_0_0_2px_rgba(191,74,49,0.25)]">
+              <textarea
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) send();
+                }}
+                placeholder={s.commentPlaceholder}
+                aria-label={s.commentPlaceholder}
+                maxLength={TASK_LIMITS.comment}
+                rows={1}
+                className="block max-h-40 min-h-8 flex-1 resize-none bg-transparent py-1.5 text-base leading-5 text-ink [field-sizing:content] placeholder:text-muted focus:outline-none md:text-[14px]"
+              />
+              <PrimaryButton size="xs" onClick={send} disabled={!body.trim()} pending={pending} pendingText={s.commentSending}>
+                {s.commentSend}
+              </PrimaryButton>
+            </div>
+          ) : (
+            <p className="text-sm text-muted">{s.commentNoRights}</p>
+          )}
         </div>
-      )}
-
-      {canComment ? (
-        <div className="flex flex-col gap-2">
-          {/* Одно поле ввода внизу блока: растёт по мере набора, «Отправить» — справа в той же строке. */}
-          <div className="flex items-end gap-2 rounded-[22px] bg-surface py-1.5 pl-4 pr-1.5 transition-shadow focus-within:shadow-[0_0_0_2px_rgba(191,74,49,0.25)]">
-            <textarea
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) send();
-              }}
-              placeholder={s.commentPlaceholder}
-              aria-label={s.commentPlaceholder}
-              maxLength={TASK_LIMITS.comment}
-              rows={1}
-              className="block max-h-40 min-h-8 flex-1 resize-none bg-transparent py-1.5 text-base leading-5 text-ink [field-sizing:content] placeholder:text-muted focus:outline-none md:text-[14px]"
-            />
-            <button
-              type="button"
-              onClick={send}
-              disabled={pending || !body.trim()}
-              className="h-8 shrink-0 rounded-full bg-accent px-3.5 text-[13px] font-semibold text-white transition-colors hover:bg-accent-hover disabled:bg-neutral-300"
-            >
-              {pending ? s.commentSending : s.commentSend}
-            </button>
-          </div>
-          {error ? <FormMessage kind="error">{t.errors[error]}</FormMessage> : null}
-        </div>
-      ) : (
-        <p className="text-sm text-muted">{s.commentNoRights}</p>
-      )}
-    </section>
+      </Section>
+      {error ? <FormMessage kind="error">{t.errors[error]}</FormMessage> : null}
+    </div>
   );
 }
 
@@ -170,7 +164,7 @@ function CommentItem({
   const actions = mine && canChange && mode === "view";
 
   return (
-    <li className="group relative -mx-2 flex gap-3 rounded-xl px-2 py-1.5 transition-colors [@media(hover:hover)]:hover:bg-surface/70">
+    <li className="group relative -mx-2 flex gap-3 rounded-xl px-2 py-1.5 transition-colors [@media(hover:hover)]:hover:bg-black/[0.03]">
       <Avatar url={comment.author?.avatarUrl} name={name} size={32} />
       <div className="min-w-0 flex-1">
         {/* Имя и время — одной строкой, текст — сразу под ними. */}
@@ -191,15 +185,10 @@ function CommentItem({
               className="min-h-16 w-full resize-none rounded-xl border border-line bg-white px-3 py-2 text-base text-ink [field-sizing:content] focus:border-accent focus:outline-none md:text-[14px]"
             />
             <div className="flex gap-1.5">
-              <button
-                type="button"
-                onClick={save}
-                disabled={pending}
-                className="h-8 rounded-full bg-ink px-3.5 text-[12px] font-semibold text-white disabled:opacity-60"
-              >
-                {pending ? s.saving : s.save}
-              </button>
-              <button type="button" onClick={() => setMode("view")} disabled={pending} className="h-8 rounded-full px-3 text-[12px] font-medium text-ink hover:bg-surface">
+              <PrimaryButton size="xs" onClick={save} pending={pending} pendingText={s.saving}>
+                {s.save}
+              </PrimaryButton>
+              <button type="button" onClick={() => setMode("view")} disabled={pending} className="h-8 rounded-full px-3 text-[13px] font-medium text-ink hover:bg-black/5">
                 {s.cancel}
               </button>
             </div>
@@ -211,12 +200,7 @@ function CommentItem({
         {mode === "delete" ? (
           <div className="mt-2 flex flex-wrap items-center gap-1.5 rounded-xl bg-red-50 px-3 py-2">
             <span className="mr-auto text-[13px] text-red-900">{s.commentDeleteConfirm}</span>
-            <button
-              type="button"
-              onClick={remove}
-              disabled={pending}
-              className="h-8 rounded-full bg-red-700 px-3.5 text-[12px] font-semibold text-white hover:bg-red-800 disabled:opacity-60"
-            >
+            <button type="button" onClick={remove} disabled={pending} className={dangerButton("xs")}>
               {pending ? s.saving : s.commentDeleteYes}
             </button>
             <button type="button" onClick={() => setMode("view")} disabled={pending} className="h-8 rounded-full px-3 text-[12px] font-medium text-ink hover:bg-white">

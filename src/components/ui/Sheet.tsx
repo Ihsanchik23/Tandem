@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
+import { PanelFooter, PanelHeader } from "./Panel";
 import { useScrollLock } from "./useScrollLock";
 
 // Панель поверх экрана: на компьютере — справа, на телефоне — на весь экран.
 // from="bottom" (по умолчанию): на телефоне выезжает снизу; from="right" — справа на любом экране
 // (карточка задачи). Всегда в разметке, чтобы плавно и выезжать, и уезжать; закрытая — невидима и недоступна.
-// header — своя шапка вместо стандартной (заголовок + «Закрыть»); footer — закреплённый низ (кнопки).
+// header — своя шапка (PanelHeader с действиями) вместо стандартной; footer — кнопки закреплённого низа (PanelFooter).
 export function Sheet({
   open,
   title,
@@ -70,24 +71,9 @@ export function Sheet({
           visible ? "translate-x-0 translate-y-0 opacity-100" : `${closed} ${from === "right" ? "" : "opacity-0"}`
         }`}
       >
-        {header ?? (
-          <header className="flex items-center gap-3 px-5 py-3 pt-[calc(0.75rem+env(safe-area-inset-top))]">
-            <h2 className="min-w-0 flex-1 truncate text-lg font-semibold text-ink">{title}</h2>
-            <button
-              type="button"
-              onClick={onClose}
-              className="h-10 rounded-xl border border-neutral-300 px-3 text-base text-ink hover:bg-neutral-50"
-            >
-              {t.ui.close}
-            </button>
-          </header>
-        )}
+        {header ?? <PanelHeader title={title} onClose={onClose} />}
         <div className={`flex-1 overflow-y-auto overscroll-contain px-5 pt-3 ${footer ? "pb-6" : "pb-[calc(2rem+env(safe-area-inset-bottom))]"}`}>{children}</div>
-        {footer ? (
-          <footer className="flex shrink-0 items-center justify-end gap-2 border-t border-line bg-white px-5 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-            {footer}
-          </footer>
-        ) : null}
+        {footer ? <PanelFooter>{footer}</PanelFooter> : null}
       </section>
     </div>
   );

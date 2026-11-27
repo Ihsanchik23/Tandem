@@ -7,7 +7,7 @@ import type { Member } from "@/lib/company/queries";
 import { fullName, personMatches, unitChipsByUser, type UnitChip } from "@/lib/company/people";
 import { Avatar } from "@/components/profile/Avatar";
 import { Collapse } from "@/components/ui/Collapse";
-import { InfoTip } from "@/components/ui/InfoTip";
+import { Section } from "@/components/ui/Grouped";
 import { buildTree, type UnitMemberRow, type UnitRow } from "@/modules/canvas/tree";
 
 type Props = {
@@ -32,7 +32,7 @@ function setCollapsed(v: boolean) {
 }
 
 // Сотрудники компании с поиском по имени, должности и подразделению (в пилоте до ~100 человек — фильтруем на месте).
-// Белые карточки со строками; сверху (для Owner/Admin) — те же строки группой «Нераспределённые».
+// Группы со строками (docs/design.md); сверху (для Owner/Admin) — те же строки группой «Нераспределённые».
 export function PeopleList({ members, units, unitMembers, showUnassigned, activeId = null, onOpen }: Props) {
   const [query, setQuery] = useState("");
   const collapsed = useSyncExternalStore(subscribe, () => localStorage.getItem(COLLAPSED_KEY) === "1", () => false);
@@ -55,21 +55,18 @@ export function PeopleList({ members, units, unitMembers, showUnassigned, active
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={c.peopleSearch}
-          className="h-11 w-full rounded-full border-0 bg-white pl-12 pr-4 text-base text-ink placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-accent"
+          className="h-11 w-full rounded-full border-0 bg-surface pl-12 pr-4 text-base text-ink placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-accent"
         />
       </label>
 
       {found.length === 0 ? <p className="px-3.5 text-base text-muted">{c.peopleEmpty}</p> : null}
 
       {free.length > 0 ? (
-        <section className="flex flex-col gap-1.5">
-          <h2 className="flex min-h-7 items-center gap-1 pl-3.5 pr-[7px] text-[12px] font-medium uppercase tracking-[0.04em] text-neutral-500">
-            <span className="min-w-0 flex-1 truncate">
-              {c.unassigned} · {free.length}
-            </span>
-            <InfoTip label={t.pages.info} align="right">
-              {c.unassignedHint}
-            </InfoTip>
+        <Section
+          title={`${c.unassigned} · ${free.length}`}
+          info={c.unassignedHint}
+          infoLabel={t.pages.info}
+          action={
             <button
               type="button"
               onClick={() => setCollapsed(!collapsed)}
@@ -80,20 +77,18 @@ export function PeopleList({ members, units, unitMembers, showUnassigned, active
             >
               <CaretDown size={16} weight="bold" className={`transition-transform duration-200 ${collapsed ? "-rotate-90" : ""}`} />
             </button>
-          </h2>
+          }
+        >
           <Collapse open={!collapsed}>
-            <ul className="overflow-hidden rounded-xl bg-white">{free.map(row)}</ul>
+            <ul>{free.map(row)}</ul>
           </Collapse>
-        </section>
+        </Section>
       ) : null}
 
       {found.length > 0 ? (
-        <section className="flex flex-col gap-1.5">
-          <h2 className="flex min-h-7 items-center pl-3.5 text-[12px] font-medium uppercase tracking-[0.04em] text-neutral-500">
-            {c.allPeople} · {found.length}
-          </h2>
-          <ul className="overflow-hidden rounded-xl bg-white">{found.map(row)}</ul>
-        </section>
+        <Section title={`${c.allPeople} · ${found.length}`}>
+          <ul>{found.map(row)}</ul>
+        </Section>
       ) : null}
     </div>
   );
@@ -108,12 +103,12 @@ function PersonRow({ m, chips, active, onOpen }: { m: Member; chips: UnitChip[];
         type="button"
         onClick={onOpen}
         aria-current={active ? "true" : undefined}
-        className={`flex w-full items-center gap-3 pl-3.5 text-left transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent ${
+        className={`flex w-full items-center gap-3 pl-3.5 text-left transition-colors group-first:rounded-t-xl group-last:rounded-b-xl focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent ${
           active ? "bg-black/[0.06]" : "hover:bg-black/[0.03] active:bg-black/[0.06]"
         }`}
       >
         <Avatar url={m.avatar_url} name={name} size={40} />
-        <span className="flex min-w-0 flex-1 items-center gap-2 border-b-[0.5px] border-neutral-200 py-2.5 pr-3 group-last:border-b-0">
+        <span className="flex min-w-0 flex-1 items-center gap-2 border-b-[0.5px] border-black/[0.09] py-2.5 pr-3 group-last:border-b-0">
           <span className="flex min-w-0 flex-1 flex-col gap-1.5">
             <span className="min-w-0">
               <span className="block truncate text-[15px] text-ink">{name}</span>
@@ -121,7 +116,7 @@ function PersonRow({ m, chips, active, onOpen }: { m: Member; chips: UnitChip[];
             </span>
             <UnitChips chips={chips} />
           </span>
-          <CaretRight size={16} weight="bold" className="shrink-0 text-neutral-300" aria-hidden />
+          <CaretRight size={16} weight="bold" className="shrink-0 text-neutral-400" aria-hidden />
         </span>
       </button>
     </li>

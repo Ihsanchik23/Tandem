@@ -4,11 +4,12 @@ import { useState, useTransition } from "react";
 import { t } from "@/lib/i18n";
 import type { ErrorKey } from "@/lib/i18n/ru";
 import { FormMessage } from "@/components/ui/FormMessage";
+import { PrimaryButton, SecondaryButton } from "@/components/ui/Button";
+import { PanelHeader } from "@/components/ui/Panel";
 import { Sheet } from "@/components/ui/Sheet";
 import { createTask, setStatus } from "./api";
 import type { PagePerson } from "./data";
 import { joinLocalDateTime, splitLocalDateTime, validateTask, type TaskFieldErrors, type TaskStatus } from "./logic";
-import { btnPrimary, btnSecondary, CardHeader } from "./parts";
 import { TaskForm, type TaskFormValue } from "./TaskForm";
 
 const FORM_ID = "create-task-form";
@@ -77,22 +78,22 @@ export function CreateTask({
     if (!pending) onClose();
   };
 
-  // Выглядит как карточка просмотра: выезжает справа, компактная шапка, кнопки закреплены внизу.
+  // Выглядит как карточка просмотра: выезжает справа, общая шапка, кнопки закреплены внизу.
   return (
     <Sheet
       open={open}
       from="right"
       title={title}
       onClose={close}
-      header={<CardHeader title={<span className="text-[15px] font-semibold text-ink">{title}</span>} onClose={close} />}
+      header={<PanelHeader title={title} onClose={close} />}
       footer={
         <>
-          <button type="button" onClick={close} disabled={pending} className={btnSecondary}>
+          <SecondaryButton onClick={close} disabled={pending}>
             {s.cancel}
-          </button>
-          <button type="submit" form={FORM_ID} disabled={pending} className={`${btnPrimary} flex-1 md:flex-none`}>
-            {pending ? s.creating : s.createSubmit}
-          </button>
+          </SecondaryButton>
+          <PrimaryButton type="submit" form={FORM_ID} pending={pending} pendingText={s.creating} className="flex-1 md:flex-none">
+            {s.createSubmit}
+          </PrimaryButton>
         </>
       }
     >

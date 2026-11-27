@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { format, t } from "@/lib/i18n";
 import { Avatar } from "@/components/profile/Avatar";
+import { Section } from "@/components/ui/Grouped";
 import type { PagePerson, TaskEvent } from "./data";
 import { TASK_STATUSES, type TaskStatus } from "./logic";
 import { formatAgo, formatDateTime } from "./time";
@@ -12,7 +13,7 @@ const FIRST = 3;
 const STEP = 5;
 
 // История задачи — лёгкая хронология (новые сверху): тонкая линия слева с маленькими точками,
-// в строке — аватар, имя, что сделал(а) и когда. Без карточек и рамок.
+// в строке — аватар, имя, что сделал(а) и когда. Отдельной группой в конце карточки задачи.
 export function History({ events, people, now }: { events: TaskEvent[] | null; people: Map<string, PagePerson>; now: number | null }) {
   const s = t.tasks;
   const [limit, setLimit] = useState(FIRST);
@@ -24,56 +25,54 @@ export function History({ events, people, now }: { events: TaskEvent[] | null; p
   const hidden = items.length - shown.length;
 
   return (
-    <section className="flex flex-col gap-3">
-      <h3 className="flex items-center gap-2 text-[15px] font-semibold text-ink">
-        {s.history}
-        {items.length > 0 ? <span className="rounded-full bg-surface px-2 py-0.5 text-[12px] font-medium tabular-nums text-muted">{items.length}</span> : null}
-      </h3>
-      {events === null ? (
-        <p className="text-sm text-muted">{s.loading}</p>
-      ) : items.length === 0 ? (
-        <p className="text-sm text-muted">{s.historyEmpty}</p>
-      ) : (
-        <div className="flex flex-col gap-1.5">
-          <ol className="flex flex-col">
-            {shown.map(({ e, text }, i) => {
-              const last = i === shown.length - 1;
-              const name = e.actor?.name || s.someone;
-              return (
-                <li key={e.id} className="relative pb-2.5 pl-5 last:pb-0">
-                  {/* Линия к следующей записи и маленькая точка; самая свежая — фирменного цвета. */}
-                  {!last ? <span aria-hidden className="absolute bottom-0 left-[3px] top-3 w-px bg-line" /> : null}
-                  <span aria-hidden className={`absolute left-0 top-[7px] h-[7px] w-[7px] rounded-full ${i === 0 ? "bg-accent" : "bg-neutral-300"}`} />
-                  <div className="flex items-start gap-2">
-                    <span className="mt-px shrink-0">
-                      <Avatar url={e.actor?.avatarUrl} name={name} size={18} />
-                    </span>
-                    <p className="min-w-0 text-[13px] leading-5 text-ink">
-                      <span className="font-semibold">{name}</span> {text}
-                      {now !== null ? (
-                        <time dateTime={e.createdAt} title={formatDateTime(e.createdAt, now)} className="whitespace-nowrap text-[12px] text-muted">
-                          {" "}
-                          · {formatAgo(e.createdAt, now)}
-                        </time>
-                      ) : null}
-                    </p>
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
-          {hidden > 0 ? (
-            <button
-              type="button"
-              onClick={() => setLimit((n) => n + STEP)}
-              className="self-start pl-5 text-[13px] font-medium text-accent hover:text-accent-hover"
-            >
-              {s.showMore} <span className="font-normal text-muted">· {format(s.hiddenCount, { n: hidden })}</span>
-            </button>
-          ) : null}
-        </div>
-      )}
-    </section>
+    <Section title={items.length > 0 ? `${s.history} · ${items.length}` : s.history}>
+      <div className="px-3.5 py-3">
+        {events === null ? (
+          <p className="text-sm text-muted">{s.loading}</p>
+        ) : items.length === 0 ? (
+          <p className="text-sm text-muted">{s.historyEmpty}</p>
+        ) : (
+          <div className="flex flex-col gap-1.5">
+            <ol className="flex flex-col">
+              {shown.map(({ e, text }, i) => {
+                const last = i === shown.length - 1;
+                const name = e.actor?.name || s.someone;
+                return (
+                  <li key={e.id} className="relative pb-2.5 pl-5 last:pb-0">
+                    {/* Линия к следующей записи и маленькая точка; самая свежая — фирменного цвета. */}
+                    {!last ? <span aria-hidden className="absolute bottom-0 left-[3px] top-3 w-px bg-line" /> : null}
+                    <span aria-hidden className={`absolute left-0 top-[7px] h-[7px] w-[7px] rounded-full ${i === 0 ? "bg-accent" : "bg-neutral-300"}`} />
+                    <div className="flex items-start gap-2">
+                      <span className="mt-px shrink-0">
+                        <Avatar url={e.actor?.avatarUrl} name={name} size={18} />
+                      </span>
+                      <p className="min-w-0 text-[13px] leading-5 text-ink">
+                        <span className="font-semibold">{name}</span> {text}
+                        {now !== null ? (
+                          <time dateTime={e.createdAt} title={formatDateTime(e.createdAt, now)} className="whitespace-nowrap text-[12px] text-muted">
+                            {" "}
+                            · {formatAgo(e.createdAt, now)}
+                          </time>
+                        ) : null}
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+            {hidden > 0 ? (
+              <button
+                type="button"
+                onClick={() => setLimit((n) => n + STEP)}
+                className="self-start pl-5 text-[13px] font-medium text-accent hover:text-accent-hover"
+              >
+                {s.showMore} <span className="font-normal text-muted">· {format(s.hiddenCount, { n: hidden })}</span>
+              </button>
+            ) : null}
+          </div>
+        )}
+      </div>
+    </Section>
   );
 }
 

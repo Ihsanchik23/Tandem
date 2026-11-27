@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowRight, ArrowUpRight, CalendarBlank, IdentificationBadge, Plus, ShieldCheck, Star } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useMemo, useState, useSyncExternalStore, useTransition } from "react";
 import { format, t } from "@/lib/i18n";
@@ -11,11 +12,13 @@ import { fullName } from "@/lib/company/people";
 import { canEditPosition, canManageMember, roleOptions, type Role } from "@/lib/company/permissions";
 import { LIMITS } from "@/lib/company/validation";
 import { Avatar } from "@/components/profile/Avatar";
-import { btnPrimary, btnSecondary, CardHeader, FieldPopover, Prop } from "@/components/ui/Card";
+import { dangerButton, primaryButton, PrimaryButton, SecondaryButton } from "@/components/ui/Button";
 import { Collapse } from "@/components/ui/Collapse";
 import { FormMessage } from "@/components/ui/FormMessage";
-import { IconButton, LinkIcon, TrashIcon, XIcon } from "@/components/ui/IconButton";
+import { PopoverRow, Row, Section } from "@/components/ui/Grouped";
+import { IconButton, LinkIcon, XIcon } from "@/components/ui/IconButton";
 import { MoreMenu } from "@/components/ui/MoreMenu";
+import { PanelHeader } from "@/components/ui/Panel";
 import { Sheet } from "@/components/ui/Sheet";
 import { LockIcon } from "@/components/nav/icons";
 import { PageIcon } from "@/components/ui/PageIcon";
@@ -54,6 +57,7 @@ type Mode =
   | { kind: "removeMember" };
 
 const noopSubscribe = () => () => {};
+const ICON = 20;
 
 // Карточка сотрудника справа (как карточка задачи). Видят все; Owner/Admin здесь же управляют:
 // подразделения, индивидуальный доступ к страницам, роль, должность, удаление.
@@ -83,7 +87,7 @@ export function MemberSheet({ open, member, tree, pages, organizationId, me, myR
 
   if (!member) {
     return (
-      <Sheet open={open} from="right" title={c.memberTitle} onClose={onClose} header={<CardHeader title={c.memberTitle} onClose={onClose} />}>
+      <Sheet open={open} from="right" title={c.memberTitle} onClose={onClose} header={<PanelHeader title={c.memberTitle} onClose={onClose} />}>
         <p className="pt-4 text-base text-muted">{c.memberGone}</p>
       </Sheet>
     );
@@ -159,45 +163,21 @@ export function MemberSheet({ open, member, tree, pages, organizationId, me, myR
           : "";
 
   const header = (
-    <CardHeader title={c.memberTitle} onClose={onClose}>
-      <MoreMenu
-        tip="end"
-        items={[
-          { key: "link", label: c.copyLink, icon: <LinkIcon />, onSelect: copyLink },
-          ...(manageMember ? [{ key: "remove", label: c.remove, icon: <TrashIcon />, tone: "danger" as const, onSelect: () => setMode({ kind: "removeMember" }) }] : []),
-        ]}
-      />
-    </CardHeader>
+    <PanelHeader title={c.memberTitle} onClose={onClose}>
+      <MoreMenu tip="end" items={[{ key: "link", label: c.copyLink, icon: <LinkIcon />, onSelect: copyLink }]} />
+    </PanelHeader>
   );
+
+  const inherited = manageAccess && withAccess.some(({ reasons }) => reasons.some((r) => r.kind !== "user"));
 
   return (
     <Sheet open={open} from="right" title={name} onClose={onClose} header={header}>
-      <div className="flex flex-col gap-7 pb-4 pt-4">
-        {/* Удаление из компании — подтверждение сверху, на виду. */}
-        {mode?.kind === "removeMember" ? (
-          <div className="flex animate-fade-in flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 p-4">
-            <p className="text-[15px] text-red-900">{format(c.removeConfirm, { name })}</p>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                disabled={pending}
-                onClick={() => submitForm(removeMember, {})}
-                className={`${btnPrimary} bg-red-700! hover:bg-red-800!`}
-              >
-                {pending ? c.removing : c.removeYes}
-              </button>
-              <button type="button" onClick={() => setMode(null)} disabled={pending} className={btnSecondary}>
-                {c.cancel}
-              </button>
-            </div>
-          </div>
-        ) : null}
-
+      <div className="flex flex-col gap-6 pb-4 pt-2">
         {notice ? <FormMessage kind="notice">{notice}</FormMessage> : null}
         {error ? <FormMessage kind="error">{t.errors[error]}</FormMessage> : null}
 
         {/* Шапка: фото, имя, должность, профиль. */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 px-1">
           <Avatar url={m.avatar_url} name={name} size={72} />
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <h2 className="break-words text-[22px] font-semibold leading-tight tracking-[-0.02em] text-ink">{name}</h2>
@@ -207,134 +187,130 @@ export function MemberSheet({ open, member, tree, pages, organizationId, me, myR
               className="mt-1 inline-flex h-8 w-fit items-center gap-1.5 rounded-full bg-surface px-3 text-[13px] font-medium text-ink transition-colors hover:bg-neutral-200"
             >
               {c.openProfile}
-              <ArrowIcon />
+              <ArrowUpRight size={14} />
             </Link>
           </div>
         </div>
 
-        {/* Свойства: иконка и название слева, значение справа. */}
-        <dl className="grid grid-cols-[minmax(0,8rem)_minmax(0,1fr)] items-center gap-x-3 gap-y-1 text-[14px]">
-          <Prop icon={<ShieldIcon />} label={c.role}>
-            {manageMember ? (
-              <FieldPopover label={c.roleLabel} value={c.roles[m.role]}>
-                {(close) => (
-                  <div className="flex flex-col">
-                    {roleOptions(myRole).map((r) => (
-                      <button
-                        key={r}
-                        type="button"
-                        disabled={pending}
-                        onClick={() => {
-                          close();
-                          if (r !== m.role) submitForm(setMemberRole, { role: r });
-                        }}
-                        className={`flex h-10 items-center rounded-xl px-3 text-left text-[14px] transition-colors hover:bg-surface ${r === m.role ? "font-semibold text-ink" : "text-ink"}`}
-                      >
-                        {c.roles[r]}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </FieldPopover>
-            ) : (
-              <span>{c.roles[m.role]}</span>
-            )}
-          </Prop>
-          <Prop icon={<BadgeIcon />} label={c.position}>
-            {editPosition ? (
-              <FieldPopover label={c.positionLabel} value={m.position || <span className="text-muted">{c.positionNone}</span>}>
-                {(close) => (
-                  <PositionEditor
-                    key={m.user_id}
-                    initial={m.position ?? ""}
-                    pending={pending}
-                    onSave={(v) => {
+        <Section title={c.properties}>
+          <PopoverRow
+            popoverLabel={c.roleLabel}
+            disabled={!manageMember}
+            icon={<ShieldCheck size={ICON} />}
+            label={c.role}
+            value={c.roles[m.role]}
+          >
+            {(close) => (
+              <div className="flex flex-col">
+                {roleOptions(myRole).map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    disabled={pending}
+                    onClick={() => {
                       close();
-                      if (v.trim() !== (m.position ?? "")) submitForm(setMemberPosition, { position: v });
+                      if (r !== m.role) submitForm(setMemberRole, { role: r });
                     }}
-                  />
-                )}
-              </FieldPopover>
-            ) : (
-              <span className={m.position ? "truncate" : "text-muted"}>{m.position || c.positionNone}</span>
-            )}
-          </Prop>
-          <Prop icon={<CalendarIcon />} label={c.joined}>
-            <span>{mounted ? format(c.joinedSince, { date: formatDate(m.joined_at) }) : ""}</span>
-          </Prop>
-          {headOf.length > 0 ? (
-            <Prop icon={<StarIcon />} label={c.heads} top={headOf.length > 1}>
-              <span className="flex flex-wrap gap-1.5 py-1.5">
-                {headOf.map((u) => (
-                  <Dot key={u.id} color={colors.get(u.id)?.color ?? null} label={path(u.id)} />
+                    className={`flex h-10 items-center rounded-xl px-3 text-left text-[14px] text-ink transition-colors hover:bg-surface ${r === m.role ? "font-semibold" : ""}`}
+                  >
+                    {c.roles[r]}
+                  </button>
                 ))}
-              </span>
-            </Prop>
+              </div>
+            )}
+          </PopoverRow>
+          <PopoverRow
+            popoverLabel={c.positionLabel}
+            disabled={!editPosition}
+            icon={<IdentificationBadge size={ICON} />}
+            label={c.position}
+            value={m.position || c.positionNone}
+          >
+            {(close) => (
+              <PositionEditor
+                key={m.user_id}
+                initial={m.position ?? ""}
+                pending={pending}
+                onSave={(v) => {
+                  close();
+                  if (v.trim() !== (m.position ?? "")) submitForm(setMemberPosition, { position: v });
+                }}
+              />
+            )}
+          </PopoverRow>
+          <Row icon={<CalendarBlank size={ICON} />} label={c.joined} value={mounted ? format(c.joinedSince, { date: formatDate(m.joined_at) }) : ""} />
+          {headOf.length > 0 ? (
+            <Row
+              icon={<Star size={ICON} />}
+              label={c.heads}
+              top={headOf.length > 1}
+              value={
+                <span className="flex flex-col items-end gap-1 py-0.5">
+                  {headOf.map((u) => (
+                    <Dot key={u.id} color={colors.get(u.id)?.color ?? null} label={path(u.id)} />
+                  ))}
+                </span>
+              }
+            />
           ) : null}
-        </dl>
+        </Section>
 
         {/* Подразделения: где состоит; Owner/Admin — добавить, перевести, убрать. */}
-        <section className="flex flex-col gap-2">
-          <SectionTitle icon={<UnitIcon />} title={c.unitsTitle} count={myUnits.length} />
-          {myUnits.length === 0 ? <p className="text-[14px] text-muted">{c.unitsNone}</p> : null}
-          <ul className="flex flex-col">
-            {myUnits
-              .map((id) => ({ id, label: path(id) }))
-              .sort((a, b) => a.label.localeCompare(b.label, "ru"))
-              .map(({ id, label }) => (
-                <li key={id} className="flex flex-col">
-                  <div className="flex min-h-11 items-center gap-2.5 rounded-xl pl-1">
-                    <Dot color={colors.get(id)?.color ?? null} label={label} big />
-                    <span className="flex-1" />
-                    {manageUnits ? (
+        <Section title={myUnits.length > 0 ? `${c.unitsTitle} · ${myUnits.length}` : c.unitsTitle}>
+          {myUnits.length === 0 ? <p className="px-3.5 py-3 text-[14px] text-muted">{c.unitsNone}</p> : null}
+          {myUnits
+            .map((id) => ({ id, label: path(id) }))
+            .sort((a, b) => a.label.localeCompare(b.label, "ru"))
+            .map(({ id, label }) => (
+              <div key={id} className="group">
+                <Row
+                  icon={<ColorDot color={colors.get(id)?.color ?? null} />}
+                  label={label}
+                  right={
+                    manageUnits ? (
                       <MoreMenu
                         size="sm"
                         tip="end"
                         label={c.unitActions}
                         items={[
-                          { key: "move", label: c.moveTo, icon: <MoveIcon />, onSelect: () => setMode({ kind: "moveFrom", unitId: id }) },
+                          { key: "move", label: c.moveTo, icon: <ArrowRight size={18} />, onSelect: () => setMode({ kind: "moveFrom", unitId: id }) },
                           { key: "remove", label: c.removeFromUnit, icon: <XIcon />, tone: "danger", onSelect: () => setMode({ kind: "removeUnit", unitId: id }) },
                         ]}
                       />
-                    ) : null}
-                  </div>
-                  <Collapse open={mode?.kind === "removeUnit" && mode.unitId === id}>
+                    ) : null
+                  }
+                />
+                <Collapse open={mode?.kind === "removeUnit" && mode.unitId === id}>
+                  <Confirm
+                    text={format(c.removeFromUnitConfirm, { name, unit: label })}
+                    yes={c.removeFromUnit}
+                    danger
+                    pending={pending}
+                    onYes={() => run(() => removeUnitMember(id, m.user_id), format(c.removedFromUnit, { unit: label }))}
+                    onNo={() => setMode(null)}
+                  />
+                </Collapse>
+                <Collapse open={mode?.kind === "moveFrom" && mode.unitId === id}>
+                  {mode?.kind === "moveFrom" && mode.unitId === id ? (
+                    <PickerBox title={format(c.moveFrom, { unit: label })} onCancel={() => setMode(null)}>
+                      <UnitPicker tree={tree} disabled={new Set(myUnits)} autoFocus onPick={(to) => pickMoveTarget(to, id)} />
+                    </PickerBox>
+                  ) : null}
+                </Collapse>
+                <Collapse open={mode?.kind === "confirmMove" && mode.from === id}>
+                  {mode?.kind === "confirmMove" && mode.from === id ? (
                     <Confirm
-                      text={format(c.removeFromUnitConfirm, { name, unit: label })}
-                      yes={c.removeFromUnit}
-                      danger
+                      text={format(c.moveConfirm, { name, from: label, unit: path(mode.to) })}
+                      note={childrenHint(tree, mode.to, name)}
+                      yes={c.moveYes}
                       pending={pending}
-                      onYes={() => run(() => removeUnitMember(id, m.user_id), format(c.removedFromUnit, { unit: label }))}
+                      onYes={() => moveTo(mode.to, id)}
                       onNo={() => setMode(null)}
                     />
-                  </Collapse>
-                  <Collapse open={mode?.kind === "moveFrom" && mode.unitId === id}>
-                    {mode?.kind === "moveFrom" && mode.unitId === id ? (
-                      <PickerBox title={format(c.moveFrom, { unit: label })} onCancel={() => setMode(null)}>
-                        <UnitPicker
-                          tree={tree}
-                          disabled={new Set(myUnits)}
-                          autoFocus
-                          onPick={(to) => pickMoveTarget(to, id)}
-                        />
-                      </PickerBox>
-                    ) : null}
-                  </Collapse>
-                  <Collapse open={mode?.kind === "confirmMove" && mode.from === id}>
-                    {mode?.kind === "confirmMove" && mode.from === id ? (
-                      <Confirm
-                        text={format(c.moveConfirm, { name, from: label, unit: path(mode.to) })}
-                        note={childrenHint(tree, mode.to, name)}
-                        yes={c.moveYes}
-                        pending={pending}
-                        onYes={() => moveTo(mode.to, id)}
-                        onNo={() => setMode(null)}
-                      />
-                    ) : null}
-                  </Collapse>
-                </li>
-              ))}
-          </ul>
+                  ) : null}
+                </Collapse>
+              </div>
+            ))}
 
           {manageUnits ? (
             <>
@@ -347,28 +323,18 @@ export function MemberSheet({ open, member, tree, pages, organizationId, me, myR
               </Collapse>
               <Collapse open={mode?.kind === "askAddOrMove"}>
                 {mode?.kind === "askAddOrMove" ? (
-                  <div className="flex flex-col gap-3 rounded-2xl bg-surface p-4">
+                  <div className="m-2 flex flex-col gap-3 rounded-xl bg-white p-4">
                     <p className="text-[14px] text-ink">
                       {format(c.addOrMove, { name, units: myUnits.map((id) => `«${path(id)}»`).join(", "), unit: path(mode.unitId) })}
                     </p>
                     {childrenHint(tree, mode.unitId, name) ? <p className="-mt-1 text-[12px] text-muted">{childrenHint(tree, mode.unitId, name)}</p> : null}
                     <div className="flex flex-col gap-2">
-                      <button
-                        type="button"
-                        disabled={pending}
-                        onClick={() => addTo(mode.unitId)}
-                        className={btnSecondary + " bg-white! hover:bg-neutral-100!"}
-                      >
+                      <SecondaryButton size="sm" disabled={pending} onClick={() => addTo(mode.unitId)}>
                         {c.addKeep}
-                      </button>
-                      <button
-                        type="button"
-                        disabled={pending}
-                        onClick={() => moveTo(mode.unitId, null)}
-                        className={btnPrimary}
-                      >
+                      </SecondaryButton>
+                      <PrimaryButton size="sm" disabled={pending} onClick={() => moveTo(mode.unitId, null)}>
                         {c.addMove}
-                      </button>
+                      </PrimaryButton>
                       <button type="button" onClick={() => setMode(null)} disabled={pending} className="h-10 text-[14px] text-muted hover:text-ink">
                         {c.cancel}
                       </button>
@@ -389,42 +355,46 @@ export function MemberSheet({ open, member, tree, pages, organizationId, me, myR
                 ) : null}
               </Collapse>
               {mode?.kind !== "addUnit" && mode?.kind !== "askAddOrMove" && mode?.kind !== "confirmAdd" ? (
-                <AddButton label={c.addToUnit} onClick={() => setMode({ kind: "addUnit" })} />
+                <Row accent icon={<Plus size={ICON} />} label={c.addToUnit} onClick={() => setMode({ kind: "addUnit" })} />
               ) : null}
             </>
           ) : null}
-        </section>
+        </Section>
 
         {/* Доступ к страницам: какие доступны и почему. */}
-        <section className="flex flex-col gap-2">
-          <SectionTitle icon={<PagesIcon />} title={c.pagesTitle} count={seesAll ? null : withAccess.length} />
-          {seesAll ? <p className="text-[14px] text-muted">{format(c.pagesAll, { role: c.roles[m.role] })}</p> : null}
-          {!seesAll && withAccess.length === 0 ? <p className="text-[14px] text-muted">{c.pagesNone}</p> : null}
-          {!seesAll ? (
-            <ul className="flex flex-col">
-              {withAccess.map(({ page, reasons }) => {
+        <Section
+          title={!seesAll && withAccess.length > 0 ? `${c.pagesTitle} · ${withAccess.length}` : c.pagesTitle}
+          info={inherited ? c.inheritedHint : undefined}
+          infoLabel={t.pages.info}
+        >
+          {seesAll ? <p className="px-3.5 py-3 text-[14px] text-muted">{format(c.pagesAll, { role: c.roles[m.role] })}</p> : null}
+          {!seesAll && withAccess.length === 0 ? <p className="px-3.5 py-3 text-[14px] text-muted">{c.pagesNone}</p> : null}
+          {!seesAll
+            ? withAccess.map(({ page, reasons }) => {
                 const individual = reasons.some((r) => r.kind === "user");
                 const others = reasons.filter((r) => r.kind !== "user");
                 return (
-                  <li key={page.id} className="flex flex-col">
-                    <div className="flex min-h-12 items-center gap-3 py-1">
-                      <PageBadge moduleKey={page.moduleKey} locked={!page.hasAccess} />
-                      <span className="min-w-0 flex-1">
-                        {page.hasAccess ? (
-                          <Link href={`/work/p/${page.id}`} className="block truncate text-[14px] font-medium text-ink hover:underline">
+                  <div key={page.id} className="group">
+                    <Row
+                      icon={<PageBadge moduleKey={page.moduleKey} locked={!page.hasAccess} />}
+                      label={
+                        page.hasAccess ? (
+                          <Link href={`/work/p/${page.id}`} className="hover:underline">
                             {page.name}
                           </Link>
                         ) : (
-                          <span className="block truncate text-[14px] font-medium text-ink">{page.name}</span>
-                        )}
-                        <span className="block truncate text-[12px] text-muted">{reasons.map(reasonText).join(" · ")}</span>
-                      </span>
-                      {manageAccess && individual ? (
-                        <IconButton label={c.revoke} tip="end" tone="danger" onClick={() => setMode({ kind: "revoke", pageId: page.id })}>
-                          <XIcon />
-                        </IconButton>
-                      ) : null}
-                    </div>
+                          page.name
+                        )
+                      }
+                      sub={reasons.map(reasonText).join(" · ")}
+                      right={
+                        manageAccess && individual ? (
+                          <IconButton label={c.revoke} tip="end" tone="danger" onClick={() => setMode({ kind: "revoke", pageId: page.id })}>
+                            <XIcon />
+                          </IconButton>
+                        ) : null
+                      }
+                    />
                     <Collapse open={mode?.kind === "revoke" && mode.pageId === page.id}>
                       <Confirm
                         text={
@@ -439,11 +409,10 @@ export function MemberSheet({ open, member, tree, pages, organizationId, me, myR
                         onNo={() => setMode(null)}
                       />
                     </Collapse>
-                  </li>
+                  </div>
                 );
-              })}
-            </ul>
-          ) : null}
+              })
+            : null}
 
           {manageAccess ? (
             <>
@@ -467,16 +436,42 @@ export function MemberSheet({ open, member, tree, pages, organizationId, me, myR
                   />
                 ) : null}
               </Collapse>
-              {mode?.kind !== "grant" && mode?.kind !== "confirmGrant" ? <AddButton label={c.grantAccess} onClick={() => setMode({ kind: "grant" })} /> : null}
-              {withAccess.some(({ reasons }) => reasons.some((r) => r.kind !== "user")) ? (
-                <p className="flex gap-2 pt-1 text-[12px] leading-relaxed text-muted">
-                  <InfoIcon />
-                  {c.inheritedHint}
-                </p>
+              {mode?.kind !== "grant" && mode?.kind !== "confirmGrant" ? (
+                <Row accent icon={<Plus size={ICON} />} label={c.grantAccess} onClick={() => setMode({ kind: "grant" })} />
               ) : null}
             </>
           ) : null}
-        </section>
+        </Section>
+
+        {/* Опасное — отдельной группой в конце, с подтверждением. */}
+        {manageMember ? (
+          <Section title={c.dangerZone}>
+            <Row
+              danger
+              label={c.remove}
+              expanded={mode?.kind === "removeMember"}
+              onClick={() => setMode(mode?.kind === "removeMember" ? null : { kind: "removeMember" })}
+            />
+            <Collapse open={mode?.kind === "removeMember"}>
+              <div className="flex flex-col gap-3 border-t-[0.5px] border-black/[0.09] px-3.5 py-3">
+                <p className="text-[14px] text-ink">{format(c.removeConfirm, { name })}</p>
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setMode(null)}
+                    disabled={pending}
+                    className="h-10 rounded-full px-4 text-[14px] font-medium text-ink hover:bg-black/5"
+                  >
+                    {c.cancel}
+                  </button>
+                  <button type="button" disabled={pending} onClick={() => submitForm(removeMember, {})} className={dangerButton("sm")}>
+                    {pending ? c.removing : c.removeYes}
+                  </button>
+                </div>
+              </div>
+            </Collapse>
+          </Section>
+        ) : null}
       </div>
     </Sheet>
   );
@@ -488,51 +483,22 @@ function formatDate(iso: string): string {
   return new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long", year: "numeric" }).format(new Date(iso));
 }
 
-function SectionTitle({ icon, title, count }: { icon: React.ReactNode; title: string; count: number | null }) {
-  return (
-    <h3 className="flex items-center gap-2 text-[13px] font-medium text-muted">
-      {icon}
-      {title}
-      {count ? <span className="rounded-full bg-surface px-1.5 text-[12px] text-muted">{count}</span> : null}
-    </h3>
-  );
-}
-
 // Подразделение с точкой цвета направления.
-function Dot({ color, label, big = false }: { color: number | null; label: string; big?: boolean }) {
+function Dot({ color, label }: { color: number | null; label: string }) {
   const bg = color ? `var(--branch-${color}-bg)` : "var(--tandem-surface)";
   const dot = color ? `var(--branch-${color}-strong)` : "#a3a3a3";
   return (
-    <span
-      className={`inline-flex min-w-0 max-w-full items-center gap-2 rounded-full font-medium text-ink ${big ? "h-8 pl-2.5 pr-3 text-[14px]" : "h-6 pl-2 pr-2.5 text-[12px]"}`}
-      style={{ background: bg }}
-    >
-      <span className={`${big ? "h-2 w-2" : "h-1.5 w-1.5"} shrink-0 rounded-full`} style={{ background: dot }} aria-hidden />
+    <span className="inline-flex h-6 min-w-0 max-w-full items-center gap-2 rounded-full pl-2 pr-2.5 text-[12px] font-medium text-ink" style={{ background: bg }}>
+      <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: dot }} aria-hidden />
       <span className="truncate">{label}</span>
     </span>
   );
 }
 
-function AddButton({ label, onClick }: { label: string; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex h-10 w-fit items-center gap-2 rounded-full pl-1 pr-3 text-[14px] font-medium text-ink transition-colors hover:bg-surface"
-    >
-      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-surface text-ink">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" className="h-4 w-4" aria-hidden>
-          <path d="M12 5v14M5 12h14" />
-        </svg>
-      </span>
-      {label}
-    </button>
-  );
-}
-
+// Выбор внутри группы (подразделение, страница): белый блок с заголовком и крестиком.
 function PickerBox({ title, onCancel, children }: { title: string; onCancel: () => void; children: React.ReactNode }) {
   return (
-    <div className="mt-1 flex flex-col gap-2 rounded-2xl bg-surface p-3">
+    <div className="m-2 flex flex-col gap-2 rounded-xl bg-white p-3">
       <div className="flex items-center gap-2">
         <p className="min-w-0 flex-1 truncate pl-1 text-[13px] font-medium text-ink">{title}</p>
         <IconButton label={t.company.cancel} tip="end" onClick={onCancel} className="h-8! w-8!">
@@ -562,15 +528,15 @@ function Confirm({
   onNo: () => void;
 }) {
   return (
-    <div className={`mt-1 flex flex-col gap-3 rounded-2xl p-4 ${danger ? "bg-red-50" : "bg-surface"}`}>
+    <div className="m-2 flex flex-col gap-3 rounded-xl bg-white p-4">
       <p className={`text-[14px] ${danger ? "text-red-900" : "text-ink"}`}>{text}</p>
       {note ? <p className="-mt-1 text-[12px] text-muted">{note}</p> : null}
-      <div className="flex flex-wrap gap-2">
-        <button type="button" disabled={pending} onClick={onYes} className={`${btnPrimary} h-10! ${danger ? "bg-red-700! hover:bg-red-800!" : ""}`}>
-          {pending ? t.company.saving : yes}
-        </button>
-        <button type="button" onClick={onNo} disabled={pending} className={`${btnSecondary} h-10! bg-white! hover:bg-neutral-100!`}>
+      <div className="flex flex-wrap justify-end gap-2">
+        <SecondaryButton size="sm" onClick={onNo} disabled={pending}>
           {t.company.cancel}
+        </SecondaryButton>
+        <button type="button" disabled={pending} onClick={onYes} className={danger ? dangerButton("sm") : primaryButton("sm")}>
+          {pending ? t.company.saving : yes}
         </button>
       </div>
     </div>
@@ -597,9 +563,9 @@ function PositionEditor({ initial, pending, onSave }: { initial: string; pending
         aria-label={c.positionLabel}
         className="h-11 w-full rounded-xl border border-line bg-white px-3 text-base text-ink placeholder:text-neutral-400 focus:border-accent focus:outline-none"
       />
-      <button type="submit" disabled={pending} className={`${btnPrimary} h-10!`}>
+      <PrimaryButton type="submit" size="sm" disabled={pending}>
         {c.save}
-      </button>
+      </PrimaryButton>
     </form>
   );
 }
@@ -645,62 +611,7 @@ function PageBadge({ moduleKey, locked }: { moduleKey: string; locked: boolean }
   );
 }
 
-// Иконки свойств — в стиле карточки задачи.
-function Svg({ children, className = "h-[17px] w-[17px]" }: { children: React.ReactNode; className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
-      {children}
-    </svg>
-  );
+// Цвет направления подразделения — точкой на месте иконки строки.
+function ColorDot({ color }: { color: number | null }) {
+  return <span className="h-2.5 w-2.5 rounded-full" style={{ background: color ? `var(--branch-${color}-strong)` : "#a3a3a3" }} aria-hidden />;
 }
-const ShieldIcon = () => (
-  <Svg>
-    <path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6l-7-3z" />
-  </Svg>
-);
-const BadgeIcon = () => (
-  <Svg>
-    <rect x="3.5" y="7" width="17" height="12.5" rx="2.5" />
-    <path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M3.5 12.5h17" />
-  </Svg>
-);
-const CalendarIcon = () => (
-  <Svg>
-    <rect x="4" y="5" width="16" height="15" rx="2.5" />
-    <path d="M4 10h16M9 3v4M15 3v4" />
-  </Svg>
-);
-const StarIcon = () => (
-  <Svg>
-    <path d="m12 4 2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 16.4l-4.8 2.5.9-5.4-3.9-3.8 5.4-.8z" />
-  </Svg>
-);
-const UnitIcon = () => (
-  <Svg className="h-4 w-4">
-    <rect x="3" y="3" width="7" height="7" rx="2" />
-    <rect x="14" y="14" width="7" height="7" rx="2" />
-    <path d="M6.5 10v4a2 2 0 0 0 2 2H14" />
-  </Svg>
-);
-const PagesIcon = () => (
-  <Svg className="h-4 w-4">
-    <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
-    <path d="M14 3v6h6" />
-  </Svg>
-);
-const MoveIcon = () => (
-  <Svg className="h-[18px] w-[18px]">
-    <path d="M5 12h14M13 6l6 6-6 6" />
-  </Svg>
-);
-const ArrowIcon = () => (
-  <Svg className="h-3.5 w-3.5">
-    <path d="M7 17 17 7M9 7h8v8" />
-  </Svg>
-);
-const InfoIcon = () => (
-  <Svg className="mt-0.5 h-3.5 w-3.5 shrink-0">
-    <circle cx="12" cy="12" r="9" />
-    <path d="M12 11v5M12 8h.01" />
-  </Svg>
-);

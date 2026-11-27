@@ -16,7 +16,7 @@ import { getScopeOptions } from "@/modules/pages/scopeOptions";
 // Кнопки видны тем, кому разрешено; окончательно права проверяют функции базы.
 export default function PageSettings({ params }: PageProps<"/work/p/[id]/settings">) {
   return (
-    <StubPage title={t.pages.settings} grouped>
+    <StubPage title={t.pages.settings}>
       <Suspense fallback={<FormFallback />}>
         <Content params={params} />
       </Suspense>

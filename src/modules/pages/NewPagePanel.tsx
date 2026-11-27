@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
-import { Button } from "@/components/ui/Button";
+import { PrimaryButton, SecondaryButton } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { loadNewPageData, type NewPageData } from "./actions";
 import { closeNewPage, forgetNewPagePush, markNewPagePushed, NEW_PAGE, withoutNewPage } from "./newPage";
@@ -63,16 +63,10 @@ export function NewPagePanel() {
       onClose={closeNewPage}
       footer={
         <>
-          <button
-            type="button"
-            onClick={closeNewPage}
-            className="h-11 rounded-xl px-4 text-base font-medium text-ink transition-colors hover:bg-surface"
-          >
-            {p.cancel}
-          </button>
-          <Button type="submit" form={NEW_PAGE_FORM_ID} pending={pending} pendingText={p.creating} disabled={!data} className="w-auto! px-5">
+          <SecondaryButton onClick={closeNewPage}>{p.cancel}</SecondaryButton>
+          <PrimaryButton type="submit" form={NEW_PAGE_FORM_ID} pending={pending} pendingText={p.creating} disabled={!data}>
             {p.create}
-          </Button>
+          </PrimaryButton>
         </>
       }
     >
@@ -101,14 +95,10 @@ export function NewPagePanel() {
 
 function FormSkeleton() {
   return (
-    <div aria-hidden className="flex flex-col gap-6">
-      <div className="grid grid-cols-2 gap-2.5">
-        <span className="h-32 animate-pulse rounded-2xl bg-neutral-100" />
-        <span className="h-32 animate-pulse rounded-2xl bg-neutral-100" />
-      </div>
-      <span className="h-12 animate-pulse rounded-xl bg-neutral-100" />
-      <span className="h-20 animate-pulse rounded-xl bg-neutral-100" />
-      <span className="h-40 animate-pulse rounded-xl bg-neutral-100" />
+    <div aria-hidden className="flex flex-col gap-6 pt-8">
+      <span className="h-[104px] animate-pulse rounded-xl bg-surface" />
+      <span className="h-28 animate-pulse rounded-xl bg-surface" />
+      <span className="h-40 animate-pulse rounded-xl bg-surface" />
     </div>
   );
 }

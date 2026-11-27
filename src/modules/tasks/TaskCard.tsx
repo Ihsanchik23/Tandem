@@ -1,20 +1,23 @@
 "use client";
 
+import { CalendarBlank, CheckCircle, Clock, Flag, PencilSimpleLine, User, Users } from "@phosphor-icons/react";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { t } from "@/lib/i18n";
 import type { ErrorKey } from "@/lib/i18n/ru";
-import { Button } from "@/components/ui/Button";
+import { Button, PrimaryButton, SecondaryButton } from "@/components/ui/Button";
+import { FieldRow, Row, Section } from "@/components/ui/Grouped";
+import { PanelHeader } from "@/components/ui/Panel";
+import { Segmented } from "@/components/ui/Segmented";
 import { FormMessage } from "@/components/ui/FormMessage";
 import { Sheet } from "@/components/ui/Sheet";
 import { subscribeLive } from "@/lib/supabase/realtime";
 import { setArchived, setAssignees, supabase, taskRights, updateTask } from "./api";
 import { ArchiveBoxIcon, IconButton, LinkIcon, PencilIcon, RestoreIcon } from "@/components/ui/IconButton";
 import { MoreMenu } from "@/components/ui/MoreMenu";
-import { CalendarIcon, DueLabel, PersonChip, PriorityBadge, STATUS_DOT } from "./bits";
+import { DueLabel, PersonChip, PriorityBadge, STATUS_DOT } from "./bits";
 import { Comments } from "./Comments";
 import { fetchComments, fetchEvents, fetchProfileName, fetchTask, type PagePerson, type TaskComment, type TaskEvent } from "./data";
 import { History } from "./History";
-import { AuthorIcon, btnPrimary, btnSecondary, CardHeader, CheckCircleIcon, ClockIcon, FlagIcon, Prop, TextIcon, UserIcon, UsersIcon } from "./parts";
 import {
   cleanCoassignees,
   joinLocalDateTime,
@@ -26,7 +29,7 @@ import {
   type TaskFieldErrors,
   type TaskStatus,
 } from "./logic";
-import { TaskForm, type TaskFormValue } from "./TaskForm";
+import { PROP_ICON, TaskForm, type TaskFormValue } from "./TaskForm";
 import { formatDateTime, useNow } from "./time";
 
 type Props = {
@@ -248,18 +251,18 @@ export function TaskCard({ open, taskId, task, people, peopleById, me, readOnly,
   const showActions = task !== null && !editing && !askClose;
 
   // Шапка: слева — где я (задача и её статус), справа — компактные действия с подсказками,
-  // меню «⋯» (второстепенное) и «Закрыть».
+  // меню «⋯» (второстепенное) и крестик.
   const header = (
-    <CardHeader
+    <PanelHeader
       onClose={requestClose}
       title={
         editing ? (
-          <span className="text-[15px] font-semibold text-ink">{s.editTitle}</span>
+          s.editTitle
         ) : task ? (
-          <span className="inline-flex items-center gap-1.5">
+          <span className="inline-flex items-center gap-2">
             <span className="h-2 w-2 rounded-full" style={{ background: STATUS_DOT[task.status] }} aria-hidden />
             {s.status[task.status]}
-            {archived ? <span className="text-muted">· {s.archivedNotice}</span> : null}
+            {archived ? <span className="font-normal text-muted">· {s.archivedNotice}</span> : null}
           </span>
         ) : null
       }
@@ -275,19 +278,19 @@ export function TaskCard({ open, taskId, task, people, peopleById, me, readOnly,
         </IconButton>
       ) : null}
       {showActions ? <MoreMenu items={[{ key: "link", label: s.copyLink, icon: <LinkIcon />, onSelect: copyLink }]} /> : null}
-    </CardHeader>
+    </PanelHeader>
   );
 
   // Режим правки: «Отмена» и «Сохранить» закреплены внизу панели.
   const footer =
     task && editing && !askClose ? (
       <>
-        <button type="button" onClick={requestClose} disabled={pending} className={btnSecondary}>
+        <SecondaryButton onClick={requestClose} disabled={pending}>
           {s.cancel}
-        </button>
-        <button type="button" onClick={save} disabled={pending || !dirty} className={`${btnPrimary} flex-1 md:flex-none`}>
-          {pending ? s.saving : s.save}
-        </button>
+        </SecondaryButton>
+        <PrimaryButton onClick={save} disabled={!dirty} pending={pending} pendingText={s.saving} className="flex-1 md:flex-none">
+          {s.save}
+        </PrimaryButton>
       </>
     ) : null;
 
@@ -320,60 +323,62 @@ export function TaskCard({ open, taskId, task, people, peopleById, me, readOnly,
           <TaskForm value={form} onChange={setForm} people={people} me={me} mode="edit" errors={errors} />
         </div>
       ) : (
-        <div className="flex flex-col gap-7 pt-2">
+        <div className="flex flex-col gap-6 pt-2">
           {notice ? <FormMessage kind="notice">{notice}</FormMessage> : null}
           {error ? <FormMessage kind="error">{t.errors[error]}</FormMessage> : null}
 
           {/* Главное на карточке — заголовок. */}
-          <h2 className="break-words text-[26px] font-semibold leading-[1.15] tracking-[-0.025em] text-ink">{task.title}</h2>
+          <h2 className="break-words px-1 text-[26px] font-semibold leading-[1.15] tracking-[-0.025em] text-ink">{task.title}</h2>
 
-          <StatusControl status={task.status} disabled={!canWork} onChange={(st) => onStatus(task, st)} />
+          <Segmented
+            label={s.changeStatus}
+            value={task.status}
+            disabled={!canWork}
+            onChange={(st) => onStatus(task, st)}
+            options={TASK_STATUSES.map((st) => ({
+              value: st,
+              label: s.statusShort[st],
+              icon: <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: STATUS_DOT[st], opacity: st === task.status ? 1 : 0.45 }} aria-hidden />,
+            }))}
+          />
 
-          {/* Свойства: иконка и название слева, значение справа — ровной сеткой. */}
-          <dl className="grid grid-cols-[minmax(0,8.5rem)_minmax(0,1fr)] items-center gap-x-3 gap-y-1 text-[14px]">
-            <Prop icon={<CalendarIcon className="h-[17px] w-[17px]" />} label={s.due}>
-              <DueLabel task={task} now={now} />
-            </Prop>
-            <Prop icon={<FlagIcon />} label={s.filterPriority}>
-              <PriorityBadge priority={task.priority} />
-            </Prop>
-            <Prop icon={<UserIcon />} label={s.assignee}>
-              <PersonChip person={task.assigneeId ? peopleById.get(task.assigneeId) : undefined} />
-            </Prop>
-            <Prop icon={<UsersIcon />} label={s.coassignees} top={task.coassignees.length > 1}>
-              {task.coassignees.length === 0 ? (
-                <span className="text-muted">{s.coassigneesNone}</span>
-              ) : (
-                <span className="flex flex-col gap-1.5 py-1">
-                  {task.coassignees.map((id) => (
-                    <PersonChip key={id} person={peopleById.get(id)} fallback={s.formerMember} />
-                  ))}
-                </span>
-              )}
-            </Prop>
-            <Prop icon={<AuthorIcon />} label={s.author}>
-              <span className="truncate">{authorName}</span>
-            </Prop>
-            <Prop icon={<ClockIcon />} label={s.createdAt}>
-              {now !== null ? formatDateTime(task.createdAt, now) : ""}
-            </Prop>
+          <Section title={s.properties}>
+            <Row icon={<CalendarBlank size={PROP_ICON} />} label={s.due} value={<DueLabel task={task} now={now} />} />
+            <Row icon={<Flag size={PROP_ICON} />} label={s.filterPriority} value={<PriorityBadge priority={task.priority} />} />
+            <Row
+              icon={<User size={PROP_ICON} />}
+              label={s.assignee}
+              value={<PersonChip person={task.assigneeId ? peopleById.get(task.assigneeId) : undefined} />}
+            />
+            <Row
+              icon={<Users size={PROP_ICON} />}
+              label={s.coassignees}
+              top={task.coassignees.length > 1}
+              value={
+                task.coassignees.length === 0 ? (
+                  s.coassigneesNone
+                ) : (
+                  <span className="flex min-w-0 flex-col items-end gap-1.5 py-0.5">
+                    {task.coassignees.map((id) => (
+                      <PersonChip key={id} person={peopleById.get(id)} fallback={s.formerMember} />
+                    ))}
+                  </span>
+                )
+              }
+            />
+            <Row icon={<PencilSimpleLine size={PROP_ICON} />} label={s.author} value={authorName} />
+            <Row icon={<Clock size={PROP_ICON} />} label={s.createdAt} value={now !== null ? formatDateTime(task.createdAt, now) : ""} />
             {task.completedAt ? (
-              <Prop icon={<CheckCircleIcon />} label={s.completedAt}>
-                {now !== null ? formatDateTime(task.completedAt, now) : ""}
-              </Prop>
+              <Row icon={<CheckCircle size={PROP_ICON} />} label={s.completedAt} value={now !== null ? formatDateTime(task.completedAt, now) : ""} />
             ) : null}
-          </dl>
+          </Section>
 
           {task.description ? (
-            <section className="flex flex-col gap-2">
-              <h3 className="flex items-center gap-2 text-[13px] font-medium text-muted">
-                <TextIcon />
-                {s.description}
-              </h3>
-              <p className="whitespace-pre-wrap break-words rounded-2xl bg-surface px-4 py-3.5 text-[15px] leading-relaxed text-ink">
-                {task.description}
-              </p>
-            </section>
+            <Section>
+              <FieldRow label={s.description}>
+                <p className="whitespace-pre-wrap break-words text-[15px] leading-relaxed text-ink">{task.description}</p>
+              </FieldRow>
+            </Section>
           ) : null}
 
           <Comments
@@ -389,39 +394,5 @@ export function TaskCard({ open, taskId, task, people, peopleById, me, readOnly,
         </div>
       )}
     </Sheet>
-  );
-}
-
-// Статус — сегментированный контрол: плашка плавно переезжает к выбранному.
-function StatusControl({ status, disabled, onChange }: { status: TaskStatus; disabled: boolean; onChange: (s: TaskStatus) => void }) {
-  const s = t.tasks;
-  const index = TASK_STATUSES.indexOf(status);
-  return (
-    <div role="radiogroup" aria-label={s.changeStatus} className="relative grid grid-cols-3 rounded-2xl bg-surface p-1">
-      <span
-        aria-hidden
-        className="absolute inset-y-1 left-1 rounded-xl bg-white shadow-[0_1px_2px_rgba(30,30,30,0.08),0_4px_12px_-4px_rgba(30,30,30,0.12)] transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
-        style={{ width: "calc((100% - 0.5rem) / 3)", transform: `translateX(${index * 100}%)` }}
-      />
-      {TASK_STATUSES.map((st) => {
-        const on = st === status;
-        return (
-          <button
-            key={st}
-            type="button"
-            role="radio"
-            aria-checked={on}
-            disabled={disabled || on}
-            onClick={() => onChange(st)}
-            className={`relative flex h-10 items-center justify-center gap-1.5 rounded-xl px-1 text-[13px] font-medium transition-colors ${
-              on ? "text-ink" : "text-muted enabled:hover:text-ink"
-            } ${disabled && !on ? "cursor-not-allowed opacity-60" : ""}`}
-          >
-            <span className="h-2 w-2 shrink-0 rounded-full transition-opacity" style={{ background: STATUS_DOT[st], opacity: on ? 1 : 0.45 }} aria-hidden />
-            <span className="truncate">{s.statusShort[st]}</span>
-          </button>
-        );
-      })}
-    </div>
   );
 }

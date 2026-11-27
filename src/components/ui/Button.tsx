@@ -1,11 +1,46 @@
 import type { ButtonHTMLAttributes } from "react";
 
+// Главная кнопка одна на всё приложение: сплошной фирменный цвет #BF4A31, при наведении — #AE3926.
+// Правила — docs/design.md. Вторая кнопка рядом с главной — нейтральная (SecondaryButton).
+const PRIMARY_FILL =
+  "bg-accent text-white hover:bg-accent-hover active:bg-accent-hover disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-white aria-busy:bg-accent! aria-busy:opacity-75";
+const SECONDARY_FILL = "bg-surface text-ink hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-60";
+const FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
+
+/** Размеры: md — в панелях и формах (по умолчанию), sm — внутри групп (подтверждения), xs — в строке (комментарий). */
+const SIZE = {
+  xs: "h-8 px-3.5 text-[13px]",
+  sm: "h-10 px-4 text-[14px]",
+  md: "h-11 px-6 text-[15px]",
+} as const;
+
+export const primaryButton = (size: keyof typeof SIZE = "md") =>
+  `inline-flex shrink-0 items-center justify-center rounded-full font-semibold transition-colors ${SIZE[size]} ${PRIMARY_FILL} ${FOCUS}`;
+export const secondaryButton = (size: keyof typeof SIZE = "md") =>
+  `inline-flex shrink-0 items-center justify-center rounded-full font-medium transition-colors ${SIZE[size]} ${SECONDARY_FILL} ${FOCUS}`;
+/** Подтверждение опасного действия (удалить, в архив) — красная заливка той же формы. */
+export const dangerButton = (size: keyof typeof SIZE = "md") =>
+  `inline-flex shrink-0 items-center justify-center rounded-full font-semibold text-white transition-colors bg-red-700 hover:bg-red-800 disabled:opacity-60 ${SIZE[size]} ${FOCUS}`;
+
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "primary" | "secondary";
   pending?: boolean;
   pendingText?: string;
+  size?: keyof typeof SIZE;
 };
 
+export function PrimaryButton({ pending = false, pendingText, size = "md", className = "", children, disabled, type = "button", ...rest }: Props) {
+  return (
+    <button {...rest} type={type} disabled={disabled || pending} aria-busy={pending || undefined} className={`${primaryButton(size)} ${className}`}>
+      {pending && pendingText ? pendingText : children}
+    </button>
+  );
+}
+
+export function SecondaryButton({ size = "md", className = "", type = "button", ...rest }: Omit<Props, "pending" | "pendingText">) {
+  return <button {...rest} type={type} className={`${secondaryButton(size)} ${className}`} />;
+}
+
+// Широкая кнопка на всю ширину (входы, формы на отдельной странице). Заливка — та же, что у PrimaryButton.
 export function Button({
   variant = "primary",
   pending = false,
@@ -14,20 +49,11 @@ export function Button({
   children,
   disabled,
   ...rest
-}: Props) {
-  const base =
-    "inline-flex h-12 w-full items-center justify-center rounded-xl px-4 text-base font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
-  const styles =
-    variant === "primary"
-      ? "bg-brand text-white hover:bg-brand-hover"
-      : "border border-neutral-300 bg-white text-ink hover:bg-neutral-50";
+}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "secondary"; pending?: boolean; pendingText?: string }) {
+  const base = `inline-flex h-12 w-full items-center justify-center rounded-xl px-4 text-base font-medium transition-colors ${FOCUS}`;
+  const styles = variant === "primary" ? PRIMARY_FILL : "border border-neutral-300 bg-white text-ink hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-60";
   return (
-    <button
-      {...rest}
-      disabled={disabled || pending}
-      aria-busy={pending || undefined}
-      className={`${base} ${styles} ${className}`}
-    >
+    <button {...rest} disabled={disabled || pending} aria-busy={pending || undefined} className={`${base} ${styles} ${className}`}>
       {pending && pendingText ? pendingText : children}
     </button>
   );

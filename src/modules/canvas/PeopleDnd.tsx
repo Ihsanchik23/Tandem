@@ -23,7 +23,7 @@ import { fullName } from "@/lib/company/people";
 import { format, t } from "@/lib/i18n";
 import type { ErrorKey } from "@/lib/i18n/ru";
 import { Avatar } from "@/components/profile/Avatar";
-import { btnPrimary, btnSecondary } from "@/components/ui/Card";
+import { primaryButton, secondaryButton } from "@/components/ui/Button";
 import { FormMessage } from "@/components/ui/FormMessage";
 import { childrenHint } from "@/components/company/childrenHint";
 import { unitPath, type Tree } from "./tree";
@@ -239,15 +239,15 @@ function AssignDialog({
         <div className="flex flex-col gap-2 sm:flex-row-reverse">
           {from ? (
             <>
-              <button type="button" autoFocus disabled={busy} onClick={() => confirm(true)} className={`${btnPrimary} sm:flex-1`}>
+              <button type="button" autoFocus disabled={busy} onClick={() => confirm(true)} className={`${primaryButton()} sm:flex-1`}>
                 {busy ? c.saving : c.assignMove}
               </button>
-              <button type="button" disabled={busy} onClick={() => confirm(false)} className={`${btnSecondary} sm:flex-1`}>
+              <button type="button" disabled={busy} onClick={() => confirm(false)} className={`${secondaryButton()} sm:flex-1`}>
                 {c.assignYes}
               </button>
             </>
           ) : (
-            <button type="button" autoFocus disabled={busy} onClick={() => confirm(false)} className={`${btnPrimary} sm:flex-1`}>
+            <button type="button" autoFocus disabled={busy} onClick={() => confirm(false)} className={`${primaryButton()} sm:flex-1`}>
               {busy ? c.saving : c.assignYes}
             </button>
           )}

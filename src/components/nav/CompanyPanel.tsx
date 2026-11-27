@@ -8,7 +8,7 @@ import { t } from "@/lib/i18n";
 import type { ShellData } from "@/lib/nav/shell";
 import { Avatar } from "@/components/profile/Avatar";
 import { ConfirmAction } from "@/components/ui/ConfirmAction";
-import { Group, GroupCard as Card, Row } from "@/components/ui/Grouped";
+import { OnGrayBackground, Row, Section, SectionCard as Card } from "@/components/ui/Grouped";
 import { GROUPED_BG } from "@/components/ui/groupedStyle";
 import { PageIcon } from "@/components/ui/PageIcon";
 import { useMyChats } from "@/modules/chat/chats";
@@ -25,7 +25,16 @@ const ICON = 22;
 // Панель компании: карточка компании и группы «Рабочие страницы», «Моя компания», «Прочее».
 // Строка: иконка, название, справа счётчик непрочитанного (чаты) или «Новая», шеврон.
 // На компьютере — постоянная панель в «Работе», на телефоне — выдвижное меню слева.
-export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate?: () => void }) {
+export function CompanyPanel(props: { data: ShellData; onNavigate?: () => void }) {
+  // Боковое меню — единственное место с серым фоном: карточки групп здесь белые.
+  return (
+    <OnGrayBackground>
+      <PanelContent {...props} />
+    </OnGrayBackground>
+  );
+}
+
+function PanelContent({ data, onNavigate }: { data: ShellData; onNavigate?: () => void }) {
   const pathname = usePathname() ?? "";
   const seen = useSeenPages();
   const { chats } = useMyChats();
@@ -79,7 +88,7 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
         aria-label={w.menu}
         className="flex flex-1 flex-col gap-5 overflow-y-auto px-3 py-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        <Group
+        <Section
           title={w.menuPages}
           action={
             canCreatePage(company.role) ? (
@@ -124,16 +133,16 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
               );
             })
           )}
-        </Group>
+        </Section>
 
-        <Group title={w.menuMyCompany}>
+        <Section title={w.menuMyCompany}>
           {links.map((l) => (
             <Row chevron key={l.href} href={l.href} onClick={onNavigate} active={pathname.startsWith(l.href)} icon={l.icon} label={l.label} />
           ))}
-        </Group>
+        </Section>
 
         {/* «Прочее» — служебные страницы, не рабочие и не «Моя компания». */}
-        <Group title={w.menuOther}>
+        <Section title={w.menuOther}>
           <Row chevron
             href="/work/archive"
             onClick={onNavigate}
@@ -141,7 +150,7 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
             icon={<Archive size={ICON} />}
             label={w.menuArchive}
           />
-        </Group>
+        </Section>
       </nav>
       </div>
 
