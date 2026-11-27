@@ -4,11 +4,13 @@ import Link from "next/link";
 import { useState } from "react";
 import { t } from "@/lib/i18n";
 import { BrandMark } from "@/components/ui/BrandMark";
+import { UnreadBadge } from "@/modules/chat/UnreadBadge";
 import { IconGradientDefs } from "./icons";
 import { NAV_ITEMS } from "./items";
 
 // isGuest — без входа: на компьютере (от 1024px) гость видит только экран входа, боковое меню не нужно.
-type Props = { pathname: string | null; myUsername: string | null; isGuest?: boolean };
+// unread — показывать счётчик непрочитанного на «Сообщениях» (только после входа).
+type Props = { pathname: string | null; myUsername: string | null; isGuest?: boolean; unread?: boolean };
 
 // Боковое меню компьютера раскрывается при наведении и при переходе по нему с клавиатуры.
 // Раньше было focus-within: в Windows (Chrome/Edge) ссылка после клика остаётся в фокусе,
@@ -19,7 +21,7 @@ const LABEL_OPEN = "group-hover/nav:opacity-100 group-has-[:focus-visible]/nav:o
 
 // Нижняя панель на телефоне и боковая на широком экране (ТЗ, раздел 15).
 // pathname = null — пока адрес неизвестен, ничего не выделяем.
-export function AppNavView({ pathname, myUsername, isGuest = false }: Props) {
+export function AppNavView({ pathname, myUsername, isGuest = false, unread = false }: Props) {
   // После клика по пункту меню не раскрывается, пока мышь не уйдёт с него.
   const [closed, setClosed] = useState(false);
   const open = closed ? "" : NAV_OPEN;
@@ -48,7 +50,10 @@ export function AppNavView({ pathname, myUsername, isGuest = false }: Props) {
                   aria-label={label}
                   className="flex h-16 items-center justify-center text-ink"
                 >
-                  <Icon active={active} className="h-7 w-7" />
+                  <span className="relative">
+                    <Icon active={active} className="h-7 w-7" />
+                    {unread && href === "/messages" ? <UnreadBadge className="absolute -right-2.5 -top-1.5" /> : null}
+                  </span>
                 </Link>
               </li>
             );
@@ -78,7 +83,10 @@ export function AppNavView({ pathname, myUsername, isGuest = false }: Props) {
                   aria-label={name}
                   className="flex h-12 items-center gap-4 rounded-xl px-2 text-base text-ink hover:bg-neutral-100"
                 >
-                  <Icon active={active} className="h-7 w-7 shrink-0" />
+                  <span className="relative shrink-0">
+                    <Icon active={active} className="h-7 w-7" />
+                    {unread && href === "/messages" ? <UnreadBadge className="absolute -right-2.5 -top-1.5" /> : null}
+                  </span>
                   <span className={`whitespace-nowrap opacity-0 transition-opacity duration-200 ${label} ${active ? "font-semibold" : ""}`}>
                     {name}
                   </span>
