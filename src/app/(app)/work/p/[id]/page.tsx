@@ -10,6 +10,7 @@ import { canManagePage } from "@/modules/pages/logic";
 import { PageScreen } from "@/modules/pages/PageScreen";
 import { getPage } from "@/modules/pages/queries";
 import { TasksSection } from "@/modules/tasks/TasksSection";
+import { ChatSection } from "@/modules/chat/ChatSection";
 
 // Рабочая страница. Открыть можно только при доступе (page_access); иначе — понятный отказ.
 // Содержимое модуля («Задачи», «Чат») защищает RLS, здесь только показ.
@@ -43,6 +44,9 @@ async function Content({ params }: { params: PageProps<"/work/p/[id]">["params"]
   const canManage = canManagePage(company.role, page.createdBy, userId);
   if (page.moduleKey === "tasks") {
     return <TasksSection page={page} canManage={canManage} orgId={company.org.id} me={userId} role={company.role} />;
+  }
+  if (page.moduleKey === "chat") {
+    return <ChatSection page={page} canManage={canManage} me={userId} role={company.role} />;
   }
   return <PageScreen page={page} canManage={canManage} />;
 }
