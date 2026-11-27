@@ -3,6 +3,7 @@ import { MobileHeader } from "@/components/nav/MobileHeader";
 import { WorkPanel } from "@/components/nav/WorkPanel";
 import { MobileHeaderSkeleton, WorkPanelSkeleton } from "@/components/nav/WorkSkeletons";
 import { getShellData } from "@/lib/nav/shell";
+import { NewPagePanel } from "@/modules/pages/NewPagePanel";
 
 // Раздел «Работа».
 // Компьютер: слева постоянная панель компании.
@@ -21,6 +22,10 @@ export default function WorkLayout({ children }: LayoutProps<"/work">) {
         </Suspense>
         {children}
       </div>
+      {/* «Новая страница» — панель справа поверх любого экрана «Работы» (?new-page=1). */}
+      <Suspense fallback={null}>
+        <NewPagePanel />
+      </Suspense>
     </div>
   );
 }

@@ -2,7 +2,7 @@
 import type { ErrorKey } from "../../lib/i18n/ru.ts";
 import { companyDbError } from "../../lib/company/validation.ts";
 
-export const PAGE_LIMITS = { name: 100, description: 500 } as const;
+export const PAGE_LIMITS = { name: 60, description: 500 } as const;
 export const PAGE_MODULES = ["tasks", "chat"] as const;
 export type ModuleKey = (typeof PAGE_MODULES)[number];
 
@@ -20,6 +20,15 @@ export function toScopes(sel: ScopeSelection): ({ kind: "organization" } | { kin
     ...[...new Set(sel.units)].map((unit_id) => ({ kind: "unit" as const, unit_id })),
     ...[...new Set(sel.users)].map((user_id) => ({ kind: "user" as const, user_id })),
   ];
+}
+
+// Выбор в форме → строки Scope для расчёта «кто получит доступ» (lib/company/access.ts).
+export function toScopeLite(sel: ScopeSelection): { kind: "organization" | "unit" | "user"; unit_id: string | null; user_id: string | null }[] {
+  return toScopes(sel).map((s) => ({
+    kind: s.kind,
+    unit_id: s.kind === "unit" ? s.unit_id : null,
+    user_id: s.kind === "user" ? s.user_id : null,
+  }));
 }
 
 export function fromScopes(rows: ScopeRow[]): ScopeSelection {

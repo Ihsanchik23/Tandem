@@ -10,7 +10,6 @@ export function sectionTitle(path: string, myUsername: string | null, pages: { i
   if (path.startsWith("/work/structure")) return t.canvas.title;
   if (path.startsWith("/work/people")) return t.company.peopleTitle;
   if (path.startsWith("/work/new")) return t.company.createTitle;
-  if (path.startsWith("/work/pages/new")) return t.pages.createTitle;
   if (path.startsWith("/work/archive")) return t.pages.archiveTitle;
   if (path.startsWith("/work/p/")) {
     const id = path.split("/")[3];

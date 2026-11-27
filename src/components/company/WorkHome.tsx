@@ -58,7 +58,7 @@ function QuickStart({ state }: { state: QuickStartState }) {
   const steps = [
     { done: state.hasUnits, href: "/work/structure", label: w.quickStructure },
     { done: state.hasPeople, href: "/work/people", label: w.quickInvite },
-    { done: state.hasPages, href: "/work/pages/new", label: w.quickPage },
+    { done: state.hasPages, href: "/work?new-page=1", label: w.quickPage },
   ].filter((s) => !s.done);
   if (steps.length === 0) return null;
   const item =

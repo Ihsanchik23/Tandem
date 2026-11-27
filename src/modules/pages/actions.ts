@@ -1,11 +1,14 @@
 "use server";
 
 // Создание и настройка рабочих страниц. Права (роль, Scope менеджера, подписка) проверяют функции базы.
-import { redirect } from "next/navigation";
 import { revalidateWork } from "@/lib/cache/revalidate";
 import { createClient } from "@/lib/supabase/server";
 import type { ErrorKey } from "@/lib/i18n/ru";
-import { pageDbError, toScopes, validatePage, type ModuleKey, type PageFieldErrors, type ScopeSelection } from "./logic";
+import { getUserId } from "@/lib/auth/session";
+import { getMyCompany } from "@/lib/company/queries";
+import { MODULES } from "@/modules/registry";
+import { canCreatePage, pageDbError, toScopes, validatePage, type ModuleKey, type PageFieldErrors, type ScopeSelection } from "./logic";
+import { getScopeOptions, type ScopeOptions } from "./scopeOptions";
 
 export type PageResult = { error?: ErrorKey; fieldErrors?: PageFieldErrors };
 
@@ -14,14 +17,14 @@ function refresh() {
   revalidateWork();
 }
 
+// Возвращает id новой страницы — панель создания сама откроет её.
 export async function createPage(input: {
   organizationId: string;
   module: ModuleKey;
   name: string;
   description: string;
   selection: ScopeSelection;
-  returnToCanvas?: boolean;
-}): Promise<PageResult> {
+}): Promise<PageResult & { pageId?: string }> {
   const fieldErrors = validatePage(input);
   if (Object.keys(fieldErrors).length > 0) return { error: "fixFields", fieldErrors };
   const supabase = await createClient();
@@ -32,12 +35,33 @@ export async function createPage(input: {
     p_scopes: toScopes(input.selection),
     p_description: input.description.trim() || undefined,
   });
-  if (error) return { error: pageDbError(error) };
+  if (error || !pageId) return { error: error ? pageDbError(error) : "generic" };
   refresh();
-  // Создали из «+» на «Структуре» — возвращаемся туда, холст покажет новую карточку.
-  if (input.returnToCanvas && pageId) redirect(`/work/structure?focus=page-${pageId}`);
-  // Иначе — к списку, новая страница отмечена «Новая».
-  redirect("/work");
+  return { pageId };
+}
+
+export type NewPageData = {
+  organizationId: string;
+  options: ScopeOptions;
+  /** Сколько страниц каждого модуля уже есть — только если у какого-то модуля задан лимит. */
+  used: Record<string, number>;
+};
+
+// Данные для панели «Новая страница»: что можно выбрать в «Кому доступна» (только для показа —
+// права проверяет create_page). Грузятся, когда панель открывают.
+export async function loadNewPageData(): Promise<{ data?: NewPageData; error?: ErrorKey }> {
+  const userId = await getUserId();
+  if (!userId) return { error: "sessionExpired" };
+  const company = await getMyCompany(userId);
+  if (!company || !canCreatePage(company.role)) return { error: "forbidden" };
+  const options = await getScopeOptions(company.org.id, userId, company.role);
+  const used: Record<string, number> = {};
+  if (MODULES.some((m) => m.limit !== null)) {
+    const supabase = await createClient();
+    const { data } = await supabase.from("pages").select("module_key").eq("organization_id", company.org.id).eq("status", "active");
+    for (const r of data ?? []) used[r.module_key] = (used[r.module_key] ?? 0) + 1;
+  }
+  return { data: { organizationId: company.org.id, options, used } };
 }
 
 export async function updatePage(pageId: string, name: string, description: string): Promise<PageResult> {

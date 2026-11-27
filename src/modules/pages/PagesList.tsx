@@ -7,6 +7,7 @@ import { PlusIcon, SearchIcon } from "@/components/nav/icons";
 import { ChoiceChips, FilterMenu, FilterSection } from "@/components/ui/filters/FilterMenu";
 import { PageIcon } from "@/components/ui/PageIcon";
 import { filterPages, isNewPage, PAGE_MODULES, sortPages, type ModuleKey } from "./logic";
+import { openNewPage } from "./newPage";
 import { useSeenPages } from "./seen";
 
 export type ListPage = { id: string; name: string; description: string | null; moduleKey: ModuleKey; createdAt: string; archived: boolean };
@@ -43,14 +44,15 @@ export function PagesList({ pages, canCreate, archive = false }: { pages: ListPa
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold text-ink">{p.title}</h2>
           {canCreate ? (
-            <Link
-              href="/work/pages/new"
+            <a
+              href="/work?new-page=1"
+              onClick={(e) => openNewPage(e)}
               aria-label={p.create}
               title={p.create}
               className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-white hover:bg-brand-hover"
             >
               <PlusIcon className="h-5 w-5" />
-            </Link>
+            </a>
           ) : null}
         </div>
       )}

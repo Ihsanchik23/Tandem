@@ -1,46 +1,20 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { FormFallback } from "@/components/auth/FormFallback";
-import { StubPage } from "@/components/layout/StubPage";
-import { getUserId } from "@/lib/auth/session";
-import { getMyCompany } from "@/lib/company/queries";
-import { t } from "@/lib/i18n";
-import { canCreatePage, EMPTY_SELECTION, type ScopeSelection } from "@/modules/pages/logic";
-import { PageForm } from "@/modules/pages/PageForm";
-import { getScopeOptions } from "@/modules/pages/scopeOptions";
 
-// Создание рабочей страницы (ТЗ, раздел 11). ?unit=<id> или ?scope=organization — доступ подставлен
-// (так открывается из «+» на структуре).
-export default function NewPagePage({ searchParams }: PageProps<"/work/pages/new">) {
+// Старый адрес формы. Создание страницы теперь — панель справа (?new-page=1) поверх «Работы».
+export default function NewPageRedirect({ searchParams }: PageProps<"/work/pages/new">) {
   return (
-    <StubPage title={t.pages.createTitle}>
-      <Suspense fallback={<FormFallback />}>
-        <NewPageContent searchParams={searchParams} />
-      </Suspense>
-    </StubPage>
+    <Suspense fallback={null}>
+      <Redirect searchParams={searchParams} />
+    </Suspense>
   );
 }
 
-async function NewPageContent({ searchParams }: { searchParams: PageProps<"/work/pages/new">["searchParams"] }) {
-  const userId = await getUserId();
-  if (!userId) redirect("/login");
-  const company = await getMyCompany(userId);
-  if (!company) redirect("/work");
-  if (!canCreatePage(company.role)) redirect("/work");
-
-  const [{ unit, scope, from }, options] = await Promise.all([searchParams, getScopeOptions(company.org.id, userId, company.role)]);
-  let initial: ScopeSelection = options.allowOrganization ? { ...EMPTY_SELECTION, organization: true } : EMPTY_SELECTION;
-  if (typeof unit === "string" && options.units.some((u) => u.id === unit)) initial = { ...EMPTY_SELECTION, units: [unit] };
-  else if (scope === "organization" && options.allowOrganization) initial = { ...EMPTY_SELECTION, organization: true };
-
-  // Создают из «+» на «Структуре» — после создания возвращаемся туда и показываем новую карточку.
-  return (
-    <PageForm
-      mode="create"
-      organizationId={company.org.id}
-      options={options}
-      initialSelection={initial}
-      returnToCanvas={from === "canvas"}
-    />
-  );
+async function Redirect({ searchParams }: { searchParams: PageProps<"/work/pages/new">["searchParams"] }): Promise<null> {
+  const { unit, scope, from } = await searchParams;
+  const params = new URLSearchParams({ "new-page": "1" });
+  if (typeof unit === "string") params.set("unit", unit);
+  else if (scope === "organization") params.set("scope", "organization");
+  redirect(`${from === "canvas" ? "/work/structure" : "/work"}?${params.toString()}`);
+  return null;
 }

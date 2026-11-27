@@ -14,19 +14,12 @@ import { FormMessage } from "@/components/ui/FormMessage";
 import { IconButton, XIcon } from "@/components/ui/IconButton";
 import { branchColors, buildTree, unitPath, type UnitRow } from "@/modules/canvas/tree";
 import { updatePageScope } from "./actions";
-import { isEmptySelection, toScopes, type ScopeSelection } from "./logic";
+import { isEmptySelection, toScopeLite, type ScopeSelection } from "./logic";
 import type { ScopeOptions } from "./scopeOptions";
 
 type Props = { pageId: string; options: ScopeOptions; initial: ScopeSelection };
 
-// Выбор в форме → строки Scope для расчёта «кто получит / кто потеряет».
-function toLite(sel: ScopeSelection): ScopeLite[] {
-  return toScopes(sel).map((s) => ({
-    kind: s.kind,
-    unit_id: s.kind === "unit" ? s.unit_id : null,
-    user_id: s.kind === "user" ? s.user_id : null,
-  }));
-}
+const toLite = (sel: ScopeSelection): ScopeLite[] => toScopeLite(sel);
 const same = (a: string[], b: string[]) => a.length === b.length && a.every((x) => b.includes(x));
 
 // «Доступ» в настройках страницы: через структуру (подразделения или вся компания) и индивидуальный.

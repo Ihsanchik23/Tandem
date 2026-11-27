@@ -19,7 +19,7 @@ test("проверка полей страницы", () => {
   const sel = { organization: true, units: [], users: [] };
   assert.deepEqual(validatePage({ name: "Задачи", description: "", selection: sel }), {});
   assert.equal(validatePage({ name: "  ", description: "", selection: sel }).name, "pageNameRequired");
-  assert.equal(validatePage({ name: "x".repeat(101), description: "" }).name, "pageNameTooLong");
+  assert.equal(validatePage({ name: "x".repeat(61), description: "" }).name, "pageNameTooLong");
   assert.equal(validatePage({ name: "x", description: "x".repeat(501) }).description, "pageDescriptionTooLong");
   assert.equal(validatePage({ name: "x", description: "", selection: { organization: false, units: [], users: [] } }).scope, "scopeRequired");
 });

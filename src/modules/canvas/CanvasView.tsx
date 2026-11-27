@@ -245,7 +245,7 @@ function CanvasInner({ organization, units, unitMembers: serverMembers, people, 
       position: points.get(ROOT_ID) ?? { x: 0, y: 0 },
       zIndex: menuFor === ROOT_ID ? 1000 : 0,
       data: {
-        ...menu(ROOT_ID, "/work/pages/new?scope=organization&from=canvas"),
+        ...menu(ROOT_ID, "/work/structure?new-page=1&scope=organization"),
         name: organization.name,
         logoUrl: organization.logoUrl,
         members: people.length,
@@ -260,7 +260,7 @@ function CanvasInner({ organization, units, unitMembers: serverMembers, people, 
         // Открытое меню — поверх всего; раскрытый список людей — поверх карточек ниже.
         zIndex: menuFor === u.id ? 1000 : expanded.has(u.id) ? 10 : 0,
         data: {
-          ...menu(u.id, `/work/pages/new?unit=${u.id}&from=canvas`),
+          ...menu(u.id, `/work/structure?new-page=1&unit=${u.id}`),
           name: u.name,
           tint: colors.get(u.id) ?? null,
           head: u.head_user_id ? (peopleById.get(u.head_user_id) ?? null) : null,

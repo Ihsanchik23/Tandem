@@ -11,6 +11,7 @@ import { canCreatePage, isNewPage } from "@/modules/pages/logic";
 import { NewBadge } from "@/modules/pages/PagesList";
 import { useSeenPages } from "@/modules/pages/seen";
 import { PageIcon } from "@/components/ui/PageIcon";
+import { newPageHref, openNewPage } from "@/modules/pages/newPage";
 import { PlusIcon } from "./icons";
 import { SidebarGlyph, type SidebarGlyphKind } from "./SidebarGlyph";
 
@@ -68,15 +69,18 @@ export function CompanyPanel({ data, onNavigate }: { data: ShellData; onNavigate
           title={w.menuPages}
           action={
             canCreatePage(company.role) ? (
-              <Link
-                href="/work/pages/new"
-                onClick={onNavigate}
+              <a
+                href={newPageHref(pathname)}
+                onClick={(e) => {
+                  onNavigate?.();
+                  openNewPage(e);
+                }}
                 aria-label={t.pages.create}
                 title={t.pages.create}
                 className="flex h-6 w-6 items-center justify-center rounded-md text-muted hover:bg-neutral-100 hover:text-ink"
               >
                 <PlusIcon className="h-3.5 w-3.5" />
-              </Link>
+              </a>
             ) : null
           }
         >

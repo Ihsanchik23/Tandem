@@ -40,7 +40,7 @@ async function Content({ params }: { params: PageProps<"/work/p/[id]/settings">[
   const p = t.pages;
   return (
     <div className="flex flex-col gap-8">
-      <PageForm mode="edit" pageId={page.id} initial={{ name: page.name, description: page.description ?? "" }} />
+      <PageForm pageId={page.id} initial={{ name: page.name, description: page.description ?? "" }} />
       <AccessForm pageId={page.id} options={options} initial={fromScopes(page.scopes)} />
       {page.archived ? (
         <RestoreButton pageId={page.id} />
